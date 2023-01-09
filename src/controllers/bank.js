@@ -151,22 +151,17 @@ module.exports = {
                     ]
                   }
                 })
+                const data = {
+                  name: dataBank[0],
+                  digit: dataBank[1],
+                  kode_bank: dataBank[2]
+                }
                 if (select) {
-                  const data = {
-                    name: dataBank[0],
-                    digit: dataBank[1],
-                    kode_bank: dataBank[2]
-                  }
                   const upbank = await select.update(data)
                   if (upbank) {
                     arr.push(1)
                   }
                 } else {
-                  const data = {
-                    name: dataBank[0],
-                    digit: dataBank[1],
-                    kode_bank: dataBank[2]
-                  }
                   const createBank = await bank.create(data)
                   if (createBank) {
                     arr.push(1)

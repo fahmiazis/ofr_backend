@@ -1,8 +1,8 @@
 const joi = require('joi')
 const response = require('../helpers/response')
-const { user, sequelize, role } = require('../models')
+const { user, role } = require('../models')
 const bcrypt = require('bcryptjs')
-const { Op, QueryTypes } = require('sequelize')
+const { Op } = require('sequelize')
 const { pagination } = require('../helpers/pagination')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
@@ -472,95 +472,72 @@ module.exports = {
             if (result.length > 0) {
               return response(res, 'there is duplication in your file master', { result }, 404, false)
             } else {
-              const arr = []
-              for (let i = 0; i < rows.length - 1; i++) {
-                const select = await sequelize.query(`SELECT username from users WHERE username='${cek[i]}'`, {
-                  type: QueryTypes.SELECT
-                })
-                await sequelize.query(`DELETE from users WHERE username='${cek[i]}'`, {
-                  type: QueryTypes.DELETE
-                })
-                if (select.length > 0) {
-                  arr.push(select[0])
+              rows.shift()
+              const create = []
+              for (let i = 0; i < rows.length; i++) {
+                const noun = []
+                const process = rows[i]
+                for (let j = 0; j < process.length; j++) {
+                  if (j === 1) {
+                    let str = process[j]
+                    str = await bcrypt.hash(str, await bcrypt.genSalt())
+                    noun.push(str)
+                  } else {
+                    noun.push(process[j])
+                  }
                 }
+                create.push(noun)
               }
-              if (arr.length > 0) {
-                rows.shift()
-                const create = []
-                for (let i = 0; i < rows.length; i++) {
-                  const noun = []
-                  const process = rows[i]
-                  for (let j = 0; j < process.length; j++) {
-                    console.log([process[j], [j]])
-                    if (j === 1) {
-                      let str = process[j]
-                      str = await bcrypt.hash(str, await bcrypt.genSalt())
-                      noun.push(str)
-                    } else {
-                      noun.push(process[j])
+              if (create.length > 0) {
+                const arr = []
+                for (let i = 0; i < create.length; i++) {
+                  const dataUser = create[i]
+                  const data = {
+                    username: dataUser[0],
+                    password: dataUser[1],
+                    fullname: dataUser[2],
+                    kode_plant: dataUser[3],
+                    level: dataUser[4],
+                    email: dataUser[5]
+                  }
+                  const findUser = await user.findOne({
+                    where: {
+                      username: dataUser[0]
+                    }
+                  })
+                  if (findUser) {
+                    const upUser = await findUser.update(data)
+                    if (upUser) {
+                      arr.push(upUser)
+                    }
+                  } else {
+                    const createUser = await user.create(data)
+                    if (createUser) {
+                      arr.push(createUser)
                     }
                   }
-                  create.push(noun)
                 }
-                const result = await sequelize.query(`INSERT INTO users (username, password, fullname, kode_plant, level, email) VALUES ${create.map(a => '(?)').join(',')}`,
-                  {
-                    replacements: create,
-                    type: QueryTypes.INSERT
-                  })
-                if (result) {
+                if (arr.length) {
                   fs.unlink(dokumen, function (err) {
                     if (err) throw err
-                    console.log('success')
+                    console.log('success delete file')
                   })
                   return response(res, 'successfully upload file master')
                 } else {
                   fs.unlink(dokumen, function (err) {
                     if (err) throw err
-                    console.log('success')
+                    console.log('success delete file')
                   })
                   return response(res, 'failed to upload file', {}, 404, false)
                 }
               } else {
-                rows.shift()
-                const create = []
-                for (let i = 0; i < rows.length; i++) {
-                  const noun = []
-                  const process = rows[i]
-                  for (let j = 0; j < process.length; j++) {
-                    if (j === 2) {
-                      let str = process[j]
-                      str = await bcrypt.hash(str, await bcrypt.genSalt())
-                      noun.push(str)
-                    } else {
-                      noun.push(process[j])
-                    }
-                  }
-                  create.push(noun)
-                }
-                const result = await sequelize.query(`INSERT INTO users (username, password, fullname, kode_plant, level, email) VALUES ${create.map(a => '(?)').join(',')}`,
-                  {
-                    replacements: create,
-                    type: QueryTypes.INSERT
-                  })
-                if (result) {
-                  fs.unlink(dokumen, function (err) {
-                    if (err) throw err
-                    console.log('success')
-                  })
-                  return response(res, 'successfully upload file master')
-                } else {
-                  fs.unlink(dokumen, function (err) {
-                    if (err) throw err
-                    console.log('success')
-                  })
-                  return response(res, 'failed to upload file', {}, 404, false)
-                }
+                return response(res, 'failed to upload file', {}, 404, false)
               }
             }
           } else {
             fs.unlink(dokumen, function (err) {
               if (err) throw err
-              console.log('success')
+              console.log('success delete file')
             })
             return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
           }
@@ -595,7 +572,7 @@ module.exports = {
             if (err) {
               throw err
             }
-            console.log('success')
+            console.log('success delete file')
           })
           return response(res, 'success', { link: `${APP_URL}/download/${name}` })
         } else {
