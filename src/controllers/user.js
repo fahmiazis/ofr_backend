@@ -434,21 +434,21 @@ module.exports = {
           }
           if (count.length === cek.length) {
             const plant = []
-            const user = []
+            const userName = []
             const cek = []
             for (let i = 1; i < rows.length; i++) {
               const a = rows[i]
               if (a[4] === '5' || a[4] === 5) {
                 plant.push(`Kode area ${a[3]} dan  User level ${a[4]}`)
               }
-              user.push(`User Name ${a[0]}`)
+              userName.push(`User Name ${a[0]}`)
               cek.push(`${a[0]}`)
             }
             const object = {}
             const result = []
             const obj = {}
 
-            user.forEach(item => {
+            userName.forEach(item => {
               if (!obj[item]) { obj[item] = 0 }
               obj[item] += 1
             })

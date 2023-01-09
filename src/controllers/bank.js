@@ -113,7 +113,6 @@ module.exports = {
               count.push(1)
             }
           }
-          console.log(count.length)
           if (count.length === cek.length) {
             const cost = []
             const kode = []
