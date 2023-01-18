@@ -342,7 +342,8 @@ module.exports = {
         for (let i = 0; i < findKlaim.length; i++) {
           const data = {
             status_transaksi: 2,
-            history: `submit pengajuan klaim by ${kode} at ${moment().format('DD/MM/YYYY')}`
+            history: `submit pengajuan klaim by ${kode} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`,
+            start_klaim: moment()
           }
           const findData = await klaim.findByPk(findKlaim[i].id)
           if (findData) {
@@ -473,6 +474,150 @@ module.exports = {
     }
   },
   getKlaim: async (req, res) => {
+    try {
+      const level = req.user.level
+      const kode = req.user.kode
+      const name = req.user.name
+      const role = req.user.role
+      const { status, reject, menu, type, category } = req.query
+      const statTrans = status === 'undefined' || status === null ? 2 : status
+      const statRej = reject === 'undefined' ? null : reject
+      const statMenu = menu === 'undefined' ? null : menu
+      if (level === 5) {
+        const findKlaim = await klaim.findAll({
+          where: {
+            kode_plant: kode,
+            [Op.and]: [
+              statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
+              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+            ]
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            }
+          ]
+        })
+        const data = []
+        findKlaim.map(x => {
+          return (
+            data.push(x.no_transaksi)
+          )
+        })
+        const set = new Set(data)
+        const noDis = [...set]
+        if (findKlaim) {
+          const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, role) : filterApp(type, findKlaim, noDis, role)
+          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim })
+        } else {
+          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [] })
+        }
+      } else if (level === 10 || level === 11 || level === 12 || level === 2) {
+        const findDepo = await depo.findAll({
+          where: {
+            [Op.or]: [
+              { bm: level === 10 ? name : 'undefined' },
+              { om: level === 11 ? name : 'undefined' },
+              { nom: level === 12 ? name : 'undefined' },
+              { pic_1: level === 2 ? name : 'undefined' }
+            ]
+          }
+        })
+        if (findDepo.length) {
+          const hasil = []
+          for (let i = 0; i < findDepo.length; i++) {
+            const result = await klaim.findAll({
+              where: {
+                kode_plant: findDepo[i].kode_plant,
+                [Op.and]: [
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+                ]
+              },
+              order: [
+                ['id', 'ASC'],
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+              ],
+              include: [
+                {
+                  model: ttd,
+                  as: 'appForm'
+                }
+              ]
+            })
+            if (result.length > 0) {
+              for (let j = 0; j < result.length; j++) {
+                hasil.push(result[j])
+              }
+            }
+          }
+          if (hasil.length > 0) {
+            const data = []
+            hasil.map(x => {
+              return (
+                data.push(x.no_transaksi)
+              )
+            })
+            const set = new Set(data)
+            const noDis = [...set]
+            const result = hasil
+            const newKlaim = category === 'verif' ? filter(type, result, noDis, role) : filterApp(type, result, noDis, role)
+            return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
+          } else {
+            const result = hasil
+            const noDis = []
+            return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+          }
+        } else {
+          return response(res, 'failed get klaim', {}, 400, false)
+        }
+      } else {
+        const findKlaim = await klaim.findAll({
+          where: {
+            [Op.and]: [
+              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+            ]
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            }
+          ]
+        })
+        const data = []
+        findKlaim.map(x => {
+          return (
+            data.push(x.no_transaksi)
+          )
+        })
+        const set = new Set(data)
+        const noDis = [...set]
+        if (findKlaim) {
+          const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, role) : filterApp(type, findKlaim, noDis, role)
+          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim })
+        } else {
+          return response(res, 'success get data klaim', { result: findKlaim, noDis })
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getReport: async (req, res) => {
     try {
       const level = req.user.level
       const kode = req.user.kode
@@ -812,7 +957,7 @@ module.exports = {
                               status_transaksi: 3,
                               status_reject: null,
                               isreject: null,
-                              history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY')}`
+                              history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                             }
                             const findRes = await klaim.findByPk(findKlaim[i].id)
                             if (findRes) {
@@ -831,7 +976,7 @@ module.exports = {
                             const send = {
                               status_reject: null,
                               isreject: null,
-                              history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY')}`
+                              history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                             }
                             const findRes = await klaim.findByPk(findKlaim[i].id)
                             if (findRes) {
@@ -906,7 +1051,7 @@ module.exports = {
                   isreject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
-                  history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY')}`
+                  history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                 }
                 const findRes = await klaim.findByPk(findKlaim[i].id)
                 if (findRes) {
@@ -918,7 +1063,7 @@ module.exports = {
                   status_reject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
-                  history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY')}`
+                  history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                 }
                 const findRes = await klaim.findByPk(findKlaim[i].id)
                 if (findRes) {
@@ -992,7 +1137,7 @@ module.exports = {
                                     isreject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
-                                    history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY')}`
+                                    history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                                   }
                                   const findRes = await klaim.findByPk(findKlaim[i].id)
                                   if (findRes) {
@@ -1004,7 +1149,7 @@ module.exports = {
                                     status_reject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
-                                    history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY')}`
+                                    history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                                   }
                                   const findRes = await klaim.findByPk(findKlaim[i].id)
                                   if (findRes) {
@@ -1101,7 +1246,7 @@ module.exports = {
           for (let i = 0; i < findKlaim.length; i++) {
             const send = {
               status_reject: 0,
-              history: `${findKlaim[i].history}, submit revisi by ${name} at ${moment().format('DD/MM/YYYY')}`
+              history: `${findKlaim[i].history}, submit revisi by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
             }
             const findRes = await klaim.findByPk(findKlaim[i].id)
             if (findRes) {
@@ -1180,7 +1325,7 @@ module.exports = {
                 status_transaksi: level === 2 ? 4 : 5,
                 status_reject: null,
                 isreject: null,
-                history: `${findKlaim[i].history}, verifikasi ${level === 2 ? 'finance' : 'klaim'} by ${name} at ${moment().format('DD/MM/YYYY')}`
+                history: `${findKlaim[i].history}, verifikasi ${level === 2 ? 'finance' : 'klaim'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findRes.update(data)
               temp.push(findRes)
