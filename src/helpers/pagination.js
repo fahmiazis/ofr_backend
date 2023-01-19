@@ -33,7 +33,7 @@ module.exports = {
         if ((dataKlaim[index].status_reject === 0 || dataKlaim[index].status_reject === null) && dataKlaim[index].status_transaksi === 2) {
           const app = dataKlaim[index].appForm
           const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-          if (app[find] !== undefined && app[find + 1].status === '1' && app[find].status === null) {
+          if (app[find] !== undefined && app[find + 1].status === '1' && (app[find].status === null || app[find].status === '0')) {
             newKlaim.push(dataKlaim[index])
           }
         }
