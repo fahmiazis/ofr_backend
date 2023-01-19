@@ -872,19 +872,19 @@ module.exports = {
                   }
                   return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
                 } else {
-                  return response(res, 'failed get approval', {}, 404, false)
+                  return response(res, 'failed get approval1', {}, 404, false)
                 }
               } else {
-                return response(res, 'failed get approval', {}, 404, false)
+                return response(res, 'failed get approval2', {}, 404, false)
               }
             } else {
-              return response(res, 'failed get approval', {}, 404, false)
+              return response(res, 'failed get approval3', {}, 404, false)
             }
           } else {
-            return response(res, 'failed get approval', {}, 404, false)
+            return response(res, 'failed get approval4', {}, 404, false)
           }
         } else {
-          return response(res, 'failed get approval', {}, 404, false)
+          return response(res, 'failed get approval5', {}, 404, false)
         }
       }
     } catch (error) {
