@@ -1,4 +1,4 @@
-const { bank } = require('../models')
+const { rekening } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -12,33 +12,31 @@ const vs = require('fs-extra')
 const { APP_URL } = process.env
 
 module.exports = {
-  addBank: async (req, res) => {
+  addRek: async (req, res) => {
     try {
       const schema = joi.object({
-        name: joi.string().required(),
-        digit: joi.string().required(),
-        kode_bank: joi.string().required()
+        kode_plant: joi.string().required(),
+        rek_spending: joi.string().required(),
+        rek_zba: joi.string().required(),
+        rek_bankcol: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNameBank = await bank.findOne({
+        const findRek = await rekening.findOne({
           where: {
-            [Op.or]: [
-              { kode_bank: { [Op.like]: `%${results.kode_bank}` } },
-              { name: { [Op.like]: `%${results.name}` } }
-            ]
+            kode_plant: { [Op.like]: `%${results.kode_plant}` }
           }
         })
-        if (findNameBank && (findNameBank.name === results.name || findNameBank.kode_bank === results.kode_bank)) {
-          return response(res, 'nama bank telah terdftar', {}, 404, false)
+        if (findRek && findRek.kode_plant === results.kode_plant) {
+          return response(res, 'nama rekening telah terdftar', {}, 404, false)
         } else {
-          const createBank = await bank.create(results)
-          if (createBank) {
-            return response(res, 'success create bank')
+          const createRek = await rekening.create(results)
+          if (createRek) {
+            return response(res, 'success create rekening')
           } else {
-            return response(res, 'false create bank', {}, 404, false)
+            return response(res, 'false create rekening', {}, 404, false)
           }
         }
       }
@@ -46,42 +44,40 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  updateBank: async (req, res) => {
+  updateRek: async (req, res) => {
     try {
       const id = req.params.id
       const schema = joi.object({
-        name: joi.string().required(),
-        digit: joi.string().required(),
-        kode_bank: joi.string().required()
+        kode_plant: joi.string().required(),
+        rek_spending: joi.string().required(),
+        rek_zba: joi.string().required(),
+        rek_bankcol: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNameBank = await bank.findOne({
+        const findRek = await rekening.findOne({
           where: {
-            [Op.or]: [
-              { kode_bank: { [Op.like]: `%${results.kode_bank}` } },
-              { name: { [Op.like]: `%${results.name}` } }
-            ],
+            kode_plant: { [Op.like]: `%${results.kode_plant}` },
             [Op.not]: {
               id: id
             }
           }
         })
-        if (findNameBank && (findNameBank.name === results.name || findNameBank.kode_bank === results.kode_bank)) {
-          return response(res, 'nama bank telah terdaftar', {}, 404, false)
+        if (findRek && findRek.kode_plant === results.kode_plant) {
+          return response(res, 'nama rekening telah terdaftar', {}, 404, false)
         } else {
-          const findBank = await bank.findByPk(id)
-          if (findBank) {
-            const updateBank = await findBank.update(results)
-            if (updateBank) {
-              return response(res, 'success create bank')
+          const findRek = await rekening.findByPk(id)
+          if (findRek) {
+            const updateRek = await findRek.update(results)
+            if (updateRek) {
+              return response(res, 'success update rekening')
             } else {
-              return response(res, 'false create bank', {}, 404, false)
+              return response(res, 'false update rekening', {}, 404, false)
             }
           } else {
-            return response(res, 'false create bank', {}, 404, false)
+            return response(res, 'false update rekening', {}, 404, false)
           }
         }
       }
@@ -89,7 +85,7 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  uploadMasterBank: async (req, res) => {
+  uploadMasterRek: async (req, res) => {
     const level = req.user.level
     if (level === 1) {
       uploadMaster(req, res, async function (err) {
@@ -106,7 +102,7 @@ module.exports = {
           const dokumen = `assets/masters/${req.files[0].filename}`
           const rows = await readXlsxFile(dokumen)
           const count = []
-          const cek = ['NAMA BANK', 'JUMLAH DIGIT', 'KODE BANK']
+          const cek = ['KODE PLANT', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL']
           const valid = rows[0]
           for (let i = 0; i < cek.length; i++) {
             if (valid[i] === cek[i]) {
@@ -119,7 +115,7 @@ module.exports = {
             for (let i = 1; i < rows.length; i++) {
               const a = rows[i]
               kode.push(`${a[0]}`)
-              cost.push(`Nama bank ${a[0]} kode bank ${a[2]}`)
+              cost.push(`Kode plant ${a[0]}`)
             }
             const result = []
             const dupCost = {}
@@ -141,19 +137,17 @@ module.exports = {
               const arr = []
               rows.shift()
               for (let i = 0; i < rows.length; i++) {
-                const dataBank = rows[i]
-                const select = await bank.findOne({
+                const dataRek = rows[i]
+                const select = await rekening.findOne({
                   where: {
-                    [Op.or]: [
-                      { kode_bank: { [Op.like]: `%${dataBank[2]}%` } },
-                      { name: { [Op.like]: `%${dataBank[0]}%` } }
-                    ]
+                    kode_plant: { [Op.like]: `%${dataRek[0]}%` }
                   }
                 })
                 const data = {
-                  name: dataBank[0],
-                  digit: dataBank[1],
-                  kode_bank: dataBank[2]
+                  kode_plant: dataRek[0],
+                  rek_spending: dataRek[1],
+                  rek_zba: dataRek[2],
+                  rek_bankcol: dataRek[3]
                 }
                 if (select) {
                   const upbank = await select.update(data)
@@ -161,8 +155,8 @@ module.exports = {
                     arr.push(1)
                   }
                 } else {
-                  const createBank = await bank.create(data)
-                  if (createBank) {
+                  const createRek = await rekening.create(data)
+                  if (createRek) {
                     arr.push(1)
                   }
                 }
@@ -196,19 +190,24 @@ module.exports = {
       return response(res, "You're not super administrator", {}, 404, false)
     }
   },
-  getAllBank: async (req, res) => {
+  getAllRek: async (req, res) => {
     try {
-      const findBank = await bank.findAll()
-      if (findBank.length > 0) {
-        return response(res, 'succes get bank', { result: findBank, length: findBank.length })
+      const kode = req.user.kode
+      const findRek = await rekening.findAll({
+        where: {
+          kode_plant: { [Op.like]: `%${kode}%` }
+        }
+      })
+      if (findRek.length > 0) {
+        return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
       } else {
-        return response(res, 'failed get bank', {}, 404, false)
+        return response(res, 'failed get rekening', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  getBank: async (req, res) => {
+  getRek: async (req, res) => {
     try {
       let { limit, page, search, sort } = req.query
       let searchValue = ''
@@ -233,67 +232,69 @@ module.exports = {
       } else {
         page = parseInt(page)
       }
-      const findBank = await bank.findAndCountAll({
+      const findRek = await rekening.findAndCountAll({
         where: {
           [Op.or]: [
-            { name: { [Op.like]: `%${searchValue}%` } },
-            { digit: { [Op.like]: `%${searchValue}%` } }
+            { kode_plant: { [Op.like]: `%${searchValue}%` } },
+            { rek_spending: { [Op.like]: `%${searchValue}%` } },
+            { rek_zba: { [Op.like]: `%${searchValue}%` } },
+            { rek_bankcol: { [Op.like]: `%${searchValue}%` } }
           ]
         },
         order: [[sortValue, 'ASC']],
         limit: limit,
         offset: (page - 1) * limit
       })
-      const pageInfo = pagination('/bank/get', req.query, page, limit, findBank.count)
-      if (findBank.rows.length > 0) {
-        return response(res, 'succes get bank', { result: findBank, pageInfo })
+      const pageInfo = pagination('/rekening/get', req.query, page, limit, findRek.count)
+      if (findRek.rows.length > 0) {
+        return response(res, 'succes get rekening', { result: findRek, pageInfo })
       } else {
-        return response(res, 'failed get bank', { findBank }, 404, false)
+        return response(res, 'failed get rekening', { findRek }, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  getDetailBank: async (req, res) => {
+  getDetailRek: async (req, res) => {
     try {
       const id = req.params.id
-      const findBank = await bank.findByPk(id)
-      if (findBank) {
-        return response(res, 'succes get detail bank', { result: findBank })
+      const findRek = await rekening.findByPk(id)
+      if (findRek) {
+        return response(res, 'succes get detail rekening', { result: findRek })
       } else {
-        return response(res, 'failed get bank', {}, 404, false)
+        return response(res, 'failed get rekening', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  deleteBank: async (req, res) => {
+  deleteRek: async (req, res) => {
     try {
       const id = req.params.id
-      const findBank = await bank.findByPk(id)
-      if (findBank) {
-        const delBank = await findBank.destroy()
-        if (delBank) {
-          return response(res, 'succes delete bank', { result: findBank })
+      const findRek = await rekening.findByPk(id)
+      if (findRek) {
+        const delRek = await findRek.destroy()
+        if (delRek) {
+          return response(res, 'succes delete rekening', { result: findRek })
         } else {
-          return response(res, 'failed destroy bank', {}, 404, false)
+          return response(res, 'failed destroy rekening', {}, 404, false)
         }
       } else {
-        return response(res, 'failed get bank', {}, 404, false)
+        return response(res, 'failed get rekening', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  exportSqlBank: async (req, res) => {
+  exportSqlRek: async (req, res) => {
     try {
-      const result = await bank.findAll()
+      const result = await rekening.findAll()
       if (result) {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['NAMA BANK', 'JUMLAH DIGIT', 'KODE BANK']
-        const key = ['name', 'digit', 'kode_bank']
+        const header = ['KODE PLANT', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL']
+        const key = ['kode_plant', 'rek_spending', 'rek_zba', 'rek_bankcol']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
@@ -302,7 +303,7 @@ module.exports = {
         worksheet.columns = arr
         const cek = worksheet.addRows(result)
         if (cek) {
-          const name = new Date().getTime().toString().concat('-bank').concat('.xlsx')
+          const name = new Date().getTime().toString().concat('-rekening').concat('.xlsx')
           await workbook.xlsx.writeFile(name)
           vs.move(name, `assets/exports/${name}`, function (err) {
             if (err) {
@@ -323,11 +324,11 @@ module.exports = {
   },
   deleteAll: async (req, res) => {
     try {
-      const findBank = await bank.findAll()
-      if (findBank) {
+      const findRek = await rekening.findAll()
+      if (findRek) {
         const temp = []
-        for (let i = 0; i < findBank.length; i++) {
-          const findDel = await bank.findByPk(findBank[i].id)
+        for (let i = 0; i < findRek.length; i++) {
+          const findDel = await rekening.findByPk(findRek[i].id)
           if (findDel) {
             await findDel.destroy()
             temp.push(1)

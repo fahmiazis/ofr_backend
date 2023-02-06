@@ -53,7 +53,9 @@ module.exports = (sequelize, DataTypes) => {
     end_proses: DataTypes.DATE,
     history: DataTypes.TEXT,
     menu_rev: DataTypes.STRING,
-    menu_proses: DataTypes.STRING
+    menu_proses: DataTypes.STRING,
+    tujuan_tf: DataTypes.STRING,
+    tiperek: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'klaim'

@@ -1,7 +1,7 @@
 const moment = require('moment')
 const arr = [{
   place: 'san francisco',
-  name: 'jane'
+  name: 879900
 },
 {
   place: 'san francisco',
@@ -13,4 +13,4 @@ const arr = [{
 }
 ]
 const result = parseInt(moment().format('MM'))
-console.log(arr[0].name.length === 4)
+console.log(arr[0].name.length)

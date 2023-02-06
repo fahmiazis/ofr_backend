@@ -65,12 +65,18 @@ module.exports = {
       const newKlaim = []
       for (let i = 0; i < noDis.length; i++) {
         const index = dataKlaim.indexOf(dataKlaim.find(({ no_transaksi }) => no_transaksi === noDis[i]))
-        newKlaim.push(dataKlaim[index])
+        const app = dataKlaim[index].appForm
+        const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
+        if (app[find] === undefined || (app[find] !== undefined && app[find].status === '1')) {
+          newKlaim.push(dataKlaim[index])
+        } else if (dataKlaim[index].status_reject !== null && dataKlaim[index].status_reject !== 0) {
+          newKlaim.push(dataKlaim[index])
+        }
       }
       return newKlaim
     }
   },
-  filter: (type, dataKlaim, noDis, role) => {
+  filter: (type, dataKlaim, noDis, data, role) => {
     if (type === 'available') {
       const newKlaim = []
       for (let i = 0; i < noDis.length; i++) {
@@ -102,7 +108,11 @@ module.exports = {
       const newKlaim = []
       for (let i = 0; i < noDis.length; i++) {
         const index = dataKlaim.indexOf(dataKlaim.find(({ no_transaksi }) => no_transaksi === noDis[i]))
-        newKlaim.push(dataKlaim[index])
+        if (dataKlaim[index].status_transaksi !== data) {
+          newKlaim.push(dataKlaim[index])
+        } else if (dataKlaim[index].status_reject !== null && dataKlaim[index].status_reject !== 0) {
+          newKlaim.push(dataKlaim[index])
+        }
       }
       return newKlaim
     }
