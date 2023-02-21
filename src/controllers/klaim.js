@@ -5,7 +5,7 @@ const response = require('../helpers/response')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
-const { filterApp, filter } = require('../helpers/pagination')
+const { filterApp, filter, filterBayar } = require('../helpers/pagination')
 
 module.exports = {
   addCart: async (req, res) => {
@@ -506,6 +506,10 @@ module.exports = {
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: depo,
+              as: 'depo'
             }
           ]
         })
@@ -523,14 +527,17 @@ module.exports = {
         } else {
           return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [] })
         }
-      } else if (level === 10 || level === 11 || level === 12 || level === 2) {
+      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
         const findDepo = await depo.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
               { om: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
-              { pic_1: level === 2 ? name : 'undefined' }
+              { pic_1: level === 2 ? name : 'undefined' },
+              { pic_2: level === 7 ? name : 'undefined' },
+              { pic_3: level === 8 ? name : 'undefined' },
+              { pic_4: level === 9 ? name : 'undefined' }
             ]
           }
         })
@@ -543,17 +550,27 @@ module.exports = {
                 [Op.and]: [
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } }
                 ]
               },
               order: [
                 ['id', 'ASC'],
-                [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
               ],
               include: [
                 {
                   model: ttd,
                   as: 'appForm'
+                },
+                {
+                  model: ttd,
+                  as: 'appList'
+                },
+                {
+                  model: depo,
+                  as: 'depo'
                 }
               ]
             })
@@ -567,13 +584,13 @@ module.exports = {
             const data = []
             hasil.map(x => {
               return (
-                data.push(x.no_transaksi)
+                data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
               )
             })
             const set = new Set(data)
             const noDis = [...set]
             const result = hasil
-            const newKlaim = category === 'verif' ? filter(type, result, noDis, role) : filterApp(type, result, noDis, role)
+            const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
             return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
           } else {
             const result = hasil
@@ -600,6 +617,10 @@ module.exports = {
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: depo,
+              as: 'depo'
             }
           ]
         })
@@ -769,26 +790,62 @@ module.exports = {
   },
   getDetailKlaim: async (req, res) => {
     try {
-      const { no } = req.body
-      const findKlaim = await klaim.findAll({
-        where: {
-          no_transaksi: no
-        },
-        order: [
-          ['id', 'ASC'],
-          [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
-        ],
-        include: [
-          {
-            model: ttd,
-            as: 'appForm'
-          }
-        ]
-      })
-      if (findKlaim) {
-        return response(res, 'success get dokumen', { result: findKlaim })
+      const { no, tipe } = req.body
+      if (tipe === 'ajuan bayar') {
+        const findKlaim = await klaim.findAll({
+          where: {
+            no_pembayaran: no
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
+            },
+            {
+              model: depo,
+              as: 'depo'
+            }
+          ]
+        })
+        if (findKlaim) {
+          return response(res, 'success get dokumen', { result: findKlaim })
+        } else {
+          return response(res, 'failed get dokumen', { result: [] })
+        }
       } else {
-        return response(res, 'failed get dokumen', { result: [] })
+        const findKlaim = await klaim.findAll({
+          where: {
+            no_transaksi: no
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            },
+            {
+              model: depo,
+              as: 'depo'
+            }
+          ]
+        })
+        if (findKlaim) {
+          return response(res, 'success get dokumen', { result: findKlaim })
+        } else {
+          return response(res, 'failed get dokumen', { result: [] })
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -877,6 +934,103 @@ module.exports = {
                     }
                   }
                   return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+                } else {
+                  return response(res, 'failed get approval1', {}, 404, false)
+                }
+              } else {
+                return response(res, 'failed get approval2', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed get approval3', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed get approval4', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed get approval5', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getApprovalList: async (req, res) => {
+    try {
+      const { no } = req.body
+      const findTtd = await ttd.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      if (findTtd.length > 0) {
+        const pembuat = []
+        const mengetahui = []
+        const penyetuju = []
+        for (let i = 0; i < findTtd.length; i++) {
+          if (findTtd[i].sebagai === 'pembuat') {
+            pembuat.push(findTtd[i])
+          } else if (findTtd[i].sebagai === 'mengetahui') {
+            mengetahui.push(findTtd[i])
+          } else if (findTtd[i].sebagai === 'penyetuju') {
+            penyetuju.push(findTtd[i])
+          }
+        }
+        return response(res, 'succes get approval', { result: { pembuat, penyetuju, mengetahui }, findTtd })
+      } else {
+        const findKlaim = await klaim.findOne({
+          where: {
+            no_pembayaran: no
+          }
+        })
+        if (findKlaim) {
+          const findDepo = await depo.findOne({
+            where: {
+              kode_plant: findKlaim.kode_plant
+            }
+          })
+          if (findDepo) {
+            const findApp = await approve.findAll({
+              where: {
+                nama_approve: 'Ajuan Bayar Klaim'
+              }
+            })
+            if (findApp.length > 0) {
+              const temp = []
+              for (let i = 0; i < findApp.length; i++) {
+                const data = {
+                  jabatan: findApp[i].jabatan,
+                  nama: i === 0 ? findDepo.pic_1 : null,
+                  status: i === 0 ? 1 : null,
+                  no_transaksi: no,
+                  sebagai: findApp[i].sebagai,
+                  jenis: findApp[i].jenis,
+                  kategori: findApp[i].kategori
+                }
+                const send = await ttd.create(data)
+                if (send) {
+                  temp.push(send)
+                }
+              }
+              if (temp.length > 0) {
+                const findTtd = await ttd.findAll({
+                  where: {
+                    no_transaksi: no
+                  }
+                })
+                if (findTtd.length > 0) {
+                  const penyetuju = []
+                  const pembuat = []
+                  const mengetahui = []
+                  for (let i = 0; i < findTtd.length; i++) {
+                    if (findTtd[i].sebagai === 'pembuat') {
+                      pembuat.push(findTtd[i])
+                    } else if (findTtd[i].sebagai === 'mengetahui') {
+                      mengetahui.push(findTtd[i])
+                    } else if (findTtd[i].sebagai === 'penyetuju') {
+                      penyetuju.push(findTtd[i])
+                    }
+                  }
+                  return response(res, 'succes get approval', { result: { pembuat, penyetuju, mengetahui }, findTtd })
                 } else {
                   return response(res, 'failed get approval1', {}, 404, false)
                 }
@@ -1025,6 +1179,134 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
+  approveListKlaim: async (req, res) => {
+    try {
+      const level = req.user.level
+      const name = req.user.name
+      const { no } = req.body
+      const findKlaim = await klaim.findAll({
+        where: {
+          no_pembayaran: no
+        }
+      })
+      if (findKlaim.length > 0) {
+        const findDepo = await depo.findOne({
+          where: {
+            kode_plant: findKlaim[0].kode_plant
+          }
+        })
+        if (findDepo) {
+          const findRole = await role.findOne({
+            where: {
+              level: level
+            }
+          })
+          if (findRole) {
+            const findTtd = await ttd.findAll({
+              where: {
+                no_transaksi: no
+              }
+            })
+            if (findTtd.length > 0) {
+              let hasil = 0
+              let arr = null
+              for (let i = 0; i < findTtd.length; i++) {
+                if (findRole.name === findTtd[i].jabatan) {
+                  hasil = findTtd[i].id
+                  arr = i
+                }
+              }
+              if (hasil !== 0) {
+                if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
+                  return response(res, 'Anda tidak memiliki akses lagi untuk mengapprove', {}, 404, false)
+                } else {
+                  console.log(findTtd[arr - 1])
+                  if (findTtd[arr - 1].status === '1') {
+                    const data = {
+                      nama: name,
+                      status: 1
+                    }
+                    const findApp = await ttd.findByPk(hasil)
+                    if (findApp) {
+                      const upttd = await findApp.update(data)
+                      if (upttd) {
+                        const findFull = await ttd.findAll({
+                          where: {
+                            [Op.and]: [
+                              { no_transaksi: no },
+                              { status: { [Op.like]: '%1%' } }
+                            ]
+                          }
+                        })
+                        if (findTtd.length === findFull.length) {
+                          const temp = []
+                          for (let i = 0; i < findKlaim.length; i++) {
+                            const send = {
+                              status_transaksi: 7,
+                              status_reject: null,
+                              isreject: null,
+                              history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                            }
+                            const findRes = await klaim.findByPk(findKlaim[i].id)
+                            if (findRes) {
+                              await findRes.update(send)
+                              temp.push(1)
+                            }
+                          }
+                          if (temp.length) {
+                            return response(res, 'success approve klaim', {})
+                          } else {
+                            return response(res, 'success approve klaim', {})
+                          }
+                        } else {
+                          const temp = []
+                          for (let i = 0; i < findKlaim.length; i++) {
+                            const send = {
+                              status_reject: null,
+                              isreject: null,
+                              history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                            }
+                            const findRes = await klaim.findByPk(findKlaim[i].id)
+                            if (findRes) {
+                              await findRes.update(send)
+                              temp.push(1)
+                            }
+                          }
+                          if (temp.length) {
+                            return response(res, 'success approve klaim', {})
+                          } else {
+                            return response(res, 'success approve klaim', {})
+                          }
+                        }
+                      } else {
+                        return response(res, 'failed approve klaim1', {}, 404, false)
+                      }
+                    } else {
+                      return response(res, 'failed approve klaim2', {}, 404, false)
+                    }
+                  } else {
+                    return response(res, `${findTtd[arr - 1].jabatan} belum approve atau telah mereject`, {}, 404, false)
+                  }
+                }
+              } else {
+                return response(res, 'failed approve klaim3', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed approve klaim4', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed approve klaim5', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed approve klaim6', {}, 404, false)
+        }
+      } else {
+        return response(res, 'failed approve klaim7', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
   rejectKlaim: async (req, res) => {
     try {
       const level = req.user.level
@@ -1112,7 +1394,7 @@ module.exports = {
                   }
                   if (hasil !== 0) {
                     if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
-                      return response(res, 'Anda tidak memiliki akses lagi untuk mengapprove', {}, 404, false)
+                      return response(res, 'Anda tidak memiliki akses lagi untuk mereject', {}, 404, false)
                     } else {
                       console.log(findTtd[arr - 1])
                       if (findTtd[arr - 1].status === '1') {
@@ -1203,6 +1485,146 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
+  rejectListKlaim: async (req, res) => {
+    try {
+      const level = req.user.level
+      const name = req.user.name
+      const schema = joi.object({
+        no: joi.string().required(),
+        alasan: joi.string().required(),
+        menu: joi.string().required(),
+        list: joi.array(),
+        type: joi.string()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const no = results.no
+        const findKlaim = await klaim.findAll({
+          where: {
+            no_pembayaran: no
+          }
+        })
+        if (findKlaim.length > 0) {
+          const findDepo = await depo.findOne({
+            where: {
+              kode_plant: findKlaim[0].kode_plant
+            }
+          })
+          if (findDepo) {
+            const findRole = await role.findOne({
+              where: {
+                level: level
+              }
+            })
+            if (findRole) {
+              const findTtd = await ttd.findAll({
+                where: {
+                  no_transaksi: no
+                }
+              })
+              if (findTtd.length > 0) {
+                let hasil = 0
+                let arr = null
+                for (let i = 0; i < findTtd.length; i++) {
+                  if (findRole.name === findTtd[i].jabatan) {
+                    hasil = findTtd[i].id
+                    arr = i
+                  }
+                }
+                if (hasil !== 0) {
+                  if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
+                    return response(res, 'Anda tidak memiliki akses lagi untuk mereject', {}, 404, false)
+                  } else {
+                    console.log(findTtd[arr - 1])
+                    if (findTtd[arr - 1].status === '1') {
+                      const data = {
+                        nama: name,
+                        status: 0,
+                        reason: results.alasan
+                      }
+                      const findApp = await ttd.findByPk(hasil)
+                      if (findApp) {
+                        const upttd = await findApp.update(data)
+                        if (upttd) {
+                          const findFull = await ttd.findAll({
+                            where: {
+                              [Op.and]: [
+                                { no_transaksi: no },
+                                { status: { [Op.like]: '%1%' } }
+                              ]
+                            }
+                          })
+                          if (findFull) {
+                            const temp = []
+                            for (let i = 0; i < findKlaim.length; i++) {
+                              const listId = results.list
+                              if (listId.find(e => e === findKlaim[i].id)) {
+                                const send = {
+                                  status_reject: 1,
+                                  isreject: 1,
+                                  reason: results.alasan,
+                                  menu_rev: results.menu,
+                                  history: `${findKlaim[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                }
+                                const findRes = await klaim.findByPk(findKlaim[i].id)
+                                if (findRes) {
+                                  await findRes.update(send)
+                                  temp.push(1)
+                                }
+                              } else {
+                                const send = {
+                                  status_reject: 1,
+                                  reason: results.alasan,
+                                  menu_rev: results.menu,
+                                  history: `${findKlaim[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                }
+                                const findRes = await klaim.findByPk(findKlaim[i].id)
+                                if (findRes) {
+                                  await findRes.update(send)
+                                  temp.push(1)
+                                }
+                              }
+                            }
+                            if (temp.length) {
+                              return response(res, 'success reject klaim', {})
+                            } else {
+                              return response(res, 'success reject klaim', {})
+                            }
+                          } else {
+                            return response(res, 'failed reject klaim1', { findFull }, 404, false)
+                          }
+                        } else {
+                          return response(res, 'failed reject klaim2', {}, 404, false)
+                        }
+                      } else {
+                        return response(res, 'failed reject klaim3', {}, 404, false)
+                      }
+                    } else {
+                      return response(res, `${findTtd[arr - 1].jabatan} belum approve atau telah mereject`, {}, 404, false)
+                    }
+                  }
+                } else {
+                  return response(res, 'failed reject klaim4', {}, 404, false)
+                }
+              } else {
+                return response(res, 'failed reject klaim5', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed reject klaim6', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed reject klaim7', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed reject klaim8', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
   appRevisi: async (req, res) => {
     try {
       const schema = joi.object({
@@ -1277,7 +1699,7 @@ module.exports = {
     try {
       const id = req.params.id
       const schema = joi.object({
-        ppu: joi.string().required(),
+        ppu: joi.string().allow(''),
         pa: joi.string().required(),
         nominal: joi.string().required()
       })
@@ -1344,6 +1766,62 @@ module.exports = {
           }
         } else {
           return response(res, 'failed submit verifikasi klaim', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitAjuanBayar: async (req, res) => {
+    try {
+      // const level = req.user.level
+      const name = req.user.name
+      const schema = joi.object({
+        no_transfer: joi.string().required(),
+        tgl_transfer: joi.string().required(),
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findNo = await klaim.findOne({
+          where: {
+            no_pembayaran: results.no_transfer
+          }
+        })
+        if (findNo) {
+          return response(res, 'no transaksi telah terdaftar', {}, 404, false)
+        } else {
+          const temp = []
+          const list = results.list
+          for (let i = 0; i < list.length; i++) {
+            const findKlaim = await klaim.findAll({
+              where: {
+                no_transaksi: list[i]
+              }
+            })
+            if (findKlaim.length > 0) {
+              for (let j = 0; j < findKlaim.length; j++) {
+                const send = {
+                  status_transaksi: 6,
+                  no_pembayaran: results.no_transfer,
+                  tanggal_transfer: results.tgl_transfer,
+                  history: `${findKlaim[j].history}, submit ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                }
+                const findRes = await klaim.findByPk(findKlaim[j].id)
+                if (findRes) {
+                  await findRes.update(send)
+                  temp.push(1)
+                }
+              }
+            }
+          }
+          if (temp.length) {
+            return response(res, 'success submit ajuan bayar klaim', {})
+          } else {
+            return response(res, 'success submit ajuan bayar klaim', {})
+          }
         }
       }
     } catch (error) {

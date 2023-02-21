@@ -8,9 +8,10 @@ route.delete('/delete/:id', user.deleteUser)
 route.get('/detail/:id', user.getDetailUser)
 route.post('/master', user.uploadMasterUser)
 route.get('/export', user.exportSqlUser)
-route.post('/role/add', user.createRole)
-route.get('/role/get', user.getRole)
 route.patch('/password', user.changePassword)
 route.patch('/reset/:id', user.resetPassword)
+route.post('/role/add', user.createRole)
+route.get('/role/get', user.getRole)
+route.patch('/role/update/:id', user.updateRole)
 
 module.exports = route

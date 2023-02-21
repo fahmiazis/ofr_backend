@@ -15,6 +15,16 @@ module.exports = (sequelize, DataTypes) => {
         as: 'appForm',
         sourceKey: 'no_transaksi'
       })
+      klaim.hasMany(models.ttd, {
+        foreignKey: 'no_transaksi',
+        as: 'appList',
+        sourceKey: 'no_pembayaran'
+      })
+      klaim.hasOne(models.depo, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'depo'
+      })
     }
   }
   klaim.init({
@@ -55,7 +65,9 @@ module.exports = (sequelize, DataTypes) => {
     menu_rev: DataTypes.STRING,
     menu_proses: DataTypes.STRING,
     tujuan_tf: DataTypes.STRING,
-    tiperek: DataTypes.STRING
+    tiperek: DataTypes.STRING,
+    no_pembayaran: DataTypes.STRING,
+    bank_transfer: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'klaim'

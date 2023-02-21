@@ -76,56 +76,6 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  createRole: async (req, res) => {
-    try {
-      const level = req.user.level
-      const schema = joi.object({
-        name: joi.string().required(),
-        level: joi.string().required()
-      })
-      const { value: results, error } = schema.validate(req.body)
-      if (error) {
-        return response(res, 'Error', { error: error.message }, 401, false)
-      } else {
-        if (level === 1) {
-          const result = await role.findAll({
-            where: {
-              [Op.or]: [
-                { name: results.name },
-                { level: results.level }
-              ]
-            }
-          })
-          if (result.length > 0) {
-            return response(res, 'role or level already exist', {}, 404, false)
-          } else {
-            const result = await role.create(results)
-            if (result) {
-              return response(res, 'Add Role succesfully', { result })
-            } else {
-              return response(res, 'Fail to create role', {}, 400, false)
-            }
-          }
-        } else {
-          return response(res, "You're not super administrator", {}, 404, false)
-        }
-      }
-    } catch (error) {
-      return response(res, error.message, {}, 500, false)
-    }
-  },
-  getRole: async (req, res) => {
-    try {
-      const result = await role.findAll()
-      if (result) {
-        return response(res, 'succes get role', { result })
-      } else {
-        return response(res, 'failed get role', {}, 404, false)
-      }
-    } catch (error) {
-      return response(res, error.message, {}, 500, false)
-    }
-  },
   updateUser: async (req, res) => {
     try {
       const level = req.user.level
@@ -714,6 +664,103 @@ module.exports = {
           }
         } else {
           return response(res, 'failed reset password', {}, 400, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  createRole: async (req, res) => {
+    try {
+      const level = req.user.level
+      const schema = joi.object({
+        name: joi.string().required(),
+        level: joi.string().required(),
+        type: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 401, false)
+      } else {
+        if (level === 1) {
+          const result = await role.findAll({
+            where: {
+              [Op.or]: [
+                { name: results.name },
+                { level: results.level }
+              ]
+            }
+          })
+          if (result.length > 0) {
+            return response(res, 'role or level already exist', {}, 404, false)
+          } else {
+            const result = await role.create(results)
+            if (result) {
+              return response(res, 'Add Role succesfully', { result })
+            } else {
+              return response(res, 'Fail to create role', {}, 400, false)
+            }
+          }
+        } else {
+          return response(res, "You're not super administrator", {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getRole: async (req, res) => {
+    try {
+      const result = await role.findAll()
+      if (result) {
+        return response(res, 'succes get role', { result })
+      } else {
+        return response(res, 'failed get role', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  updateRole: async (req, res) => {
+    try {
+      const level = req.user.level
+      const id = req.params.id
+      const schema = joi.object({
+        name: joi.string().required(),
+        level: joi.string().required(),
+        type: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 401, false)
+      } else {
+        if (level === 1) {
+          const result = await role.findAll({
+            where: {
+              [Op.or]: [
+                { name: results.name },
+                { level: results.level }
+              ],
+              [Op.not]: { id: id }
+            }
+          })
+          if (result.length > 0) {
+            return response(res, 'role or level already exist', {}, 404, false)
+          } else {
+            const findRole = await role.findByPk(id)
+            if (findRole) {
+              const result = await findRole.update(results)
+              if (result) {
+                return response(res, 'Add Role succesfully', { result })
+              } else {
+                return response(res, 'Fail to create role', {}, 400, false)
+              }
+            } else {
+              return response(res, 'Fail to create role', {}, 400, false)
+            }
+          }
+        } else {
+          return response(res, "You're not super administrator", {}, 404, false)
         }
       }
     } catch (error) {
