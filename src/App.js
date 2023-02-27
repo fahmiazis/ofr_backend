@@ -28,6 +28,7 @@ const rekRoute = require('./routes/rekening')
 // transaksi
 const klaimRoute = require('./routes/klaim')
 const opsRoute = require('./routes/operasional')
+const ikkRoute = require('./routes/ikk')
 
 const authMiddleware = require('./middlewares/auth')
 
@@ -49,6 +50,7 @@ app.use('/rekening', authMiddleware, rekRoute)
 // transaksi
 app.use('/klaim', authMiddleware, klaimRoute)
 app.use('/ops', authMiddleware, opsRoute)
+app.use('/ikk', authMiddleware, ikkRoute)
 
 app.get('*', (req, res) => {
   response(res, 'Error route not found', {}, 404, false)
