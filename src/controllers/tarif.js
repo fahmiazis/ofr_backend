@@ -1,4 +1,4 @@
-const { coa, veriftax, depo } = require('../models')
+const { veriftax, depo } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -12,31 +12,40 @@ const vs = require('fs-extra')
 const { APP_URL } = process.env
 
 module.exports = {
-  addCoa: async (req, res) => {
+  addTarif: async (req, res) => {
     try {
       const schema = joi.object({
-        no_coa: joi.string().required(),
-        nama_coa: joi.string().required(),
-        nama_subcoa: joi.string().required(),
-        tipe: joi.string().required()
+        system: joi.string().required(),
+        gl_account: joi.string().required(),
+        gl_name: joi.string().required(),
+        jenis_transaksi: joi.string().required(),
+        type_transaksi: joi.string().required(),
+        jenis_pph: joi.string().required(),
+        status_npwp: joi.string().required(),
+        tarif_pph: joi.string().required(),
+        dpp_nongrossup: joi.string().required(),
+        dpp_grossup: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNameCoa = await coa.findOne({
+        const findTarif = await veriftax.findOne({
           where: {
-            nama_subcoa: { [Op.like]: `%${results.nama_subcoa}` }
+            gl_account: { [Op.like]: `%${results.gl_account}` },
+            jenis_transaksi: { [Op.like]: `%${results.jenis_transaksi}` },
+            type_transaksi: { [Op.like]: `%${results.type_transaksi}` },
+            status_npwp: { [Op.like]: `%${results.type_transaksi}` }
           }
         })
-        if (findNameCoa && (findNameCoa.nama_coa === results.nama_coa || findNameCoa.no_coa === results.no_coa)) {
-          return response(res, 'nama coa telah terdftar', {}, 404, false)
+        if (findTarif) {
+          return response(res, 'data telah terdftar', {}, 404, false)
         } else {
-          const createCoa = await coa.create(results)
-          if (createCoa) {
-            return response(res, 'success create coa')
+          const createTarif = await veriftax.create(results)
+          if (createTarif) {
+            return response(res, 'success create tarif')
           } else {
-            return response(res, 'false create coa', {}, 404, false)
+            return response(res, 'false create tarif', {}, 404, false)
           }
         }
       }
@@ -44,40 +53,49 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  updateCoa: async (req, res) => {
+  updateTarif: async (req, res) => {
     try {
       const id = req.params.id
       const schema = joi.object({
-        no_coa: joi.string().required(),
-        nama_coa: joi.string().required(),
-        nama_subcoa: joi.string().required(),
-        tipe: joi.string().required()
+        system: joi.string().required(),
+        gl_account: joi.string().required(),
+        gl_name: joi.string().required(),
+        jenis_transaksi: joi.string().required(),
+        type_transaksi: joi.string().required(),
+        jenis_pph: joi.string().required(),
+        status_npwp: joi.string().required(),
+        tarif_pph: joi.string().required(),
+        dpp_nongrossup: joi.string().required(),
+        dpp_grossup: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNameCoa = await coa.findOne({
+        const findTarif = await veriftax.findOne({
           where: {
-            nama_subcoa: { [Op.like]: `%${results.nama_subcoa}` },
+            gl_account: { [Op.like]: `%${results.gl_account}` },
+            jenis_transaksi: { [Op.like]: `%${results.jenis_transaksi}` },
+            type_transaksi: { [Op.like]: `%${results.type_transaksi}` },
+            status_npwp: { [Op.like]: `%${results.status_npwp}` },
             [Op.not]: {
               id: id
             }
           }
         })
-        if (findNameCoa && (findNameCoa.nama_coa === results.nama_coa || findNameCoa.no_coa === results.no_coa)) {
-          return response(res, 'nama coa telah terdftar', {}, 404, false)
+        if (findTarif) {
+          return response(res, 'data telah terdaftar', {}, 404, false)
         } else {
-          const findCoa = await coa.findByPk(id)
-          if (findCoa) {
-            const updateCoa = await findCoa.update(results)
-            if (updateCoa) {
-              return response(res, 'success create coa')
+          const findTarif = await veriftax.findByPk(id)
+          if (findTarif) {
+            const updateTarif = await findTarif.update(results)
+            if (updateTarif) {
+              return response(res, 'success update tarif')
             } else {
-              return response(res, 'false create coa', {}, 404, false)
+              return response(res, 'false update tarif', {}, 404, false)
             }
           } else {
-            return response(res, 'false create coa', {}, 404, false)
+            return response(res, 'false update tarif', {}, 404, false)
           }
         }
       }
@@ -85,7 +103,7 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  uploadMasterCoa: async (req, res) => {
+  uploadMasterTarif: async (req, res) => {
     const level = req.user.level
     if (level === 1) {
       uploadMaster(req, res, async function (err) {
@@ -102,22 +120,20 @@ module.exports = {
           const dokumen = `assets/masters/${req.files[0].filename}`
           const rows = await readXlsxFile(dokumen)
           const count = []
-          const cek = ['NO COA', 'NAMA COA', 'NAMA SUB COA', 'TIPE COA']
+          const cek = ['No', 'SAP/REDPINE', 'GL Account', 'GL Name', 'Jenis Transaksi', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
           const valid = rows[0]
           for (let i = 0; i < cek.length; i++) {
-            console.log(valid[i] === cek[i])
             if (valid[i] === cek[i]) {
               count.push(1)
             }
           }
-          console.log(count.length)
           if (count.length === cek.length) {
             const cost = []
             const kode = []
             for (let i = 1; i < rows.length; i++) {
               const a = rows[i]
               kode.push(`${a[0]}`)
-              cost.push(`Nama Sub Coa ${a[2]} dan No Coa ${a[0]}`)
+              cost.push(`Kode plant ${a[0]}`)
             }
             const result = []
             const dupCost = {}
@@ -139,35 +155,35 @@ module.exports = {
               const arr = []
               rows.shift()
               for (let i = 0; i < rows.length; i++) {
-                const dataCoa = rows[i]
-                const select = await coa.findOne({
+                const dataTarif = rows[i]
+                const select = await veriftax.findOne({
                   where: {
-                    [Op.and]: [
-                      { no_coa: { [Op.like]: `%${dataCoa[0]}%` } },
-                      { nama_subcoa: { [Op.like]: `%${dataCoa[2]}%` } }
-                    ]
+                    gl_account: { [Op.like]: `%${dataTarif[2]}` },
+                    jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
+                    type_transaksi: { [Op.like]: `%${dataTarif[5]}` },
+                    status_npwp: { [Op.like]: `%${dataTarif[7]}` }
                   }
                 })
+                const data = {
+                  system: dataTarif[1],
+                  gl_account: dataTarif[2],
+                  gl_name: dataTarif[3],
+                  jenis_transaksi: dataTarif[4],
+                  type_transaksi: dataTarif[5],
+                  jenis_pph: dataTarif[6],
+                  status_npwp: dataTarif[7],
+                  tarif_pph: dataTarif[8] * 100 + '%',
+                  dpp_nongrossup: dataTarif[9] * 100 + '%',
+                  dpp_grossup: dataTarif[10] * 100 + '%'
+                }
                 if (select) {
-                  const data = {
-                    no_coa: dataCoa[0],
-                    nama_coa: dataCoa[1],
-                    nama_subcoa: dataCoa[2],
-                    tipe: dataCoa[3]
-                  }
-                  const upbank = await select.update(data)
-                  if (upbank) {
+                  const upverif = await select.update(data)
+                  if (upverif) {
                     arr.push(1)
                   }
                 } else {
-                  const data = {
-                    no_coa: dataCoa[0],
-                    nama_coa: dataCoa[1],
-                    nama_subcoa: dataCoa[2],
-                    tipe: dataCoa[3]
-                  }
-                  const createCoa = await coa.create(data)
-                  if (createCoa) {
+                  const createTarif = await veriftax.create(data)
+                  if (createTarif) {
                     arr.push(1)
                   }
                 }
@@ -201,57 +217,34 @@ module.exports = {
       return response(res, "You're not super administrator", {}, 404, false)
     }
   },
-  getCoa: async (req, res) => {
+  getAllTarif: async (req, res) => {
     try {
-      const tipe = req.params.tipe
       const kode = req.user.kode
-      if (tipe === 'ikk') {
-        const findDepo = await depo.findOne({
-          where: {
-            kode_plant: { [Op.like]: `%${kode}` }
-          }
-        })
-        if (findDepo) {
-          const findTarif = await veriftax.findAll({
-            where: {
-              system: { [Op.like]: `%${findDepo.status_area}` }
-            },
-            group: 'gl_account'
-          })
-          if (findTarif.length > 0) {
-            const findAllTarif = await veriftax.findAll({
-              where: {
-                system: { [Op.like]: `%${findDepo.status_area}` }
-              }
-            })
-            if (findAllTarif.length > 0) {
-              return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif })
-            } else {
-              return response(res, 'failed get tarif', {}, 404, false)
-            }
-          } else {
-            return response(res, 'failed get tarif', {}, 404, false)
-          }
+      const findDepo = await depo.findOne({
+        where: {
+          kode_plant: { [Op.like]: `%${kode}` }
+        }
+      })
+      if (findDepo) {
+        const findTarif = await veriftax.findAll()
+        if (findTarif.length > 0) {
+          return response(res, 'succes get tarif', { result: findTarif, length: findTarif.length })
         } else {
           return response(res, 'failed get tarif', {}, 404, false)
         }
       } else {
-        const findCoa = await coa.findAll({
-          where: {
-            tipe: { [Op.like]: `%${tipe}` }
-          }
-        })
-        if (findCoa.length > 0) {
-          return response(res, 'succes get coa', { result: findCoa, length: findCoa.length })
+        const findTarif = await veriftax.findAll()
+        if (findTarif.length > 0) {
+          return response(res, 'succes get tarif', { result: findTarif, length: findTarif.length })
         } else {
-          return response(res, 'failed get coa', {}, 404, false)
+          return response(res, 'failed get tarif', {}, 404, false)
         }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  getAllCoa: async (req, res) => {
+  getTarif: async (req, res) => {
     try {
       let { limit, page, search, sort } = req.query
       let searchValue = ''
@@ -276,68 +269,72 @@ module.exports = {
       } else {
         page = parseInt(page)
       }
-      const findCoa = await coa.findAndCountAll({
+      const findTarif = await veriftax.findAndCountAll({
         where: {
           [Op.or]: [
-            { no_coa: { [Op.like]: `%${searchValue}%` } },
-            { nama_coa: { [Op.like]: `%${searchValue}%` } },
-            { nama_subcoa: { [Op.like]: `%${searchValue}%` } }
+            { system: { [Op.like]: `%${searchValue}%` } },
+            { gl_account: { [Op.like]: `%${searchValue}%` } },
+            { gl_name: { [Op.like]: `%${searchValue}%` } },
+            { jenis_transaksi: { [Op.like]: `%${searchValue}%` } },
+            { type_transaksi: { [Op.like]: `%${searchValue}%` } },
+            { jenis_pph: { [Op.like]: `%${searchValue}%` } },
+            { status_npwp: { [Op.like]: `%${searchValue}%` } }
           ]
         },
         order: [[sortValue, 'ASC']],
         limit: limit,
         offset: (page - 1) * limit
       })
-      const pageInfo = pagination('/coa/get', req.query, page, limit, findCoa.count)
-      if (findCoa.rows.length > 0) {
-        return response(res, 'succes get coa', { result: findCoa, pageInfo })
+      const pageInfo = pagination('/tarif/get', req.query, page, limit, findTarif.count)
+      if (findTarif.rows.length > 0) {
+        return response(res, 'succes get tarif', { result: findTarif, pageInfo })
       } else {
-        return response(res, 'failed get coa', { findCoa }, 404, false)
+        return response(res, 'failed get tarif', { findTarif }, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  getDetailCoa: async (req, res) => {
+  getDetailTarif: async (req, res) => {
     try {
       const id = req.params.id
-      const findCoa = await coa.findByPk(id)
-      if (findCoa) {
-        return response(res, 'succes get detail coa', { result: findCoa })
+      const findTarif = await veriftax.findByPk(id)
+      if (findTarif) {
+        return response(res, 'succes get detail tarif', { result: findTarif })
       } else {
-        return response(res, 'failed get coa', {}, 404, false)
+        return response(res, 'failed get tarif', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  deleteCoa: async (req, res) => {
+  deleteTarif: async (req, res) => {
     try {
       const id = req.params.id
-      const findCoa = await coa.findByPk(id)
-      if (findCoa) {
-        const delCoa = await findCoa.destroy()
-        if (delCoa) {
-          return response(res, 'succes delete coa', { result: findCoa })
+      const findTarif = await veriftax.findByPk(id)
+      if (findTarif) {
+        const delTarif = await findTarif.destroy()
+        if (delTarif) {
+          return response(res, 'succes delete tarif', { result: findTarif })
         } else {
-          return response(res, 'failed destroy coa', {}, 404, false)
+          return response(res, 'failed destroy tarif', {}, 404, false)
         }
       } else {
-        return response(res, 'failed get coa', {}, 404, false)
+        return response(res, 'failed get tarif', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  exportSqlCoa: async (req, res) => {
+  exportSqlTarif: async (req, res) => {
     try {
-      const result = await coa.findAll()
+      const result = await veriftax.findAll()
       if (result) {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['NO COA', 'NAMA COA', 'NAMA SUB COA', 'TIPE COA']
-        const key = ['no_coa', 'nama_coa', 'nama_subcoa', 'tipe']
+        const header = ['No', 'SAP/REDPINE', 'GL Account', 'GL Name', 'Jenis Transaksi', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
+        const key = ['id', 'system', 'gl_account', 'gl_name', 'jenis_transaksi', 'type_transaksi', 'jenis_pph', 'status_npwp', 'tarif_pph', 'dpp_nongrossup', 'dpp_grossup']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
@@ -346,7 +343,7 @@ module.exports = {
         worksheet.columns = arr
         const cek = worksheet.addRows(result)
         if (cek) {
-          const name = new Date().getTime().toString().concat('-coa').concat('.xlsx')
+          const name = new Date().getTime().toString().concat('-tarif').concat('.xlsx')
           await workbook.xlsx.writeFile(name)
           vs.move(name, `assets/exports/${name}`, function (err) {
             if (err) {
@@ -367,11 +364,11 @@ module.exports = {
   },
   deleteAll: async (req, res) => {
     try {
-      const findCoa = await coa.findAll()
-      if (findCoa) {
+      const findTarif = await veriftax.findAll()
+      if (findTarif) {
         const temp = []
-        for (let i = 0; i < findCoa.length; i++) {
-          const findDel = await coa.findByPk(findCoa[i].id)
+        for (let i = 0; i < findTarif.length; i++) {
+          const findDel = await veriftax.findByPk(findTarif[i].id)
           if (findDel) {
             await findDel.destroy()
             temp.push(1)

@@ -485,5 +485,37 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  updateSapScylla: async (req, res) => {
+    try {
+      const findDepo = await depo.findAll()
+      if (findDepo.length > 0) {
+        const temp = []
+        const sap = {
+          status_area: 'SAP'
+        }
+        const redpine = {
+          status_area: 'REDPINE'
+        }
+        for (let i = 0; i < findDepo.length; i++) {
+          const findData = await depo.findByPk(findDepo[i].id)
+          if (findData) {
+            const str = findData.status_area
+            const detect = str.search('SAP')
+            if (detect !== -1) {
+              await findData.update(sap)
+              temp.push(1)
+            } else {
+              await findData.update(redpine)
+              temp.push(1)
+            }
+          }
+        }
+      } else {
+        return response(res, 'failed', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }

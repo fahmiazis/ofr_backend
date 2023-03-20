@@ -29,7 +29,7 @@ module.exports = {
             kode_plant: { [Op.like]: `%${results.kode_plant}` }
           }
         })
-        if (findRek && findRek.kode_plant === results.kode_plant) {
+        if (findRek) {
           return response(res, 'nama rekening telah terdftar', {}, 404, false)
         } else {
           const createRek = await rekening.create(results)
@@ -65,7 +65,7 @@ module.exports = {
             }
           }
         })
-        if (findRek && findRek.kode_plant === results.kode_plant) {
+        if (findRek) {
           return response(res, 'nama rekening telah terdaftar', {}, 404, false)
         } else {
           const findRek = await rekening.findByPk(id)

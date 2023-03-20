@@ -8,5 +8,6 @@ route.delete('/delete/:id', depo.deleteDepo)
 route.get('/detail/:id', depo.getDetailDepo)
 route.post('/master', depo.uploadMasterDepo)
 route.get('/export', depo.exportSqlDepo)
+route.patch('/sapscylla', depo.updateSapScylla)
 
 module.exports = route

@@ -1,4 +1,4 @@
-const { coa, veriftax, depo } = require('../models')
+const { pagu, depo } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -12,31 +12,30 @@ const vs = require('fs-extra')
 const { APP_URL } = process.env
 
 module.exports = {
-  addCoa: async (req, res) => {
+  addPagu: async (req, res) => {
     try {
       const schema = joi.object({
-        no_coa: joi.string().required(),
-        nama_coa: joi.string().required(),
-        nama_subcoa: joi.string().required(),
-        tipe: joi.string().required()
+        profit_center: joi.string().required(),
+        area: joi.string().required(),
+        pagu: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNameCoa = await coa.findOne({
+        const findNamePagu = await pagu.findOne({
           where: {
-            nama_subcoa: { [Op.like]: `%${results.nama_subcoa}` }
+            profit_center: { [Op.like]: `%${results.profit_center}` }
           }
         })
-        if (findNameCoa && (findNameCoa.nama_coa === results.nama_coa || findNameCoa.no_coa === results.no_coa)) {
-          return response(res, 'nama coa telah terdftar', {}, 404, false)
+        if (findNamePagu && (findNamePagu.profit_center === results.profit_center)) {
+          return response(res, 'nama pagu telah terdftar', {}, 404, false)
         } else {
-          const createCoa = await coa.create(results)
-          if (createCoa) {
-            return response(res, 'success create coa')
+          const createPagu = await pagu.create(results)
+          if (createPagu) {
+            return response(res, 'success create pagu')
           } else {
-            return response(res, 'false create coa', {}, 404, false)
+            return response(res, 'false create pagu', {}, 404, false)
           }
         }
       }
@@ -44,40 +43,39 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  updateCoa: async (req, res) => {
+  updatePagu: async (req, res) => {
     try {
       const id = req.params.id
       const schema = joi.object({
-        no_coa: joi.string().required(),
-        nama_coa: joi.string().required(),
-        nama_subcoa: joi.string().required(),
-        tipe: joi.string().required()
+        profit_center: joi.string().required(),
+        area: joi.string().required(),
+        pagu: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNameCoa = await coa.findOne({
+        const findNamePagu = await pagu.findOne({
           where: {
-            nama_subcoa: { [Op.like]: `%${results.nama_subcoa}` },
+            profit_center: { [Op.like]: `%${results.profit_center}` },
             [Op.not]: {
               id: id
             }
           }
         })
-        if (findNameCoa && (findNameCoa.nama_coa === results.nama_coa || findNameCoa.no_coa === results.no_coa)) {
-          return response(res, 'nama coa telah terdftar', {}, 404, false)
+        if (findNamePagu && (findNamePagu.profit_center === results.profit_center)) {
+          return response(res, 'nama pagu telah terdftar', {}, 404, false)
         } else {
-          const findCoa = await coa.findByPk(id)
-          if (findCoa) {
-            const updateCoa = await findCoa.update(results)
-            if (updateCoa) {
-              return response(res, 'success create coa')
+          const findPagu = await pagu.findByPk(id)
+          if (findPagu) {
+            const updatePagu = await findPagu.update(results)
+            if (updatePagu) {
+              return response(res, 'success create pagu')
             } else {
-              return response(res, 'false create coa', {}, 404, false)
+              return response(res, 'false create pagu', {}, 404, false)
             }
           } else {
-            return response(res, 'false create coa', {}, 404, false)
+            return response(res, 'false create pagu', {}, 404, false)
           }
         }
       }
@@ -85,7 +83,7 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  uploadMasterCoa: async (req, res) => {
+  uploadMasterPagu: async (req, res) => {
     const level = req.user.level
     if (level === 1) {
       uploadMaster(req, res, async function (err) {
@@ -102,7 +100,7 @@ module.exports = {
           const dokumen = `assets/masters/${req.files[0].filename}`
           const rows = await readXlsxFile(dokumen)
           const count = []
-          const cek = ['NO COA', 'NAMA COA', 'NAMA SUB COA', 'TIPE COA']
+          const cek = ['PROFIT CENTER', 'AREA', 'PAGU']
           const valid = rows[0]
           for (let i = 0; i < cek.length; i++) {
             console.log(valid[i] === cek[i])
@@ -117,7 +115,7 @@ module.exports = {
             for (let i = 1; i < rows.length; i++) {
               const a = rows[i]
               kode.push(`${a[0]}`)
-              cost.push(`Nama Sub Coa ${a[2]} dan No Coa ${a[0]}`)
+              cost.push(`Profit center ${a[0]}`)
             }
             const result = []
             const dupCost = {}
@@ -139,21 +137,17 @@ module.exports = {
               const arr = []
               rows.shift()
               for (let i = 0; i < rows.length; i++) {
-                const dataCoa = rows[i]
-                const select = await coa.findOne({
+                const dataPagu = rows[i]
+                const select = await pagu.findOne({
                   where: {
-                    [Op.and]: [
-                      { no_coa: { [Op.like]: `%${dataCoa[0]}%` } },
-                      { nama_subcoa: { [Op.like]: `%${dataCoa[2]}%` } }
-                    ]
+                    profit_center: { [Op.like]: `%${dataPagu[0]}%` }
                   }
                 })
                 if (select) {
                   const data = {
-                    no_coa: dataCoa[0],
-                    nama_coa: dataCoa[1],
-                    nama_subcoa: dataCoa[2],
-                    tipe: dataCoa[3]
+                    profit_center: dataPagu[0],
+                    area: dataPagu[1],
+                    pagu: dataPagu[2]
                   }
                   const upbank = await select.update(data)
                   if (upbank) {
@@ -161,13 +155,12 @@ module.exports = {
                   }
                 } else {
                   const data = {
-                    no_coa: dataCoa[0],
-                    nama_coa: dataCoa[1],
-                    nama_subcoa: dataCoa[2],
-                    tipe: dataCoa[3]
+                    profit_center: dataPagu[0],
+                    area: dataPagu[1],
+                    pagu: dataPagu[2]
                   }
-                  const createCoa = await coa.create(data)
-                  if (createCoa) {
+                  const createPagu = await pagu.create(data)
+                  if (createPagu) {
                     arr.push(1)
                   }
                 }
@@ -201,57 +194,33 @@ module.exports = {
       return response(res, "You're not super administrator", {}, 404, false)
     }
   },
-  getCoa: async (req, res) => {
+  getPagu: async (req, res) => {
     try {
-      const tipe = req.params.tipe
       const kode = req.user.kode
-      if (tipe === 'ikk') {
-        const findDepo = await depo.findOne({
+      const findDepo = await depo.findOne({
+        where: {
+          kode_plant: { [Op.like]: `%${kode}` }
+        }
+      })
+      if (findDepo) {
+        const findPagu = await pagu.findOne({
           where: {
-            kode_plant: { [Op.like]: `%${kode}` }
+            profit_center: { [Op.like]: `%${findDepo.profit_center}` }
           }
         })
-        if (findDepo) {
-          const findTarif = await veriftax.findAll({
-            where: {
-              system: { [Op.like]: `%${findDepo.status_area}` }
-            },
-            group: 'gl_account'
-          })
-          if (findTarif.length > 0) {
-            const findAllTarif = await veriftax.findAll({
-              where: {
-                system: { [Op.like]: `%${findDepo.status_area}` }
-              }
-            })
-            if (findAllTarif.length > 0) {
-              return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif })
-            } else {
-              return response(res, 'failed get tarif', {}, 404, false)
-            }
-          } else {
-            return response(res, 'failed get tarif', {}, 404, false)
-          }
+        if (findPagu) {
+          return response(res, 'succes get tarif', { result: findPagu })
         } else {
           return response(res, 'failed get tarif', {}, 404, false)
         }
       } else {
-        const findCoa = await coa.findAll({
-          where: {
-            tipe: { [Op.like]: `%${tipe}` }
-          }
-        })
-        if (findCoa.length > 0) {
-          return response(res, 'succes get coa', { result: findCoa, length: findCoa.length })
-        } else {
-          return response(res, 'failed get coa', {}, 404, false)
-        }
+        return response(res, 'failed get tarif', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  getAllCoa: async (req, res) => {
+  getAllPagu: async (req, res) => {
     try {
       let { limit, page, search, sort } = req.query
       let searchValue = ''
@@ -276,68 +245,68 @@ module.exports = {
       } else {
         page = parseInt(page)
       }
-      const findCoa = await coa.findAndCountAll({
+      const findPagu = await pagu.findAndCountAll({
         where: {
           [Op.or]: [
-            { no_coa: { [Op.like]: `%${searchValue}%` } },
-            { nama_coa: { [Op.like]: `%${searchValue}%` } },
-            { nama_subcoa: { [Op.like]: `%${searchValue}%` } }
+            { pagu: { [Op.like]: `%${searchValue}%` } },
+            { area: { [Op.like]: `%${searchValue}%` } },
+            { profit_center: { [Op.like]: `%${searchValue}%` } }
           ]
         },
         order: [[sortValue, 'ASC']],
         limit: limit,
         offset: (page - 1) * limit
       })
-      const pageInfo = pagination('/coa/get', req.query, page, limit, findCoa.count)
-      if (findCoa.rows.length > 0) {
-        return response(res, 'succes get coa', { result: findCoa, pageInfo })
+      const pageInfo = pagination('/pagu/get', req.query, page, limit, findPagu.count)
+      if (findPagu.rows.length > 0) {
+        return response(res, 'succes get pagu', { result: findPagu, pageInfo })
       } else {
-        return response(res, 'failed get coa', { findCoa }, 404, false)
+        return response(res, 'failed get pagu', { findPagu }, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  getDetailCoa: async (req, res) => {
+  getDetailPagu: async (req, res) => {
     try {
       const id = req.params.id
-      const findCoa = await coa.findByPk(id)
-      if (findCoa) {
-        return response(res, 'succes get detail coa', { result: findCoa })
+      const findPagu = await pagu.findByPk(id)
+      if (findPagu) {
+        return response(res, 'succes get detail pagu', { result: findPagu })
       } else {
-        return response(res, 'failed get coa', {}, 404, false)
+        return response(res, 'failed get pagu', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  deleteCoa: async (req, res) => {
+  deletePagu: async (req, res) => {
     try {
       const id = req.params.id
-      const findCoa = await coa.findByPk(id)
-      if (findCoa) {
-        const delCoa = await findCoa.destroy()
-        if (delCoa) {
-          return response(res, 'succes delete coa', { result: findCoa })
+      const findPagu = await pagu.findByPk(id)
+      if (findPagu) {
+        const delPagu = await findPagu.destroy()
+        if (delPagu) {
+          return response(res, 'succes delete pagu', { result: findPagu })
         } else {
-          return response(res, 'failed destroy coa', {}, 404, false)
+          return response(res, 'failed destroy pagu', {}, 404, false)
         }
       } else {
-        return response(res, 'failed get coa', {}, 404, false)
+        return response(res, 'failed get pagu', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  exportSqlCoa: async (req, res) => {
+  exportSqlPagu: async (req, res) => {
     try {
-      const result = await coa.findAll()
+      const result = await pagu.findAll()
       if (result) {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['NO COA', 'NAMA COA', 'NAMA SUB COA', 'TIPE COA']
-        const key = ['no_coa', 'nama_coa', 'nama_subcoa', 'tipe']
+        const header = ['PROFIT CENTER', 'AREA', 'PAGU']
+        const key = ['profit_center', 'area', 'pagu']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
@@ -346,7 +315,7 @@ module.exports = {
         worksheet.columns = arr
         const cek = worksheet.addRows(result)
         if (cek) {
-          const name = new Date().getTime().toString().concat('-coa').concat('.xlsx')
+          const name = new Date().getTime().toString().concat('-pagu').concat('.xlsx')
           await workbook.xlsx.writeFile(name)
           vs.move(name, `assets/exports/${name}`, function (err) {
             if (err) {
@@ -367,11 +336,11 @@ module.exports = {
   },
   deleteAll: async (req, res) => {
     try {
-      const findCoa = await coa.findAll()
-      if (findCoa) {
+      const findPagu = await pagu.findAll()
+      if (findPagu) {
         const temp = []
-        for (let i = 0; i < findCoa.length; i++) {
-          const findDel = await coa.findByPk(findCoa[i].id)
+        for (let i = 0; i < findPagu.length; i++) {
+          const findDel = await pagu.findByPk(findPagu[i].id)
           if (findDel) {
             await findDel.destroy()
             temp.push(1)

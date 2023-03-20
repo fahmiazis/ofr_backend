@@ -1,4 +1,4 @@
-const { ikk, coa, depo, docuser, approve, ttd, role, document } = require('../models')
+const { ikk, depo, docuser, approve, ttd, role, document, veriftax } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -11,6 +11,7 @@ module.exports = {
   addCart: async (req, res) => {
     try {
       const kode = req.user.kode
+      const idTrans = req.params.id
       // const name = req.user.name
       // const level = req.user.level
       const schema = joi.object({
@@ -29,7 +30,20 @@ module.exports = {
         no_npwp: joi.string().allow(''),
         nama_ktp: joi.string().allow(''),
         no_ktp: joi.string().allow(''),
-        periode: joi.string().allow('')
+        periode: joi.string().allow(''),
+        nama_vendor: joi.string().allow(''),
+        alamat_vendor: joi.string().allow(''),
+        penanggung_pajak: joi.string().allow(''),
+        type_transaksi: joi.string().allow(''),
+        no_faktur: joi.string().allow(''),
+        dpp: joi.string().allow(''),
+        ppn: joi.string().allow(''),
+        tgl_tagihanbayar: joi.date().allow(),
+        nilai_buku: joi.string().allow(''),
+        nilai_utang: joi.string().allow(''),
+        jenis_pph: joi.string().allow(''),
+        user_jabatan: joi.string().allow(''),
+        no_bpkk: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -41,11 +55,7 @@ module.exports = {
           }
         })
         if (findDepo.length > 0) {
-          const result = await coa.findOne({
-            where: {
-              no_coa: results.no_coa
-            }
-          })
+          const result = await veriftax.findByPk(idTrans)
           if (result) {
             const findDraft = await ikk.findOne({
               where: {
@@ -54,11 +64,14 @@ module.exports = {
               }
             })
             const send = {
+              no_bpkk: results.no_bpkk,
+              user_jabatan: results.user_jabatan,
               kode_plant: findDepo[0].kode_plant,
               area: findDepo[0].area,
               cost_center: findDepo[0].cost_center,
               no_coa: results.no_coa,
-              nama_coa: result.nama_coa,
+              sub_coa: result.jenis_transaksi,
+              nama_coa: result.gl_name,
               uraian: results.uraian,
               periode_awal: results.periode_awal,
               periode_akhir: results.periode_akhir,
@@ -73,7 +86,18 @@ module.exports = {
               no_npwp: results.no_npwp,
               nama_ktp: results.nama_ktp,
               no_ktp: results.no_ktp,
-              periode: results.periode
+              periode: results.periode,
+              nama_vendor: results.nama_vendor,
+              alamat_vendor: results.alamat_vendor,
+              penanggung_pajak: results.penanggung_pajak,
+              type_transaksi: results.type_transaksi,
+              no_faktur: results.no_faktur,
+              dpp: results.dpp,
+              ppn: results.ppn,
+              tgl_tagihanbayar: results.tgl_tagihanbayar,
+              nilai_buku: results.nilai_buku,
+              nilai_utang: results.nilai_utang,
+              jenis_pph: results.jenis_pph
             }
             if (findDraft) {
               const month = moment(results.periode_awal).format('MMMM YYYY')
@@ -140,17 +164,26 @@ module.exports = {
   getCartIkk: async (req, res) => {
     try {
       const kode = req.user.kode
-      const findIkk = await ikk.findAll({
+      const findDepo = await depo.findOne({
         where: {
-          kode_plant: kode,
-          [Op.or]: [
-            { status_transaksi: 1 },
-            { status_transaksi: null }
-          ]
+          kode_plant: kode
         }
       })
-      if (findIkk) {
-        return response(res, 'success get cart ikk', { result: findIkk })
+      if (findDepo) {
+        const findIkk = await ikk.findAll({
+          where: {
+            kode_plant: kode,
+            [Op.or]: [
+              { status_transaksi: 1 },
+              { status_transaksi: null }
+            ]
+          }
+        })
+        if (findIkk) {
+          return response(res, 'success get cart ikk', { result: findIkk, depo: findDepo })
+        } else {
+          return response(res, 'failed get cart', {}, 404, false)
+        }
       } else {
         return response(res, 'failed get cart', {}, 404, false)
       }
@@ -175,85 +208,108 @@ module.exports = {
   submitIkk: async (req, res) => {
     try {
       const kode = req.user.kode
-      const findNo = await ikk.findAll({
-        where: {
-          [Op.not]: { no_transaksi: null }
-        },
-        order: [['id', 'DESC']],
-        limit: 50
+      const schema = joi.object({
+        list: joi.array()
       })
-      const cekNo = []
-      if (findNo.length > 0) {
-        for (let i = 0; i < findNo.length; i++) {
-          const no = findNo[i].no_transaksi.split('/')
-          cekNo.push(parseInt(no[0]))
-        }
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        cekNo.push(0)
-      }
-      const noIkk = Math.max(...cekNo) + 1
-      const findIkk = await ikk.findAll({
-        where: {
-          kode_plant: kode,
-          [Op.or]: [
-            { status_transaksi: null },
-            { status_transaksi: 1 }
-          ]
+        const listId = results.list
+        const findNo = await ikk.findAll({
+          where: {
+            [Op.not]: { no_transaksi: null }
+          },
+          order: [['id', 'DESC']],
+          limit: 50
+        })
+        const cekNo = []
+        if (findNo.length > 0) {
+          for (let i = 0; i < findNo.length; i++) {
+            const no = findNo[i].no_transaksi.split('/')
+            cekNo.push(parseInt(no[0]))
+          }
+        } else {
+          cekNo.push(0)
         }
-      })
-      if (findIkk.length > 0) {
-        const temp = []
-        const change = noIkk.toString().split('')
-        const notrans = change.length === 2 ? '00' + noIkk : change.length === 1 ? '000' + noIkk : change.length === 3 ? '0' + noIkk : noIkk
-        const month = parseInt(moment().format('MM'))
-        const year = moment().format('YYYY')
-        let rome = ''
-        if (month === 1) {
-          rome = 'I'
-        } else if (month === 2) {
-          rome = 'II'
-        } else if (month === 3) {
-          rome = 'III'
-        } else if (month === 4) {
-          rome = 'IV'
-        } else if (month === 5) {
-          rome = 'V'
-        } else if (month === 6) {
-          rome = 'VI'
-        } else if (month === 7) {
-          rome = 'VII'
-        } else if (month === 8) {
-          rome = 'VIII'
-        } else if (month === 9) {
-          rome = 'IX'
-        } else if (month === 10) {
-          rome = 'X'
-        } else if (month === 11) {
-          rome = 'XI'
-        } else if (month === 12) {
-          rome = 'XII'
-        }
-        const noTrans = findIkk[0].no_transaksi === null ? `${notrans}/${kode}/${rome}/${year}-IKK` : findIkk[0].no_transaksi
-        const data = {
-          status_transaksi: 1,
-          no_transaksi: noTrans
-        }
-        for (let i = 0; i < findIkk.length; i++) {
-          const findDraft = await ikk.findByPk(findIkk[i].id)
-          if (findDraft) {
-            const upIkk = await findDraft.update(data)
-            if (upIkk) {
-              temp.push(1)
+        const noIkk = Math.max(...cekNo) + 1
+        const findIkk = await ikk.findAll({
+          where: {
+            kode_plant: kode,
+            [Op.or]: [
+              { status_transaksi: null },
+              { status_transaksi: 1 }
+            ]
+          }
+        })
+        if (findIkk.length > 0) {
+          const temp = []
+          const change = noIkk.toString().split('')
+          const notrans = change.length === 2 ? '00' + noIkk : change.length === 1 ? '000' + noIkk : change.length === 3 ? '0' + noIkk : noIkk
+          const month = parseInt(moment().format('MM'))
+          const year = moment().format('YYYY')
+          let rome = ''
+          if (month === 1) {
+            rome = 'I'
+          } else if (month === 2) {
+            rome = 'II'
+          } else if (month === 3) {
+            rome = 'III'
+          } else if (month === 4) {
+            rome = 'IV'
+          } else if (month === 5) {
+            rome = 'V'
+          } else if (month === 6) {
+            rome = 'VI'
+          } else if (month === 7) {
+            rome = 'VII'
+          } else if (month === 8) {
+            rome = 'VIII'
+          } else if (month === 9) {
+            rome = 'IX'
+          } else if (month === 10) {
+            rome = 'X'
+          } else if (month === 11) {
+            rome = 'XI'
+          } else if (month === 12) {
+            rome = 'XII'
+          }
+          const noTrans = findIkk[0].no_transaksi === null ? `${notrans}/${kode}/${rome}/${year}-IKK` : findIkk[0].no_transaksi
+          const data = {
+            status_transaksi: 1,
+            no_transaksi: noTrans
+          }
+          const dataRes = {
+            status_transaksi: null,
+            no_transaksi: null
+          }
+          for (let i = 0; i < findIkk.length; i++) {
+            if (listId.find(e => e === findIkk[i].id)) {
+              const findDraft = await ikk.findByPk(findIkk[i].id)
+              if (findDraft) {
+                const upIkk = await findDraft.update(data)
+                if (upIkk) {
+                  temp.push(1)
+                }
+              }
+            } else {
+              const findDraft = await ikk.findByPk(findIkk[i].id)
+              if (findDraft) {
+                const upIkk = await findDraft.update(dataRes)
+                if (upIkk) {
+                  temp.push(1)
+                }
+              }
             }
           }
-        }
-        if (temp.length) {
-          return response(res, 'success submit cart', { noikk: noTrans })
+          if (temp.length) {
+            return response(res, 'success submit cart', { noikk: noTrans })
+          } else {
+            return response(res, 'failed submit cart', { noikk: noTrans })
+          }
         } else {
-          return response(res, 'failed submit cart', { noikk: noTrans })
+          return response(res, 'failed submit cart', {}, 404, false)
         }
-      } else {
-        return response(res, 'failed submit cart', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -732,6 +788,487 @@ module.exports = {
           }
         } else {
           return response(res, 'failed get approval5', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  approveIkk: async (req, res) => {
+    try {
+      const level = req.user.level
+      const name = req.user.name
+      const { no } = req.body
+      const findIkk = await ikk.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      if (findIkk.length > 0) {
+        const findDepo = await depo.findOne({
+          where: {
+            kode_plant: findIkk[0].kode_plant
+          }
+        })
+        if (findDepo) {
+          const findRole = await role.findOne({
+            where: {
+              level: level
+            }
+          })
+          if (findRole) {
+            const findTtd = await ttd.findAll({
+              where: {
+                no_transaksi: no
+              }
+            })
+            if (findTtd.length > 0) {
+              let hasil = 0
+              let arr = null
+              for (let i = 0; i < findTtd.length; i++) {
+                if (findRole.name === findTtd[i].jabatan) {
+                  hasil = findTtd[i].id
+                  arr = i
+                }
+              }
+              if (hasil !== 0) {
+                if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
+                  return response(res, 'Anda tidak memiliki akses lagi untuk mengapprove', {}, 404, false)
+                } else {
+                  console.log(findTtd[arr - 1])
+                  if (findTtd[arr - 1].status === '1') {
+                    const data = {
+                      nama: name,
+                      status: 1
+                    }
+                    const findApp = await ttd.findByPk(hasil)
+                    if (findApp) {
+                      const upttd = await findApp.update(data)
+                      if (upttd) {
+                        const findFull = await ttd.findAll({
+                          where: {
+                            [Op.and]: [
+                              { no_transaksi: no },
+                              { status: { [Op.like]: '%1%' } }
+                            ]
+                          }
+                        })
+                        if (findTtd.length === findFull.length) {
+                          const temp = []
+                          for (let i = 0; i < findIkk.length; i++) {
+                            const send = {
+                              status_transaksi: 3,
+                              status_reject: null,
+                              isreject: null,
+                              history: `${findIkk[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                            }
+                            const findRes = await ikk.findByPk(findIkk[i].id)
+                            if (findRes) {
+                              await findRes.update(send)
+                              temp.push(1)
+                            }
+                          }
+                          if (temp.length) {
+                            return response(res, 'success approve ikk', {})
+                          } else {
+                            return response(res, 'success approve ikk', {})
+                          }
+                        } else {
+                          const temp = []
+                          for (let i = 0; i < findIkk.length; i++) {
+                            const send = {
+                              status_reject: null,
+                              isreject: null,
+                              history: `${findIkk[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                            }
+                            const findRes = await ikk.findByPk(findIkk[i].id)
+                            if (findRes) {
+                              await findRes.update(send)
+                              temp.push(1)
+                            }
+                          }
+                          if (temp.length) {
+                            return response(res, 'success approve ikk', {})
+                          } else {
+                            return response(res, 'success approve ikk', {})
+                          }
+                        }
+                      } else {
+                        return response(res, 'failed approve ikk', {}, 404, false)
+                      }
+                    } else {
+                      return response(res, 'failed approve ikk', {}, 404, false)
+                    }
+                  } else {
+                    return response(res, `${findTtd[arr - 1].jabatan} belum approve atau telah mereject`, {}, 404, false)
+                  }
+                }
+              } else {
+                return response(res, 'failed approve ikk', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed approve ikk', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed approve ikk', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed approve ikk', {}, 404, false)
+        }
+      } else {
+        return response(res, 'failed approve ikk', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  rejectIkk: async (req, res) => {
+    try {
+      const level = req.user.level
+      const name = req.user.name
+      const schema = joi.object({
+        no: joi.string().required(),
+        alasan: joi.string().required(),
+        menu: joi.string().required(),
+        list: joi.array(),
+        type: joi.string()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const no = results.no
+        const findIkk = await ikk.findAll({
+          where: {
+            no_transaksi: no
+          }
+        })
+        if (findIkk.length > 0) {
+          if (results.type === 'verif') {
+            const temp = []
+            for (let i = 0; i < findIkk.length; i++) {
+              const listId = results.list
+              if (listId.find(e => e === findIkk[i].id)) {
+                const send = {
+                  status_reject: 1,
+                  isreject: 1,
+                  reason: results.alasan,
+                  menu_rev: results.menu,
+                  history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                }
+                const findRes = await ikk.findByPk(findIkk[i].id)
+                if (findRes) {
+                  await findRes.update(send)
+                  temp.push(1)
+                }
+              } else {
+                const send = {
+                  status_reject: 1,
+                  reason: results.alasan,
+                  menu_rev: results.menu,
+                  history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                }
+                const findRes = await ikk.findByPk(findIkk[i].id)
+                if (findRes) {
+                  await findRes.update(send)
+                  temp.push(1)
+                }
+              }
+            }
+            if (temp.length) {
+              return response(res, 'success reject ikk', {})
+            } else {
+              return response(res, 'success reject ikk', {})
+            }
+          } else {
+            const findDepo = await depo.findOne({
+              where: {
+                kode_plant: findIkk[0].kode_plant
+              }
+            })
+            if (findDepo) {
+              const findRole = await role.findOne({
+                where: {
+                  level: level
+                }
+              })
+              if (findRole) {
+                const findTtd = await ttd.findAll({
+                  where: {
+                    no_transaksi: no
+                  }
+                })
+                if (findTtd.length > 0) {
+                  let hasil = 0
+                  let arr = null
+                  for (let i = 0; i < findTtd.length; i++) {
+                    if (findRole.name === findTtd[i].jabatan) {
+                      hasil = findTtd[i].id
+                      arr = i
+                    }
+                  }
+                  if (hasil !== 0) {
+                    if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
+                      return response(res, 'Anda tidak memiliki akses lagi untuk mereject', {}, 404, false)
+                    } else {
+                      console.log(findTtd[arr - 1])
+                      if (findTtd[arr - 1].status === '1') {
+                        const data = {
+                          nama: name,
+                          status: 0,
+                          reason: results.alasan
+                        }
+                        const findApp = await ttd.findByPk(hasil)
+                        if (findApp) {
+                          const upttd = await findApp.update(data)
+                          if (upttd) {
+                            const findFull = await ttd.findAll({
+                              where: {
+                                [Op.and]: [
+                                  { no_transaksi: no },
+                                  { status: { [Op.like]: '%1%' } }
+                                ]
+                              }
+                            })
+                            if (findFull) {
+                              const temp = []
+                              for (let i = 0; i < findIkk.length; i++) {
+                                const listId = results.list
+                                if (listId.find(e => e === findIkk[i].id)) {
+                                  const send = {
+                                    status_reject: 1,
+                                    isreject: 1,
+                                    reason: results.alasan,
+                                    menu_rev: results.menu,
+                                    history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                  }
+                                  const findRes = await ikk.findByPk(findIkk[i].id)
+                                  if (findRes) {
+                                    await findRes.update(send)
+                                    temp.push(1)
+                                  }
+                                } else {
+                                  const send = {
+                                    status_reject: 1,
+                                    reason: results.alasan,
+                                    menu_rev: results.menu,
+                                    history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                  }
+                                  const findRes = await ikk.findByPk(findIkk[i].id)
+                                  if (findRes) {
+                                    await findRes.update(send)
+                                    temp.push(1)
+                                  }
+                                }
+                              }
+                              if (temp.length) {
+                                return response(res, 'success reject ikk', {})
+                              } else {
+                                return response(res, 'success reject ikk', {})
+                              }
+                            } else {
+                              return response(res, 'failed reject ikk1', { findFull }, 404, false)
+                            }
+                          } else {
+                            return response(res, 'failed reject ikk2', {}, 404, false)
+                          }
+                        } else {
+                          return response(res, 'failed reject ikk3', {}, 404, false)
+                        }
+                      } else {
+                        return response(res, `${findTtd[arr - 1].jabatan} belum approve atau telah mereject`, {}, 404, false)
+                      }
+                    }
+                  } else {
+                    return response(res, 'failed reject ikk4', {}, 404, false)
+                  }
+                } else {
+                  return response(res, 'failed reject ikk5', {}, 404, false)
+                }
+              } else {
+                return response(res, 'failed reject ikk6', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed reject ikk7', {}, 404, false)
+            }
+          }
+        } else {
+          return response(res, 'failed reject ikk8', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  appRevisi: async (req, res) => {
+    try {
+      const schema = joi.object({
+        no: joi.string().required(),
+        id: joi.number().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findId = await ikk.findByPk(results.id)
+        if (findId) {
+          const data = {
+            isreject: 0
+          }
+          const updateId = await findId.update(data)
+          if (updateId) {
+            return response(res, 'success revisi ikk')
+          } else {
+            return response(res, 'failed revisi ikk', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed revisi ikk', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  editIkk: async (req, res) => {
+    try {
+      // const name = req.user.name
+      // const level = req.user.level
+      const id = req.params.id
+      const schema = joi.object({
+        no_coa: joi.string().required(),
+        keterangan: joi.string().required(),
+        periode_awal: joi.date().required(),
+        periode_akhir: joi.date().required(),
+        nilai_ajuan: joi.string().required(),
+        bank_tujuan: joi.string().required(),
+        norek_ajuan: joi.string().required(),
+        nama_tujuan: joi.string().required(),
+        status_npwp: joi.number().required(),
+        nama_npwp: joi.string().allow(''),
+        no_npwp: joi.string().allow(''),
+        nama_ktp: joi.string().allow(''),
+        no_ktp: joi.string().allow(''),
+        periode: joi.string().allow('')
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findDraft = await ikk.findByPk(id)
+        const send = {
+          no_coa: results.no_coa,
+          keterangan: results.keterangan,
+          periode_awal: results.periode_awal,
+          periode_akhir: results.periode_akhir,
+          nilai_ajuan: results.nilai_ajuan,
+          bank_tujuan: results.bank_tujuan,
+          norek_ajuan: results.norek_ajuan,
+          nama_tujuan: results.nama_tujuan,
+          status_npwp: results.status_npwp,
+          nama_npwp: results.nama_npwp,
+          no_npwp: results.no_npwp,
+          nama_ktp: results.nama_ktp,
+          no_ktp: results.no_ktp,
+          periode: results.periode
+        }
+        if (findDraft) {
+          if (findDraft.no_coa === results.no_coa) {
+            const sendData = await findDraft.update(send)
+            if (sendData) {
+              return response(res, 'success add ikk1', { result: sendData })
+            } else {
+              return response(res, 'failed add ikk 7', {}, 400, false)
+            }
+          } else {
+            return response(res, 'Pastikan program dan periode sama dalam satu pengajuan', {}, 400, false)
+          }
+        } else {
+          return response(res, 'failed add ikk 7', {}, 400, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitRevisi: async (req, res) => {
+    try {
+      const name = req.user.name
+      const schema = joi.object({
+        no: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findIkk = await ikk.findAll({
+          where: {
+            no_transaksi: results.no
+          }
+        })
+        if (findIkk.length > 0) {
+          const temp = []
+          for (let i = 0; i < findIkk.length; i++) {
+            const send = {
+              status_reject: 0,
+              history: `${findIkk[i].history}, submit revisi by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+            }
+            const findRes = await ikk.findByPk(findIkk[i].id)
+            if (findRes) {
+              await findRes.update(send)
+              temp.push(1)
+            }
+          }
+          if (temp.length) {
+            return response(res, 'success submit revisi ikk', {})
+          } else {
+            return response(res, 'success submit revisi ikk', {})
+          }
+        } else {
+          return response(res, 'failed revisi ikk', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitVerif: async (req, res) => {
+    try {
+      const name = req.user.name
+      const level = req.user.level
+      const schema = joi.object({
+        no: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findIkk = await ikk.findAll({
+          where: {
+            no_transaksi: results.no
+          }
+        })
+        if (findIkk.length > 0) {
+          const temp = []
+          for (let i = 0; i < findIkk.length; i++) {
+            const findRes = await ikk.findByPk(findIkk[i].id)
+            if (findRes) {
+              const data = {
+                status_transaksi: level === 2 ? 4 : 5,
+                status_reject: null,
+                isreject: null,
+                history: `${findIkk[i].history}, verifikasi ${level === 2 ? 'finance' : 'ikk'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+              }
+              await findRes.update(data)
+              temp.push(findRes)
+            }
+          }
+          if (temp.length > 0) {
+            return response(res, 'success verifikasi ikk', {})
+          } else {
+            return response(res, 'success verifikasi ikk', {})
+          }
+        } else {
+          return response(res, 'failed submit verifikasi ikk', {}, 404, false)
         }
       }
     } catch (error) {

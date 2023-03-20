@@ -175,11 +175,14 @@ module.exports = {
   },
   getAllMenu: async (req, res) => {
     try {
-      const tipe = req.params.name
-      console.log(tipe)
+      const name = req.params.name
+      const { tipe } = req.query
       const result = await listmenu.findAll({
         where: {
-          type: tipe
+          [Op.and]: [
+            { type: name },
+            { kode_menu: tipe === undefined ? 'Klaim' : tipe }
+          ]
         }
       })
       if (result) {
