@@ -172,9 +172,9 @@ module.exports = {
                   type_transaksi: dataTarif[5],
                   jenis_pph: dataTarif[6],
                   status_npwp: dataTarif[7],
-                  tarif_pph: dataTarif[8] * 100 + '%',
-                  dpp_nongrossup: dataTarif[9] * 100 + '%',
-                  dpp_grossup: dataTarif[10] * 100 + '%'
+                  tarif_pph: parseFloat(dataTarif[8]) + '%',
+                  dpp_nongrossup: parseFloat(dataTarif[9]) + '%',
+                  dpp_grossup: parseFloat(dataTarif[10]) + '%'
                 }
                 if (select) {
                   const upverif = await select.update(data)
