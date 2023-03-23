@@ -227,13 +227,13 @@ module.exports = {
             if (findAllTarif.length > 0) {
               return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif })
             } else {
-              return response(res, 'failed get tarif', {}, 404, false)
+              return response(res, 'failed get tarif3', {}, 404, false)
             }
           } else {
-            return response(res, 'failed get tarif', {}, 404, false)
+            return response(res, 'failed get tarif2', {}, 404, false)
           }
         } else {
-          return response(res, 'failed get tarif', {}, 404, false)
+          return response(res, 'failed get tarif1', {}, 404, false)
         }
       } else {
         const findCoa = await coa.findAll({
