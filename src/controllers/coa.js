@@ -216,7 +216,7 @@ module.exports = {
             where: {
               system: { [Op.like]: `%${findDepo.status_area}` }
             },
-            group: 'gl_account'
+            group: ['gl_account']
           })
           if (findTarif.length > 0) {
             const findAllTarif = await veriftax.findAll({
