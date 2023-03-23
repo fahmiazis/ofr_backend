@@ -177,27 +177,49 @@ module.exports = {
     try {
       const name = req.params.name
       const { tipe } = req.query
-      const result = await listmenu.findAll({
-        where: {
-          [Op.and]: [
-            { type: name },
-            { kode_menu: tipe === undefined ? 'Klaim' : tipe }
-          ]
-        }
-      })
-      if (result) {
-        const findName = await menu.findAll({
+      if (name === 'proses') {
+        const result = await listmenu.findAll({
           where: {
-            type: 'transaksi'
+            type: name
           }
         })
-        if (findName.length > 0) {
-          return response(res, 'success get all list menu', { result: result, name: findName })
+        if (result) {
+          const findName = await menu.findAll({
+            where: {
+              type: 'transaksi'
+            }
+          })
+          if (findName.length > 0) {
+            return response(res, 'success get all list menu', { result: result, name: findName })
+          } else {
+            return response(res, 'success get all list menu', { result: result, name: [] })
+          }
         } else {
-          return response(res, 'success get all list menu', { result: result, name: [] })
+          return response(res, 'failed get all list menu', {}, 404, false)
         }
       } else {
-        return response(res, 'failed get all list menu', {}, 404, false)
+        const result = await listmenu.findAll({
+          where: {
+            [Op.and]: [
+              { type: name },
+              { kode_menu: tipe === undefined ? 'Klaim' : tipe }
+            ]
+          }
+        })
+        if (result) {
+          const findName = await menu.findAll({
+            where: {
+              type: 'transaksi'
+            }
+          })
+          if (findName.length > 0) {
+            return response(res, 'success get all list menu', { result: result, name: findName })
+          } else {
+            return response(res, 'success get all list menu', { result: result, name: [] })
+          }
+        } else {
+          return response(res, 'failed get all list menu', {}, 404, false)
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
