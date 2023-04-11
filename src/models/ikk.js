@@ -83,6 +83,7 @@ module.exports = (sequelize, DataTypes) => {
     ppn: DataTypes.STRING,
     nilai_buku: DataTypes.STRING,
     nilai_utang: DataTypes.STRING,
+    nilai_vendor: DataTypes.STRING,
     jenis_pph: DataTypes.STRING,
     tgl_tagihanbayar: DataTypes.DATE,
     no_bpkk: DataTypes.STRING,

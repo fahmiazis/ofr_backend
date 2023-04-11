@@ -3,21 +3,31 @@ const {
   Model
 } = require('sequelize')
 module.exports = (sequelize, DataTypes) => {
-  class pajak extends Model {
+  class ops extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
     static associate (models) {
-      pajak.hasMany(models.ttd, {
+      ops.hasMany(models.ttd, {
         foreignKey: 'no_transaksi',
         as: 'appForm',
         sourceKey: 'no_transaksi'
       })
+      ops.hasMany(models.ttd, {
+        foreignKey: 'no_transaksi',
+        as: 'appList',
+        sourceKey: 'no_pembayaran'
+      })
+      ops.hasOne(models.depo, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'depo'
+      })
     }
   }
-  pajak.init({
+  ops.init({
     no_coa: DataTypes.STRING,
     sub_coa: DataTypes.STRING,
     cost_center: DataTypes.STRING,
@@ -48,10 +58,30 @@ module.exports = (sequelize, DataTypes) => {
     periode_awal: DataTypes.DATE,
     periode_akhir: DataTypes.DATE,
     nama_ktp: DataTypes.STRING,
-    no_ktp: DataTypes.STRING
+    no_ktp: DataTypes.STRING,
+    start_ops: DataTypes.DATE,
+    end_ops: DataTypes.DATE,
+    end_proses: DataTypes.DATE,
+    history: DataTypes.TEXT,
+    menu_rev: DataTypes.STRING,
+    menu_proses: DataTypes.STRING,
+    tujuan_tf: DataTypes.STRING,
+    tiperek: DataTypes.STRING,
+    no_pembayaran: DataTypes.STRING,
+    bank_transfer: DataTypes.STRING,
+    nama_vendor: DataTypes.STRING,
+    jenis_vendor: DataTypes.STRING,
+    alamat_vendor: DataTypes.STRING,
+    penanggung_pajak: DataTypes.STRING,
+    type_transaksi: DataTypes.STRING,
+    no_faktur: DataTypes.STRING,
+    nilai_buku: DataTypes.STRING,
+    nilai_utang: DataTypes.STRING,
+    nilai_vendor: DataTypes.STRING,
+    tgl_tagihanbayar: DataTypes.DATE
   }, {
     sequelize,
-    modelName: 'pajak'
+    modelName: 'ops'
   })
-  return pajak
+  return ops
 }

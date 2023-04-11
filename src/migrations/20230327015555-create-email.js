@@ -2,27 +2,30 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('approves', {
+    await queryInterface.createTable('emails', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      nama_approve: {
+      type: {
         type: Sequelize.STRING
       },
-      nama: {
+      menu: {
         type: Sequelize.STRING
       },
-      jabatan: {
-        type: Sequelize.STRING
+      message: {
+        type: Sequelize.TEXT
       },
-      sebagai: {
-        type: Sequelize.STRING
+      cc: {
+        type: Sequelize.TEXT
       },
-      kategori: {
-        type: Sequelize.STRING
+      to: {
+        type: Sequelize.TEXT
+      },
+      updatedBy: {
+        type: Sequelize.TEXT
       },
       createdAt: {
         allowNull: false,
@@ -35,6 +38,6 @@ module.exports = {
     })
   },
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('approves')
+    await queryInterface.dropTable('emails')
   }
 }

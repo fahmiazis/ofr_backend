@@ -991,7 +991,7 @@ module.exports = {
           if (findDepo) {
             const findApp = await approve.findAll({
               where: {
-                nama_approve: 'Ajuan Bayar Klaim'
+                nama_approve: 'Ajuan Bayar'
               }
             })
             if (findApp.length > 0) {
@@ -1785,9 +1785,9 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNo = await klaim.findOne({
+        const findNo = await ttd.findOne({
           where: {
-            no_pembayaran: results.no_transfer
+            no_transaksi: results.no_transfer
           }
         })
         if (findNo) {

@@ -175,34 +175,13 @@ module.exports = {
   },
   getAllMenu: async (req, res) => {
     try {
-      const name = req.params.name
-      const { tipe } = req.query
-      if (name === 'proses') {
-        const result = await listmenu.findAll({
-          where: {
-            type: name
-          }
-        })
-        if (result) {
-          const findName = await menu.findAll({
-            where: {
-              type: 'transaksi'
-            }
-          })
-          if (findName.length > 0) {
-            return response(res, 'success get all list menu', { result: result, name: findName })
-          } else {
-            return response(res, 'success get all list menu', { result: result, name: [] })
-          }
-        } else {
-          return response(res, 'failed get all list menu', {}, 404, false)
-        }
-      } else {
+      const type = req.params.type
+      const { name } = req.query
+      if (name === 'undefined') {
         const result = await listmenu.findAll({
           where: {
             [Op.and]: [
-              { type: name },
-              { kode_menu: tipe === undefined ? 'Klaim' : tipe }
+              type === 'all' ? { [Op.not]: { type: 'master' } } : { type: { [Op.like]: `%${type}%` } }
             ]
           }
         })
@@ -213,9 +192,32 @@ module.exports = {
             }
           })
           if (findName.length > 0) {
-            return response(res, 'success get all list menu', { result: result, name: findName })
+            return response(res, 'success get all list menu proses', { result: result, name: findName })
           } else {
-            return response(res, 'success get all list menu', { result: result, name: [] })
+            return response(res, 'success get all list menu proses', { result: result, name: [] })
+          }
+        } else {
+          return response(res, 'failed get all list menu', {}, 404, false)
+        }
+      } else {
+        const result = await listmenu.findAll({
+          where: {
+            [Op.and]: [
+              { type: type },
+              { kode_menu: name === 'undefined' ? 'Klaim' : name }
+            ]
+          }
+        })
+        if (result) {
+          const findName = await menu.findAll({
+            where: {
+              type: 'transaksi'
+            }
+          })
+          if (findName.length > 0) {
+            return response(res, 'success get all list menu name', { result: result, name: findName })
+          } else {
+            return response(res, 'success get all list menu name', { result: result, name: [] })
           }
         } else {
           return response(res, 'failed get all list menu', {}, 404, false)

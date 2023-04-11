@@ -8,5 +8,6 @@ route.patch('/update/:id', dokumen.updateDocument)
 route.delete('/delete/:id', dokumen.deleteDocuments)
 route.post('/master', dokumen.uploadMasterDokumen)
 route.get('/export', dokumen.exportSqlDocument)
+route.get('/show/:id', dokumen.showDokumen)
 
 module.exports = route

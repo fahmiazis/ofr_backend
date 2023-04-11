@@ -27,10 +27,15 @@ const docRoute = require('./routes/document')
 const rekRoute = require('./routes/rekening')
 const tarifRoute = require('./routes/tarif')
 const paguRoute = require('./routes/pagu')
+const emailRoute = require('./routes/email')
+const vendorRoute = require('./routes/vendor')
 // transaksi
 const klaimRoute = require('./routes/klaim')
 const opsRoute = require('./routes/operasional')
 const ikkRoute = require('./routes/ikk')
+
+// show document
+const showRoute = require('./routes/show')
 
 const authMiddleware = require('./middlewares/auth')
 
@@ -51,10 +56,15 @@ app.use('/document', authMiddleware, docRoute)
 app.use('/rekening', authMiddleware, rekRoute)
 app.use('/tarif', authMiddleware, tarifRoute)
 app.use('/pagu', authMiddleware, paguRoute)
+app.use('/email', authMiddleware, emailRoute)
+app.use('/vendor', authMiddleware, vendorRoute)
 // transaksi
 app.use('/klaim', authMiddleware, klaimRoute)
 app.use('/ops', authMiddleware, opsRoute)
 app.use('/ikk', authMiddleware, ikkRoute)
+
+// show document
+app.use('/show', showRoute)
 
 app.get('*', (req, res) => {
   response(res, 'Error route not found', {}, 404, false)

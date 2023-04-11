@@ -19,9 +19,9 @@ route.patch('/update/:id', ikk.editIkk)
 route.patch('/subrev', ikk.submitRevisi)
 route.patch('/verif', ikk.submitVerif)
 // route.patch('/editvrf/:id', ikk.updateDataVerif)
-// route.patch('/subbayar', ikk.submitAjuanBayar)
-// route.patch('/ttdlist', ikk.getApprovalList)
-// route.patch('/applist', ikk.approveListIkk)
-// route.patch('/rejectlist', ikk.rejectListIkk)
+route.patch('/subbayar', ikk.submitAjuanBayar)
+route.patch('/ttdlist', ikk.getApprovalList)
+route.patch('/applist', ikk.approveListIkk)
+route.patch('/rejectlist', ikk.rejectListIkk)
 
 module.exports = route

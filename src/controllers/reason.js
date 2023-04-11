@@ -28,7 +28,7 @@ module.exports = {
           }
         })
         if (findName && (findName.desc === results.desc)) {
-          return response(res, 'nama reason telah terdftar', {}, 404, false)
+          return response(res, 'reason telah terdftar', {}, 404, false)
         } else {
           const createReason = await reason.create(results)
           if (createReason) {

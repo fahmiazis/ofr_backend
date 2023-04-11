@@ -41,6 +41,7 @@ module.exports = {
         tgl_tagihanbayar: joi.date().allow(),
         nilai_buku: joi.string().allow(''),
         nilai_utang: joi.string().allow(''),
+        nilai_vendor: joi.string().allow(''),
         jenis_pph: joi.string().allow(''),
         user_jabatan: joi.string().allow(''),
         no_bpkk: joi.string().required()
@@ -97,6 +98,7 @@ module.exports = {
               tgl_tagihanbayar: results.tgl_tagihanbayar,
               nilai_buku: results.nilai_buku,
               nilai_utang: results.nilai_utang,
+              nilai_vendor: results.nilai_vendor,
               jenis_pph: results.jenis_pph
             }
             if (findDraft) {
@@ -835,7 +837,6 @@ module.exports = {
                 if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
                   return response(res, 'Anda tidak memiliki akses lagi untuk mengapprove', {}, 404, false)
                 } else {
-                  console.log(findTtd[arr - 1])
                   if (findTtd[arr - 1].status === '1') {
                     const data = {
                       nama: name,
@@ -1234,7 +1235,7 @@ module.exports = {
   submitVerif: async (req, res) => {
     try {
       const name = req.user.name
-      const level = req.user.level
+      // const level = req.user.level
       const schema = joi.object({
         no: joi.string().required()
       })
@@ -1253,10 +1254,10 @@ module.exports = {
             const findRes = await ikk.findByPk(findIkk[i].id)
             if (findRes) {
               const data = {
-                status_transaksi: level === 2 ? 4 : 5,
+                status_transaksi: 4,
                 status_reject: null,
                 isreject: null,
-                history: `${findIkk[i].history}, verifikasi ${level === 2 ? 'finance' : 'ikk'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                history: `${findIkk[i].history}, verifikasi finance by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findRes.update(data)
               temp.push(findRes)
@@ -1269,6 +1270,427 @@ module.exports = {
           }
         } else {
           return response(res, 'failed submit verifikasi ikk', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitAjuanBayar: async (req, res) => {
+    try {
+      // const level = req.user.level
+      const name = req.user.name
+      const schema = joi.object({
+        no_transfer: joi.string().required(),
+        tgl_transfer: joi.string().required(),
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findNo = await ttd.findOne({
+          where: {
+            no_transaksi: results.no_transfer
+          }
+        })
+        if (findNo) {
+          return response(res, 'no transaksi telah terdaftar', {}, 404, false)
+        } else {
+          const temp = []
+          const list = results.list
+          for (let i = 0; i < list.length; i++) {
+            const findIkk = await ikk.findAll({
+              where: {
+                no_transaksi: list[i]
+              }
+            })
+            if (findIkk.length > 0) {
+              for (let j = 0; j < findIkk.length; j++) {
+                const send = {
+                  status_transaksi: 5,
+                  no_pembayaran: results.no_transfer,
+                  tanggal_transfer: results.tgl_transfer,
+                  history: `${findIkk[j].history}, submit ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                }
+                const findRes = await ikk.findByPk(findIkk[j].id)
+                if (findRes) {
+                  await findRes.update(send)
+                  temp.push(1)
+                }
+              }
+            }
+          }
+          if (temp.length) {
+            return response(res, 'success submit ajuan bayar ikk', {})
+          } else {
+            return response(res, 'success submit ajuan bayar ikk', {})
+          }
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getApprovalList: async (req, res) => {
+    try {
+      const { no } = req.body
+      const findTtd = await ttd.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      if (findTtd.length > 0) {
+        const pembuat = []
+        const mengetahui = []
+        const penyetuju = []
+        for (let i = 0; i < findTtd.length; i++) {
+          if (findTtd[i].sebagai === 'pembuat') {
+            pembuat.push(findTtd[i])
+          } else if (findTtd[i].sebagai === 'mengetahui') {
+            mengetahui.push(findTtd[i])
+          } else if (findTtd[i].sebagai === 'penyetuju') {
+            penyetuju.push(findTtd[i])
+          }
+        }
+        return response(res, 'succes get approval', { result: { pembuat, penyetuju, mengetahui }, findTtd })
+      } else {
+        const findIkk = await ikk.findOne({
+          where: {
+            no_pembayaran: no
+          }
+        })
+        if (findIkk) {
+          const findDepo = await depo.findOne({
+            where: {
+              kode_plant: findIkk.kode_plant
+            }
+          })
+          if (findDepo) {
+            const findApp = await approve.findAll({
+              where: {
+                nama_approve: 'Ajuan Bayar'
+              }
+            })
+            if (findApp.length > 0) {
+              const temp = []
+              for (let i = 0; i < findApp.length; i++) {
+                const data = {
+                  jabatan: findApp[i].jabatan,
+                  nama: i === 0 ? findDepo.pic_1 : null,
+                  status: i === 0 ? 1 : null,
+                  no_transaksi: no,
+                  sebagai: findApp[i].sebagai,
+                  jenis: findApp[i].jenis,
+                  kategori: findApp[i].kategori
+                }
+                const send = await ttd.create(data)
+                if (send) {
+                  temp.push(send)
+                }
+              }
+              if (temp.length > 0) {
+                const findTtd = await ttd.findAll({
+                  where: {
+                    no_transaksi: no
+                  }
+                })
+                if (findTtd.length > 0) {
+                  const penyetuju = []
+                  const pembuat = []
+                  const mengetahui = []
+                  for (let i = 0; i < findTtd.length; i++) {
+                    if (findTtd[i].sebagai === 'pembuat') {
+                      pembuat.push(findTtd[i])
+                    } else if (findTtd[i].sebagai === 'mengetahui') {
+                      mengetahui.push(findTtd[i])
+                    } else if (findTtd[i].sebagai === 'penyetuju') {
+                      penyetuju.push(findTtd[i])
+                    }
+                  }
+                  return response(res, 'succes get approval', { result: { pembuat, penyetuju, mengetahui }, findTtd })
+                } else {
+                  return response(res, 'failed get approval1', {}, 404, false)
+                }
+              } else {
+                return response(res, 'failed get approval2', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed get approval3', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed get approval4', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed get approval5', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  approveListIkk: async (req, res) => {
+    try {
+      const level = req.user.level
+      const name = req.user.name
+      const { no } = req.body
+      const findIkk = await ikk.findAll({
+        where: {
+          no_pembayaran: no
+        }
+      })
+      if (findIkk.length > 0) {
+        const findDepo = await depo.findOne({
+          where: {
+            kode_plant: findIkk[0].kode_plant
+          }
+        })
+        if (findDepo) {
+          const findRole = await role.findOne({
+            where: {
+              level: level
+            }
+          })
+          if (findRole) {
+            const findTtd = await ttd.findAll({
+              where: {
+                no_transaksi: no
+              }
+            })
+            if (findTtd.length > 0) {
+              let hasil = 0
+              let arr = null
+              for (let i = 0; i < findTtd.length; i++) {
+                if (findRole.name === findTtd[i].jabatan) {
+                  hasil = findTtd[i].id
+                  arr = i
+                }
+              }
+              if (hasil !== 0) {
+                if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
+                  return response(res, 'Anda tidak memiliki akses lagi untuk mengapprove', {}, 404, false)
+                } else {
+                  console.log(findTtd[arr - 1])
+                  if (findTtd[arr - 1].status === '1') {
+                    const data = {
+                      nama: name,
+                      status: 1
+                    }
+                    const findApp = await ttd.findByPk(hasil)
+                    if (findApp) {
+                      const upttd = await findApp.update(data)
+                      if (upttd) {
+                        const findFull = await ttd.findAll({
+                          where: {
+                            [Op.and]: [
+                              { no_transaksi: no },
+                              { status: { [Op.like]: '%1%' } }
+                            ]
+                          }
+                        })
+                        if (findTtd.length === findFull.length) {
+                          const temp = []
+                          for (let i = 0; i < findIkk.length; i++) {
+                            const send = {
+                              status_transaksi: 6,
+                              status_reject: null,
+                              isreject: null,
+                              history: `${findIkk[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                            }
+                            const findRes = await ikk.findByPk(findIkk[i].id)
+                            if (findRes) {
+                              await findRes.update(send)
+                              temp.push(1)
+                            }
+                          }
+                          if (temp.length) {
+                            return response(res, 'success approve ikk', {})
+                          } else {
+                            return response(res, 'success approve ikk', {})
+                          }
+                        } else {
+                          const temp = []
+                          for (let i = 0; i < findIkk.length; i++) {
+                            const send = {
+                              status_reject: null,
+                              isreject: null,
+                              history: `${findIkk[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                            }
+                            const findRes = await ikk.findByPk(findIkk[i].id)
+                            if (findRes) {
+                              await findRes.update(send)
+                              temp.push(1)
+                            }
+                          }
+                          if (temp.length) {
+                            return response(res, 'success approve ikk', {})
+                          } else {
+                            return response(res, 'success approve ikk', {})
+                          }
+                        }
+                      } else {
+                        return response(res, 'failed approve ikk1', {}, 404, false)
+                      }
+                    } else {
+                      return response(res, 'failed approve ikk2', {}, 404, false)
+                    }
+                  } else {
+                    return response(res, `${findTtd[arr - 1].jabatan} belum approve atau telah mereject`, {}, 404, false)
+                  }
+                }
+              } else {
+                return response(res, 'failed approve ikk3', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed approve ikk4', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed approve ikk5', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed approve ikk6', {}, 404, false)
+        }
+      } else {
+        return response(res, 'failed approve ikk7', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  rejectListIkk: async (req, res) => {
+    try {
+      const level = req.user.level
+      const name = req.user.name
+      const schema = joi.object({
+        no: joi.string().required(),
+        alasan: joi.string().required(),
+        menu: joi.string().required(),
+        list: joi.array(),
+        type: joi.string()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const no = results.no
+        const findIkk = await ikk.findAll({
+          where: {
+            no_pembayaran: no
+          }
+        })
+        if (findIkk.length > 0) {
+          const findDepo = await depo.findOne({
+            where: {
+              kode_plant: findIkk[0].kode_plant
+            }
+          })
+          if (findDepo) {
+            const findRole = await role.findOne({
+              where: {
+                level: level
+              }
+            })
+            if (findRole) {
+              const findTtd = await ttd.findAll({
+                where: {
+                  no_transaksi: no
+                }
+              })
+              if (findTtd.length > 0) {
+                let hasil = 0
+                let arr = null
+                for (let i = 0; i < findTtd.length; i++) {
+                  if (findRole.name === findTtd[i].jabatan) {
+                    hasil = findTtd[i].id
+                    arr = i
+                  }
+                }
+                if (hasil !== 0) {
+                  if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
+                    return response(res, 'Anda tidak memiliki akses lagi untuk mereject', {}, 404, false)
+                  } else {
+                    console.log(findTtd[arr - 1])
+                    if (findTtd[arr - 1].status === '1') {
+                      const data = {
+                        nama: name,
+                        status: 0,
+                        reason: results.alasan
+                      }
+                      const findApp = await ttd.findByPk(hasil)
+                      if (findApp) {
+                        const upttd = await findApp.update(data)
+                        if (upttd) {
+                          const findFull = await ttd.findAll({
+                            where: {
+                              [Op.and]: [
+                                { no_transaksi: no },
+                                { status: { [Op.like]: '%1%' } }
+                              ]
+                            }
+                          })
+                          if (findFull) {
+                            const temp = []
+                            for (let i = 0; i < findIkk.length; i++) {
+                              const listId = results.list
+                              if (listId.find(e => e === findIkk[i].id)) {
+                                const send = {
+                                  status_reject: 1,
+                                  isreject: 1,
+                                  reason: results.alasan,
+                                  menu_rev: results.menu,
+                                  history: `${findIkk[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                }
+                                const findRes = await ikk.findByPk(findIkk[i].id)
+                                if (findRes) {
+                                  await findRes.update(send)
+                                  temp.push(1)
+                                }
+                              } else {
+                                const send = {
+                                  status_reject: 1,
+                                  reason: results.alasan,
+                                  menu_rev: results.menu,
+                                  history: `${findIkk[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                }
+                                const findRes = await ikk.findByPk(findIkk[i].id)
+                                if (findRes) {
+                                  await findRes.update(send)
+                                  temp.push(1)
+                                }
+                              }
+                            }
+                            if (temp.length) {
+                              return response(res, 'success reject ikk', {})
+                            } else {
+                              return response(res, 'success reject ikk', {})
+                            }
+                          } else {
+                            return response(res, 'failed reject ikk1', { findFull }, 404, false)
+                          }
+                        } else {
+                          return response(res, 'failed reject ikk2', {}, 404, false)
+                        }
+                      } else {
+                        return response(res, 'failed reject ikk3', {}, 404, false)
+                      }
+                    } else {
+                      return response(res, `${findTtd[arr - 1].jabatan} belum approve atau telah mereject`, {}, 404, false)
+                    }
+                  }
+                } else {
+                  return response(res, 'failed reject ikk4', {}, 404, false)
+                }
+              } else {
+                return response(res, 'failed reject ikk5', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed reject ikk6', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed reject ikk7', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed reject ikk8', {}, 404, false)
         }
       }
     } catch (error) {

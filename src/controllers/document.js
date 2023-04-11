@@ -1,5 +1,5 @@
 const { pagination } = require('../helpers/pagination')
-const { document, sequelize, depo } = require('../models')
+const { document, sequelize, depo, docuser } = require('../models')
 const { Op, QueryTypes } = require('sequelize')
 const response = require('../helpers/response')
 const joi = require('joi')
@@ -12,6 +12,26 @@ const vs = require('fs-extra')
 const { APP_URL } = process.env
 
 module.exports = {
+  showDokumen: async (req, res) => {
+    try {
+      const id = req.params.id
+      const result = await docuser.findByPk(id)
+      if (result) {
+        const url = result.path
+        fs.readFile(url, function (err, data) {
+          if (err) {
+            console.log(err)
+          }
+          res.contentType('application/pdf')
+          res.send(data)
+        })
+      } else {
+        return response(res, 'failed to show dokumen', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
   addDocument: async (req, res) => {
     try {
       const level = req.user.level
