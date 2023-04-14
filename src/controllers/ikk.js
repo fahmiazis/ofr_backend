@@ -102,11 +102,12 @@ module.exports = {
               jenis_pph: results.jenis_pph
             }
             if (findDraft) {
-              const month = moment(results.periode_awal).format('MMMM YYYY')
-              const monthLast = moment(results.periode_akhir).format('MMMM YYYY')
-              const monthCom = moment(findDraft.periode_awal).format('MMMM YYYY')
-              const monthComLast = moment(findDraft.periode_akhir).format('MMMM YYYY')
-              if (findDraft.no_coa === results.no_coa && month === monthCom && monthLast === monthComLast) {
+              // const month = moment(results.periode_awal).format('DD MMMM YYYY')
+              // const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
+              // const monthCom = moment(findDraft.periode_awal).format('DD MMMM YYYY')
+              // const monthComLast = moment(findDraft.periode_akhir).format('DD MMMM YYYY')
+              // if (findDraft.no_coa === results.no_coa && month === monthCom && monthLast === monthComLast) {
+              if (findDraft) {
                 const sendData = await ikk.create(send)
                 if (sendData) {
                   return response(res, 'success add ikk1', { result: sendData })
@@ -123,16 +124,16 @@ module.exports = {
                   kode_plant: kode,
                   [Op.not]: [
                     { status_transaksi: null },
-                    { status_transaksi: 0 },
-                    { status_transaksi: 8 }
+                    { status_transaksi: 0 }
+                    // { status_transaksi: 8 }
                   ]
                 }
               })
               if (findIkk) {
-                const month = moment(results.periode_awal).format('MMMM YYYY')
-                const monthLast = moment(results.periode_akhir).format('MMMM YYYY')
-                const monthCom = moment(findIkk.periode_awall).format('MMMM YYYY')
-                const monthComLast = moment(findIkk.periode_akhir).format('MMMM YYYY')
+                const month = moment(results.periode_awal).format('DD MMMM YYYY')
+                const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
+                const monthCom = moment(findIkk.periode_awall).format('DD MMMM YYYY')
+                const monthComLast = moment(findIkk.periode_akhir).format('DD MMMM YYYY')
                 if (month === monthCom && monthLast === monthComLast) {
                   return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findIkk })
                 } else {

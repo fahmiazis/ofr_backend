@@ -1,4 +1,4 @@
-const { email, ttd, role, depo, user, pajak, klaim, ikk } = require('../models')
+const { email, ttd, role, depo, user, ops, klaim, ikk } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -328,7 +328,7 @@ module.exports = {
         }
       })
       if (findRole) {
-        const transaksi = tipe === 'ikk' ? ikk : tipe === 'klaim' ? klaim : pajak
+        const transaksi = tipe === 'ikk' ? ikk : tipe === 'klaim' ? klaim : ops
         const title = tipe === 'ikk' ? 'IKK' : tipe === 'klaim' ? 'Klaim' : 'Operasional'
         const findData = await transaksi.findAll({
           where: {
