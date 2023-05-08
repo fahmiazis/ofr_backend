@@ -42,6 +42,7 @@ module.exports = {
         nilai_buku: joi.string().allow(''),
         nilai_utang: joi.string().allow(''),
         nilai_vendor: joi.string().allow(''),
+        nilai_bayar: joi.string().allow(''),
         jenis_pph: joi.string().allow(''),
         user_jabatan: joi.string().allow(''),
         no_bpkk: joi.string().required()
@@ -99,6 +100,7 @@ module.exports = {
               nilai_buku: results.nilai_buku,
               nilai_utang: results.nilai_utang,
               nilai_vendor: results.nilai_vendor,
+              nilai_bayar: results.nilai_bayar,
               jenis_pph: results.jenis_pph
             }
             if (findDraft) {
@@ -371,7 +373,6 @@ module.exports = {
         const dokumen = `assets/documents/${req.file.filename}`
         console.log(no)
         const send = {
-          status: 1,
           path: dokumen,
           divisi: 'ikk',
           history: req.file.originalname,
@@ -1692,6 +1693,144 @@ module.exports = {
           }
         } else {
           return response(res, 'failed reject ikk8', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getReport: async (req, res) => {
+    try {
+      const level = req.user.level
+      const kode = req.user.kode
+      const name = req.user.name
+      const { status, reject, menu } = req.query
+      const statTrans = status === 'undefined' || status === null ? 8 : status
+      const statRej = reject === 'undefined' ? null : reject
+      const statMenu = menu === 'undefined' ? null : menu
+      if (level === 5) {
+        const findIkk = await ikk.findAll({
+          where: {
+            kode_plant: kode,
+            [Op.and]: [
+              statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
+              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+            ],
+            [Op.not]: [
+              { status_transaksi: 1 }
+            ]
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            },
+            {
+              model: depo,
+              as: 'depo'
+            }
+          ]
+        })
+        if (findIkk) {
+          return response(res, 'success get data ikk', { result: findIkk })
+        } else {
+          return response(res, 'success get data ikk', { result: findIkk })
+        }
+      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
+        const findDepo = await depo.findAll({
+          where: {
+            [Op.or]: [
+              { bm: level === 10 ? name : 'undefined' },
+              { om: level === 11 ? name : 'undefined' },
+              { nom: level === 12 ? name : 'undefined' },
+              { pic_1: level === 2 ? name : 'undefined' },
+              { pic_2: level === 7 ? name : 'undefined' },
+              { pic_3: level === 8 ? name : 'undefined' },
+              { pic_4: level === 9 ? name : 'undefined' }
+            ]
+          }
+        })
+        if (findDepo.length) {
+          const hasil = []
+          for (let i = 0; i < findDepo.length; i++) {
+            const result = await ikk.findAll({
+              where: {
+                kode_plant: findDepo[i].kode_plant,
+                [Op.and]: [
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+                ]
+              },
+              order: [
+                ['id', 'ASC'],
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+              ],
+              include: [
+                {
+                  model: ttd,
+                  as: 'appForm'
+                },
+                {
+                  model: ttd,
+                  as: 'appList'
+                },
+                {
+                  model: depo,
+                  as: 'depo'
+                }
+              ]
+            })
+            if (result.length > 0) {
+              for (let j = 0; j < result.length; j++) {
+                hasil.push(result[j])
+              }
+            }
+          }
+          if (hasil.length > 0) {
+            const result = hasil
+            return response(res, 'success get ikk', { result })
+          } else {
+            const result = hasil
+            return response(res, 'success get ikk', { result })
+          }
+        } else {
+          return response(res, 'failed get ikk', {}, 400, false)
+        }
+      } else {
+        const findIkk = await ikk.findAll({
+          where: {
+            [Op.and]: [
+              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+            ]
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            },
+            {
+              model: depo,
+              as: 'depo'
+            }
+          ]
+        })
+        if (findIkk) {
+          return response(res, 'success get data ikk', { result: findIkk })
+        } else {
+          return response(res, 'success get data ikk', { result: findIkk })
         }
       }
     } catch (error) {

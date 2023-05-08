@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     sub_coa: DataTypes.STRING,
     nama_subcoa: DataTypes.STRING,
     tipe: DataTypes.STRING,
-    flagdata: DataTypes.STRING
+    flagdata: DataTypes.STRING,
+    status_ident: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'coa'

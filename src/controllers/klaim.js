@@ -59,6 +59,7 @@ module.exports = {
               cost_center: findDepo[0].cost_center,
               no_coa: results.no_coa,
               nama_coa: result.nama_coa,
+              sub_coa: result.nama_subcoa,
               keterangan: results.keterangan,
               periode_awal: results.periode_awal,
               periode_akhir: results.periode_akhir,
@@ -173,6 +174,7 @@ module.exports = {
           const send = {
             no_coa: results.no_coa,
             nama_coa: result.nama_coa,
+            sub_coa: result.nama_subcoa,
             keterangan: results.keterangan,
             periode_awal: results.periode_awal,
             periode_akhir: results.periode_akhir,
@@ -384,7 +386,6 @@ module.exports = {
         const dokumen = `assets/documents/${req.file.filename}`
         console.log(no)
         const send = {
-          status: 1,
           path: dokumen,
           divisi: 'klaim',
           history: req.file.originalname,
@@ -497,6 +498,9 @@ module.exports = {
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
               statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+            ],
+            [Op.not]: [
+              { status_transaksi: 1 }
             ]
           },
           order: [
@@ -622,151 +626,6 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
-            }
-          ]
-        })
-        const data = []
-        findKlaim.map(x => {
-          return (
-            data.push(x.no_transaksi)
-          )
-        })
-        const set = new Set(data)
-        const noDis = [...set]
-        if (findKlaim) {
-          const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
-          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim })
-        } else {
-          return response(res, 'success get data klaim', { result: findKlaim, noDis })
-        }
-      }
-    } catch (error) {
-      return response(res, error.message, {}, 500, false)
-    }
-  },
-  getReport: async (req, res) => {
-    try {
-      const level = req.user.level
-      const kode = req.user.kode
-      const name = req.user.name
-      const role = req.user.role
-      const { status, reject, menu, type, category } = req.query
-      const statTrans = status === 'undefined' || status === null ? 2 : status
-      const statRej = reject === 'undefined' ? null : reject
-      const statMenu = menu === 'undefined' ? null : menu
-      const statData = 'undefined'
-      if (level === 5) {
-        const findKlaim = await klaim.findAll({
-          where: {
-            kode_plant: kode,
-            [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
-            ]
-          },
-          order: [
-            ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
-            }
-          ]
-        })
-        const data = []
-        findKlaim.map(x => {
-          return (
-            data.push(x.no_transaksi)
-          )
-        })
-        const set = new Set(data)
-        const noDis = [...set]
-        if (findKlaim) {
-          const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
-          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim })
-        } else {
-          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [] })
-        }
-      } else if (level === 10 || level === 11 || level === 12 || level === 2) {
-        const findDepo = await depo.findAll({
-          where: {
-            [Op.or]: [
-              { bm: level === 10 ? name : 'undefined' },
-              { om: level === 11 ? name : 'undefined' },
-              { nom: level === 12 ? name : 'undefined' },
-              { pic_1: level === 2 ? name : 'undefined' }
-            ]
-          }
-        })
-        if (findDepo.length) {
-          const hasil = []
-          for (let i = 0; i < findDepo.length; i++) {
-            const result = await klaim.findAll({
-              where: {
-                kode_plant: findDepo[i].kode_plant,
-                [Op.and]: [
-                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
-                ]
-              },
-              order: [
-                ['id', 'ASC'],
-                [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
-              ],
-              include: [
-                {
-                  model: ttd,
-                  as: 'appForm'
-                }
-              ]
-            })
-            if (result.length > 0) {
-              for (let j = 0; j < result.length; j++) {
-                hasil.push(result[j])
-              }
-            }
-          }
-          if (hasil.length > 0) {
-            const data = []
-            hasil.map(x => {
-              return (
-                data.push(x.no_transaksi)
-              )
-            })
-            const set = new Set(data)
-            const noDis = [...set]
-            const result = hasil
-            const newKlaim = category === 'verif' ? filter(type, result, noDis, role) : filterApp(type, result, noDis, role)
-            return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
-          } else {
-            const result = hasil
-            const noDis = []
-            return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
-          }
-        } else {
-          return response(res, 'failed get klaim', {}, 400, false)
-        }
-      } else {
-        const findKlaim = await klaim.findAll({
-          where: {
-            [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
-            ]
-          },
-          order: [
-            ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
             }
           ]
         })
@@ -1823,6 +1682,144 @@ module.exports = {
           } else {
             return response(res, 'success submit ajuan bayar klaim', {})
           }
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getReport: async (req, res) => {
+    try {
+      const level = req.user.level
+      const kode = req.user.kode
+      const name = req.user.name
+      const { status, reject, menu } = req.query
+      const statTrans = status === 'undefined' || status === null ? 8 : status
+      const statRej = reject === 'undefined' ? null : reject
+      const statMenu = menu === 'undefined' ? null : menu
+      if (level === 5) {
+        const findKlaim = await klaim.findAll({
+          where: {
+            kode_plant: kode,
+            [Op.and]: [
+              statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
+              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+            ],
+            [Op.not]: [
+              { status_transaksi: 1 }
+            ]
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            },
+            {
+              model: depo,
+              as: 'depo'
+            }
+          ]
+        })
+        if (findKlaim) {
+          return response(res, 'success get data klaim', { result: findKlaim })
+        } else {
+          return response(res, 'success get data klaim', { result: findKlaim })
+        }
+      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
+        const findDepo = await depo.findAll({
+          where: {
+            [Op.or]: [
+              { bm: level === 10 ? name : 'undefined' },
+              { om: level === 11 ? name : 'undefined' },
+              { nom: level === 12 ? name : 'undefined' },
+              { pic_1: level === 2 ? name : 'undefined' },
+              { pic_2: level === 7 ? name : 'undefined' },
+              { pic_3: level === 8 ? name : 'undefined' },
+              { pic_4: level === 9 ? name : 'undefined' }
+            ]
+          }
+        })
+        if (findDepo.length) {
+          const hasil = []
+          for (let i = 0; i < findDepo.length; i++) {
+            const result = await klaim.findAll({
+              where: {
+                kode_plant: findDepo[i].kode_plant,
+                [Op.and]: [
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+                ]
+              },
+              order: [
+                ['id', 'ASC'],
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+              ],
+              include: [
+                {
+                  model: ttd,
+                  as: 'appForm'
+                },
+                {
+                  model: ttd,
+                  as: 'appList'
+                },
+                {
+                  model: depo,
+                  as: 'depo'
+                }
+              ]
+            })
+            if (result.length > 0) {
+              for (let j = 0; j < result.length; j++) {
+                hasil.push(result[j])
+              }
+            }
+          }
+          if (hasil.length > 0) {
+            const result = hasil
+            return response(res, 'success get klaim', { result })
+          } else {
+            const result = hasil
+            return response(res, 'success get klaim', { result })
+          }
+        } else {
+          return response(res, 'failed get klaim', {}, 400, false)
+        }
+      } else {
+        const findKlaim = await klaim.findAll({
+          where: {
+            [Op.and]: [
+              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+            ]
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            },
+            {
+              model: depo,
+              as: 'depo'
+            }
+          ]
+        })
+        if (findKlaim) {
+          return response(res, 'success get data klaim', { result: findKlaim })
+        } else {
+          return response(res, 'success get data klaim', { result: findKlaim })
         }
       }
     } catch (error) {

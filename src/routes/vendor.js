@@ -2,7 +2,7 @@ const route = require('express').Router()
 const vendor = require('../controllers/vendor')
 
 route.post('/add', vendor.addVendor)
-route.get('/all/:tipe', vendor.getVendor)
+route.get('/all', vendor.getVendor)
 route.get('/get', vendor.getAllVendor)
 route.get('/detail/:no', vendor.getDetailVendor)
 route.patch('/update/:id', vendor.updateVendor)

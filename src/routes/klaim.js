@@ -23,5 +23,6 @@ route.patch('/subbayar', klaim.submitAjuanBayar)
 route.patch('/ttdlist', klaim.getApprovalList)
 route.patch('/applist', klaim.approveListKlaim)
 route.patch('/rejectlist', klaim.rejectListKlaim)
+route.get('/report', klaim.getReport)
 
 module.exports = route

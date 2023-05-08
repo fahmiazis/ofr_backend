@@ -23,7 +23,8 @@ module.exports = (sequelize, DataTypes) => {
     status_npwp: DataTypes.STRING,
     tarif_pph: DataTypes.STRING,
     dpp_nongrossup: DataTypes.STRING,
-    dpp_grossup: DataTypes.STRING
+    dpp_grossup: DataTypes.STRING,
+    status_ident: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'veriftax'

@@ -22,6 +22,7 @@ module.exports = {
         type_transaksi: joi.string().required(),
         jenis_pph: joi.string().required(),
         status_npwp: joi.string().required(),
+        status_ident: joi.string().required(),
         tarif_pph: joi.string().required(),
         dpp_nongrossup: joi.string().required(),
         dpp_grossup: joi.string().required()
@@ -64,6 +65,7 @@ module.exports = {
         type_transaksi: joi.string().required(),
         jenis_pph: joi.string().required(),
         status_npwp: joi.string().required(),
+        status_ident: joi.string().required(),
         tarif_pph: joi.string().required(),
         dpp_nongrossup: joi.string().required(),
         dpp_grossup: joi.string().required()

@@ -23,5 +23,6 @@ route.patch('/subbayar', ikk.submitAjuanBayar)
 route.patch('/ttdlist', ikk.getApprovalList)
 route.patch('/applist', ikk.approveListIkk)
 route.patch('/rejectlist', ikk.rejectListIkk)
+route.get('/report', ikk.getReport)
 
 module.exports = route

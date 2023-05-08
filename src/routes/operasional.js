@@ -23,5 +23,6 @@ route.patch('/subbayar', ops.submitAjuanBayar)
 route.patch('/ttdlist', ops.getApprovalList)
 route.patch('/applist', ops.approveListOps)
 route.patch('/rejectlist', ops.rejectListOps)
+route.get('/report', ops.getReport)
 
 module.exports = route

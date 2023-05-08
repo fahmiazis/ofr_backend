@@ -452,5 +452,51 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  approveDoc: async (req, res) => {
+    try {
+      const level = req.user.level
+      // const name = req.user.name
+      const id = req.params.id
+      const result = await docuser.findByPk(id)
+      if (result) {
+        const data = {
+          status: `${result.status}, level ${level}; status approve;`
+        }
+        const updateData = await result.update(data)
+        if (updateData) {
+          return response(res, 'success approve dokumen', { updateData })
+        } else {
+          return response(res, 'failed to approve dokumen', {}, 404, false)
+        }
+      } else {
+        return response(res, 'failed to get dokumen', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  rejectDoc: async (req, res) => {
+    try {
+      const level = req.user.level
+      // const name = req.user.name
+      const id = req.params.id
+      const result = await docuser.findByPk(id)
+      if (result) {
+        const data = {
+          status: `${result.status}, level ${level}; status reject;`
+        }
+        const updateData = await result.update(data)
+        if (updateData) {
+          return response(res, 'success reject dokumen', { updateData })
+        } else {
+          return response(res, 'failed to reject dokumen', {}, 404, false)
+        }
+      } else {
+        return response(res, 'failed to get dokumen', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }

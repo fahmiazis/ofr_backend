@@ -1,4 +1,4 @@
-const { vendor } = require('../models')
+const { faktur } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -12,31 +12,33 @@ const vs = require('fs-extra')
 const { APP_URL } = process.env
 
 module.exports = {
-  addVendor: async (req, res) => {
+  addFaktur: async (req, res) => {
     try {
       const schema = joi.object({
+        no_faktur: joi.string().required(),
+        tgl_faktur: joi.date().required(),
+        npwp: joi.string().required(),
         nama: joi.string().required(),
-        no_npwp: joi.string().required(),
-        no_ktp: joi.string().required(),
-        alamat: joi.string().required()
+        jumlah_dpp: joi.string().required(),
+        jumlah_ppn: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNameVendor = await vendor.findOne({
+        const findNameFaktur = await faktur.findOne({
           where: {
             nama: { [Op.like]: `%${results.nama}` }
           }
         })
-        if (findNameVendor && (findNameVendor.alamat === results.alamat)) {
-          return response(res, 'nama vendor telah terdftar', {}, 404, false)
+        if (findNameFaktur && (findNameFaktur.no_faktur === results.no_faktur)) {
+          return response(res, 'no faktur telah terdftar', {}, 404, false)
         } else {
-          const createVendor = await vendor.create(results)
-          if (createVendor) {
-            return response(res, 'success create vendor')
+          const createFaktur = await faktur.create(results)
+          if (createFaktur) {
+            return response(res, 'success create faktur')
           } else {
-            return response(res, 'false create vendor', {}, 404, false)
+            return response(res, 'false create faktur', {}, 404, false)
           }
         }
       }
@@ -44,20 +46,22 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  updateVendor: async (req, res) => {
+  updateFaktur: async (req, res) => {
     try {
       const id = req.params.id
       const schema = joi.object({
+        no_faktur: joi.string().required(),
+        tgl_faktur: joi.date().required(),
+        npwp: joi.string().required(),
         nama: joi.string().required(),
-        no_npwp: joi.string().required(),
-        no_ktp: joi.string().required(),
-        alamat: joi.string().required()
+        jumlah_dpp: joi.string().required(),
+        jumlah_ppn: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNameVendor = await vendor.findOne({
+        const findNameFaktur = await faktur.findOne({
           where: {
             nama: { [Op.like]: `%${results.nama}` },
             [Op.not]: {
@@ -65,19 +69,19 @@ module.exports = {
             }
           }
         })
-        if (findNameVendor && (findNameVendor.alamat === results.alamat)) {
-          return response(res, 'nama vendor telah terdftar', {}, 404, false)
+        if (findNameFaktur && (findNameFaktur.no_faktur === results.no_faktur)) {
+          return response(res, 'no faktur telah terdftar', {}, 404, false)
         } else {
-          const findVendor = await vendor.findByPk(id)
-          if (findVendor) {
-            const updateVendor = await findVendor.update(results)
-            if (updateVendor) {
-              return response(res, 'success create vendor')
+          const findFaktur = await faktur.findByPk(id)
+          if (findFaktur) {
+            const updateFaktur = await findFaktur.update(results)
+            if (updateFaktur) {
+              return response(res, 'success create faktur')
             } else {
-              return response(res, 'false create vendor', {}, 404, false)
+              return response(res, 'false create faktur', {}, 404, false)
             }
           } else {
-            return response(res, 'false create vendor', {}, 404, false)
+            return response(res, 'false create faktur', {}, 404, false)
           }
         }
       }
@@ -85,7 +89,7 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  uploadMasterVendor: async (req, res) => {
+  uploadMasterFaktur: async (req, res) => {
     const level = req.user.level
     if (level === 1) {
       uploadMaster(req, res, async function (err) {
@@ -102,7 +106,7 @@ module.exports = {
           const dokumen = `assets/masters/${req.files[0].filename}`
           const rows = await readXlsxFile(dokumen)
           const count = []
-          const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT']
+          const cek = ['NOMOR_FAKTUR', 'TANGGAL_FAKTUR', 'NPWP', 'NAMA', 'JUMLAH_DPP', 'JUMLAH_PPN']
           const valid = rows[0]
           for (let i = 0; i < cek.length; i++) {
             console.log(valid[i] === cek[i])
@@ -117,7 +121,7 @@ module.exports = {
             for (let i = 1; i < rows.length; i++) {
               const a = rows[i]
               kode.push(`${a[0]}`)
-              cost.push(`Nama ${a[0]} ${i} dan alamat ${a[3]}`)
+              cost.push(`No faktur ${a[0]}`)
             }
             const result = []
             const dupCost = {}
@@ -139,35 +143,28 @@ module.exports = {
               const arr = []
               rows.shift()
               for (let i = 0; i < rows.length; i++) {
-                const dataVendor = rows[i]
-                const select = await vendor.findOne({
+                const dataFaktur = rows[i]
+                const select = await faktur.findOne({
                   where: {
-                    [Op.and]: [
-                      { nama: { [Op.like]: `%${dataVendor[0]}%` } },
-                      { no_ktp: { [Op.like]: `%${dataVendor[2]}%` } }
-                    ]
+                    no_faktur: { [Op.like]: `%${dataFaktur[0]}%` }
                   }
                 })
+                const data = {
+                  no_faktur: dataFaktur[0],
+                  tgl_faktur: dataFaktur[1],
+                  npwp: dataFaktur[2],
+                  nama: dataFaktur[3],
+                  jumlah_dpp: dataFaktur[4],
+                  jumlah_ppn: dataFaktur[5]
+                }
                 if (select) {
-                  const data = {
-                    nama: dataVendor[0],
-                    no_npwp: dataVendor[1],
-                    no_ktp: dataVendor[2],
-                    alamat: dataVendor[3]
-                  }
                   const upbank = await select.update(data)
                   if (upbank) {
                     arr.push(1)
                   }
                 } else {
-                  const data = {
-                    nama: dataVendor[0],
-                    no_npwp: dataVendor[1],
-                    no_ktp: dataVendor[2],
-                    alamat: dataVendor[3]
-                  }
-                  const createVendor = await vendor.create(data)
-                  if (createVendor) {
+                  const createFaktur = await faktur.create(data)
+                  if (createFaktur) {
                     arr.push(1)
                   }
                 }
@@ -201,20 +198,34 @@ module.exports = {
       return response(res, "You're not super administrator", {}, 404, false)
     }
   },
-  getVendor: async (req, res) => {
+  getFaktur: async (req, res) => {
     try {
+      // const nofaktur = req.params.faktur
       // const kode = req.user.kode
-      const findVendor = await vendor.findAll()
-      if (findVendor.length > 0) {
-        return response(res, 'succes get vendor', { result: findVendor, length: findVendor.length })
+      const { search } = req.query
+      let searchValue = ''
+      if (typeof search === 'object') {
+        searchValue = Object.values(search)[0]
       } else {
-        return response(res, 'failed get vendor', {}, 404, false)
+        searchValue = search || ''
+      }
+      const dataFind = searchValue.replace(/[-' '.]/g, '')
+      console.log(dataFind)
+      const findFaktur = await faktur.findAll({
+        where: {
+          npwp: { [Op.like]: `%${dataFind}%` }
+        }
+      })
+      if (findFaktur.length > 0) {
+        return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+      } else {
+        return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  getAllVendor: async (req, res) => {
+  getAllFaktur: async (req, res) => {
     try {
       let { limit, page, search, sort } = req.query
       let searchValue = ''
@@ -239,69 +250,69 @@ module.exports = {
       } else {
         page = parseInt(page)
       }
-      const findVendor = await vendor.findAndCountAll({
+      const findFaktur = await faktur.findAndCountAll({
         where: {
           [Op.or]: [
             { nama: { [Op.like]: `%${searchValue}%` } },
-            { no_npwp: { [Op.like]: `%${searchValue}%` } },
-            { no_ktp: { [Op.like]: `%${searchValue}%` } },
-            { alamat: { [Op.like]: `%${searchValue}%` } }
+            { npwp: { [Op.like]: `%${searchValue}%` } },
+            { no_faktur: { [Op.like]: `%${searchValue}%` } },
+            { tgl_faktur: { [Op.like]: `%${searchValue}%` } }
           ]
         },
         order: [[sortValue, 'ASC']],
         limit: limit,
         offset: (page - 1) * limit
       })
-      const pageInfo = pagination('/vendor/get', req.query, page, limit, findVendor.count)
-      if (findVendor.rows.length > 0) {
-        return response(res, 'succes get vendor', { result: findVendor, pageInfo })
+      const pageInfo = pagination('/faktur/get', req.query, page, limit, findFaktur.count)
+      if (findFaktur.rows.length > 0) {
+        return response(res, 'succes get faktur', { result: findFaktur, pageInfo })
       } else {
-        return response(res, 'failed get vendor', { findVendor }, 404, false)
+        return response(res, 'failed get faktur', { findFaktur }, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  getDetailVendor: async (req, res) => {
+  getDetailFaktur: async (req, res) => {
     try {
       const id = req.params.id
-      const findVendor = await vendor.findByPk(id)
-      if (findVendor) {
-        return response(res, 'succes get detail vendor', { result: findVendor })
+      const findFaktur = await faktur.findByPk(id)
+      if (findFaktur) {
+        return response(res, 'succes get detail faktur', { result: findFaktur })
       } else {
-        return response(res, 'failed get vendor', {}, 404, false)
+        return response(res, 'failed get faktur', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  deleteVendor: async (req, res) => {
+  deleteFaktur: async (req, res) => {
     try {
       const id = req.params.id
-      const findVendor = await vendor.findByPk(id)
-      if (findVendor) {
-        const delVendor = await findVendor.destroy()
-        if (delVendor) {
-          return response(res, 'succes delete vendor', { result: findVendor })
+      const findFaktur = await faktur.findByPk(id)
+      if (findFaktur) {
+        const delFaktur = await findFaktur.destroy()
+        if (delFaktur) {
+          return response(res, 'succes delete faktur', { result: findFaktur })
         } else {
-          return response(res, 'failed destroy vendor', {}, 404, false)
+          return response(res, 'failed destroy faktur', {}, 404, false)
         }
       } else {
-        return response(res, 'failed get vendor', {}, 404, false)
+        return response(res, 'failed get faktur', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
   },
-  exportSqlVendor: async (req, res) => {
+  exportSqlFaktur: async (req, res) => {
     try {
-      const result = await vendor.findAll()
+      const result = await faktur.findAll()
       if (result) {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT']
-        const key = ['nama', 'no_npwp', 'no_ktp', 'alamat']
+        const header = ['NOMOR_FAKTUR', 'TANGGAL_FAKTUR', 'NPWP', 'NAMA', 'JUMLAH_DPP', 'JUMLAH_PPN']
+        const key = ['no_faktur', 'tgl_faktur', 'npwp', 'nama', 'jumlah_dpp', 'jumlah_ppn']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
@@ -310,7 +321,7 @@ module.exports = {
         worksheet.columns = arr
         const cek = worksheet.addRows(result)
         if (cek) {
-          const name = new Date().getTime().toString().concat('-vendor').concat('.xlsx')
+          const name = new Date().getTime().toString().concat('-faktur').concat('.xlsx')
           await workbook.xlsx.writeFile(name)
           vs.move(name, `assets/exports/${name}`, function (err) {
             if (err) {
@@ -331,11 +342,11 @@ module.exports = {
   },
   deleteAll: async (req, res) => {
     try {
-      const findVendor = await vendor.findAll()
-      if (findVendor) {
+      const findFaktur = await faktur.findAll()
+      if (findFaktur) {
         const temp = []
-        for (let i = 0; i < findVendor.length; i++) {
-          const findDel = await vendor.findByPk(findVendor[i].id)
+        for (let i = 0; i < findFaktur.length; i++) {
+          const findDel = await faktur.findByPk(findFaktur[i].id)
           if (findDel) {
             await findDel.destroy()
             temp.push(1)
