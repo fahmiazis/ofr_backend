@@ -213,7 +213,8 @@ module.exports = {
       console.log(dataFind)
       const findFaktur = await faktur.findAll({
         where: {
-          npwp: { [Op.like]: `%${dataFind}%` }
+          npwp: { [Op.like]: `%${dataFind}%` },
+          status: null
         }
       })
       if (findFaktur.length > 0) {

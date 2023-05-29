@@ -67,7 +67,12 @@ module.exports = (sequelize, DataTypes) => {
     tujuan_tf: DataTypes.STRING,
     tiperek: DataTypes.STRING,
     no_pembayaran: DataTypes.STRING,
-    bank_transfer: DataTypes.STRING
+    bank_transfer: DataTypes.STRING,
+    tgl_fullarea: DataTypes.DATE,
+    tgl_veriffin: DataTypes.DATE,
+    tgl_verifklm: DataTypes.DATE,
+    tgl_sublist: DataTypes.DATE,
+    tgl_fullsublist: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'klaim'

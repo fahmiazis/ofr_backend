@@ -1,4 +1,4 @@
-const { ikk, depo, docuser, approve, ttd, role, document, veriftax } = require('../models')
+const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -38,7 +38,7 @@ module.exports = {
         no_faktur: joi.string().allow(''),
         dpp: joi.string().allow(''),
         ppn: joi.string().allow(''),
-        tgl_tagihanbayar: joi.date().allow(),
+        tgl_tagihanbayar: joi.date().required(),
         nilai_buku: joi.string().allow(''),
         nilai_utang: joi.string().allow(''),
         nilai_vendor: joi.string().allow(''),
@@ -110,11 +110,42 @@ module.exports = {
               // const monthComLast = moment(findDraft.periode_akhir).format('DD MMMM YYYY')
               // if (findDraft.no_coa === results.no_coa && month === monthCom && monthLast === monthComLast) {
               if (findDraft) {
-                const sendData = await ikk.create(send)
-                if (sendData) {
-                  return response(res, 'success add ikk1', { result: sendData })
+                if (results.no_faktur !== '' && results.no_faktur !== undefined) {
+                  const findFaktur = await faktur.findOne({
+                    where: {
+                      no_faktur: results.no_faktur
+                    }
+                  })
+                  const findData = await ikk.findOne({
+                    where: {
+                      no_faktur: results.no_faktur
+                    }
+                  })
+                  if (findData) {
+                    return response(res, 'No faktur telah expired', {}, 400, false)
+                  } else {
+                    const dataEdit = {
+                      status: 'inactive'
+                    }
+                    const editFaktur = await findFaktur.update(dataEdit)
+                    if (editFaktur) {
+                      const sendData = await ikk.create(send)
+                      if (sendData) {
+                        return response(res, 'success add ikk1', { result: sendData })
+                      } else {
+                        return response(res, 'failed add ikk 7', {}, 400, false)
+                      }
+                    } else {
+                      return response(res, 'failed add ikk 8', {}, 400, false)
+                    }
+                  }
                 } else {
-                  return response(res, 'failed add ikk 7', {}, 400, false)
+                  const sendData = await ikk.create(send)
+                  if (sendData) {
+                    return response(res, 'success add ikk1', { result: sendData })
+                  } else {
+                    return response(res, 'failed add ikk 7', {}, 400, false)
+                  }
                 }
               } else {
                 return response(res, 'Pastikan program dan periode sama dalam satu pengajuan', {}, 400, false)
@@ -136,22 +167,84 @@ module.exports = {
                 const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
                 const monthCom = moment(findIkk.periode_awall).format('DD MMMM YYYY')
                 const monthComLast = moment(findIkk.periode_akhir).format('DD MMMM YYYY')
-                if (month === monthCom && monthLast === monthComLast) {
+                if (findIkk.no_coa === results.no_coa && month === monthCom && monthLast === monthComLast) {
                   return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findIkk })
                 } else {
-                  const sendData = await ikk.create(send)
-                  if (sendData) {
-                    return response(res, 'success add ikk2', { result: sendData })
+                  if (results.no_faktur !== '' && results.no_faktur !== undefined) {
+                    const findFaktur = await faktur.findOne({
+                      where: {
+                        no_faktur: results.no_faktur
+                      }
+                    })
+                    const findData = await ikk.findOne({
+                      where: {
+                        no_faktur: results.no_faktur
+                      }
+                    })
+                    if (findData) {
+                      return response(res, 'No faktur telah expired', {}, 400, false)
+                    } else {
+                      const dataEdit = {
+                        status: 'inactive'
+                      }
+                      const editFaktur = await findFaktur.update(dataEdit)
+                      if (editFaktur) {
+                        const sendData = await ikk.create(send)
+                        if (sendData) {
+                          return response(res, 'success add ikk1', { result: sendData })
+                        } else {
+                          return response(res, 'failed add ikk 7', {}, 400, false)
+                        }
+                      } else {
+                        return response(res, 'failed add ikk 8', {}, 400, false)
+                      }
+                    }
                   } else {
-                    return response(res, 'failed add ikk 7', {}, 400, false)
+                    const sendData = await ikk.create(send)
+                    if (sendData) {
+                      return response(res, 'success add ikk1', { result: sendData })
+                    } else {
+                      return response(res, 'failed add ikk 7', {}, 400, false)
+                    }
                   }
                 }
               } else {
-                const sendData = await ikk.create(send)
-                if (sendData) {
-                  return response(res, 'success add ikk3', { result: sendData })
+                if (results.no_faktur !== '' && results.no_faktur !== undefined) {
+                  const findFaktur = await faktur.findOne({
+                    where: {
+                      no_faktur: results.no_faktur
+                    }
+                  })
+                  const findData = await ikk.findOne({
+                    where: {
+                      no_faktur: results.no_faktur
+                    }
+                  })
+                  if (findData) {
+                    return response(res, 'No faktur telah expired', {}, 400, false)
+                  } else {
+                    const dataEdit = {
+                      status: 'inactive'
+                    }
+                    const editFaktur = await findFaktur.update(dataEdit)
+                    if (editFaktur) {
+                      const sendData = await ikk.create(send)
+                      if (sendData) {
+                        return response(res, 'success add ikk1', { result: sendData })
+                      } else {
+                        return response(res, 'failed add ikk 7', {}, 400, false)
+                      }
+                    } else {
+                      return response(res, 'failed add ikk 8', {}, 400, false)
+                    }
+                  }
                 } else {
-                  return response(res, 'failed add ikk 7', {}, 400, false)
+                  const sendData = await ikk.create(send)
+                  if (sendData) {
+                    return response(res, 'success add ikk1', { result: sendData })
+                  } else {
+                    return response(res, 'failed add ikk 7', {}, 400, false)
+                  }
                 }
               }
             }
@@ -200,11 +293,29 @@ module.exports = {
     try {
       const id = req.params.id
       const findIkk = await ikk.findByPk(id)
-      if (findIkk) {
+      if (findIkk.no_faktur !== null && findIkk.no_faktur !== undefined) {
+        const findFaktur = await faktur.findOne({
+          where: {
+            no_faktur: findIkk.no_faktur
+          }
+        })
+        if (findFaktur) {
+          const dataEdit = {
+            status: null
+          }
+          const editFaktur = await findFaktur.update(dataEdit)
+          if (editFaktur) {
+            await findIkk.destroy()
+            return response(res, 'success delete cart ikk', { result: findIkk })
+          } else {
+            return response(res, 'failed delete carrt ikk 1', {}, 400, false)
+          }
+        } else {
+          return response(res, 'failed delete carrt ikk 2', {}, 400, false)
+        }
+      } else {
         await findIkk.destroy()
         return response(res, 'success delete cart ikk', { result: findIkk })
-      } else {
-        return response(res, 'failed get cart', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -279,7 +390,9 @@ module.exports = {
           } else if (month === 12) {
             rome = 'XII'
           }
-          const noTrans = findIkk[0].no_transaksi === null ? `${notrans}/${kode}/${rome}/${year}-IKK` : findIkk[0].no_transaksi
+          const tempData = findIkk.find(({no_transaksi}) => no_transaksi !== null) // eslint-disable-line
+          const cekData = tempData === undefined ? 'ya' : 'no'
+          const noTrans = `${notrans}/${kode}/${rome}/${year}-IKK`
           const data = {
             status_transaksi: 1,
             no_transaksi: noTrans
@@ -308,7 +421,35 @@ module.exports = {
             }
           }
           if (temp.length) {
-            return response(res, 'success submit cart', { noikk: noTrans })
+            if (cekData === 'no') {
+              const findDoc = await docuser.findAll({
+                where: {
+                  no_transaksi: tempData.no_transaksi
+                }
+              })
+              if (findDoc.length > 0) {
+                const tempDoc = []
+                for (let i = 0; i < findDoc.length; i++) {
+                  const data = {
+                    no_transaksi: noTrans
+                  }
+                  const upDoc = await docuser.findByPk(findDoc[i].id)
+                  if (upDoc) {
+                    await upDoc.update(data)
+                    tempDoc.push(upDoc)
+                  }
+                }
+                if (tempDoc) {
+                  return response(res, 'success submit cart', { noikk: noTrans })
+                } else {
+                  return response(res, 'success submit cart', { noikk: noTrans })
+                }
+              } else {
+                return response(res, 'success submit cart', { noikk: noTrans })
+              }
+            } else {
+              return response(res, 'success submit cart', { noikk: noTrans })
+            }
           } else {
             return response(res, 'failed submit cart', { noikk: noTrans })
           }
@@ -472,11 +613,15 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.name
       const role = req.user.role
-      const { status, reject, menu, type, category, data } = req.query
+      const { status, reject, menu, type, category, data, time1, time2 } = req.query
       const statTrans = status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
       const statData = data === 'undefined' ? null : data
+      const timeVal1 = time1 === 'undefined' ? 'all' : time1
+      const timeVal2 = time2 === 'undefined' ? 'all' : time2
+      const timeV1 = new Date(timeVal1)
+      const timeV2 = new Date(timeVal2)
       if (level === 5) {
         const findIkk = await ikk.findAll({
           where: {
@@ -484,7 +629,17 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ikk: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  },
+              { [Op.not]: { status_transaksi: null } },
+              { [Op.not]: { status_transaksi: 1 } }
             ]
           },
           order: [
@@ -540,7 +695,15 @@ module.exports = {
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                   statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                  category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } }
+                  category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        start_ikk: {
+                          [Op.gt]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
                 ]
               },
               order: [
@@ -595,17 +758,30 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ikk: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  }
             ]
           },
           order: [
             ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: depo,
@@ -672,12 +848,17 @@ module.exports = {
           },
           order: [
             ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: depo,
@@ -863,6 +1044,7 @@ module.exports = {
                               status_transaksi: 3,
                               status_reject: null,
                               isreject: null,
+                              tgl_fullarea: moment(),
                               history: `${findIkk[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                             }
                             const findRes = await ikk.findByPk(findIkk[i].id)
@@ -1237,7 +1419,7 @@ module.exports = {
   submitVerif: async (req, res) => {
     try {
       const name = req.user.name
-      // const level = req.user.level
+      const level = req.user.level
       const schema = joi.object({
         no: joi.string().required()
       })
@@ -1252,13 +1434,17 @@ module.exports = {
         })
         if (findIkk.length > 0) {
           const temp = []
+          const cekData = findIkk.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+          const resData = level === 2 && cekData === 'ya' ? 5 : 4
           for (let i = 0; i < findIkk.length; i++) {
             const findRes = await ikk.findByPk(findIkk[i].id)
             if (findRes) {
               const data = {
-                status_transaksi: 4,
+                status_transaksi: level === 2 ? resData : 5,
                 status_reject: null,
                 isreject: null,
+                tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
                 history: `${findIkk[i].history}, verifikasi finance by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findRes.update(data)
@@ -1310,9 +1496,10 @@ module.exports = {
             if (findIkk.length > 0) {
               for (let j = 0; j < findIkk.length; j++) {
                 const send = {
-                  status_transaksi: 5,
+                  status_transaksi: 6,
                   no_pembayaran: results.no_transfer,
                   tanggal_transfer: results.tgl_transfer,
+                  tgl_sublist: moment(),
                   history: `${findIkk[j].history}, submit ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                 }
                 const findRes = await ikk.findByPk(findIkk[j].id)
@@ -1494,9 +1681,10 @@ module.exports = {
                           const temp = []
                           for (let i = 0; i < findIkk.length; i++) {
                             const send = {
-                              status_transaksi: 6,
+                              status_transaksi: 7,
                               status_reject: null,
                               isreject: null,
+                              tgl_fullsublist: moment(),
                               history: `${findIkk[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                             }
                             const findRes = await ikk.findByPk(findIkk[i].id)
@@ -1704,10 +1892,14 @@ module.exports = {
       const level = req.user.level
       const kode = req.user.kode
       const name = req.user.name
-      const { status, reject, menu } = req.query
+      const { status, reject, menu, time1, time2 } = req.query
       const statTrans = status === 'undefined' || status === null ? 8 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
+      const timeVal1 = time1 === 'undefined' ? 'all' : time1
+      const timeVal2 = time2 === 'undefined' ? 'all' : time2
+      const timeV1 = new Date(timeVal1)
+      const timeV2 = new Date(timeVal2)
       if (level === 5) {
         const findIkk = await ikk.findAll({
           where: {
@@ -1715,7 +1907,17 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ikk: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  },
+              { [Op.not]: { status_transaksi: null } },
+              { [Op.not]: { status_transaksi: 1 } }
             ],
             [Op.not]: [
               { status_transaksi: 1 }
@@ -1764,7 +1966,15 @@ module.exports = {
                 [Op.and]: [
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        start_ikk: {
+                          [Op.gt]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
                 ]
               },
               order: [
@@ -1809,17 +2019,30 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ikk: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  }
             ]
           },
           order: [
             ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: depo,

@@ -7,6 +7,7 @@ const { pagination } = require('../helpers/pagination')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
 const uploadMaster = require('../helpers/uploadMaster')
+const uploadHelper = require('../helpers/upload')
 const fs = require('fs')
 const excel = require('exceljs')
 const vs = require('fs-extra')
@@ -234,6 +235,35 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  uploadImage: async (req, res) => {
+    const id = req.params.id
+    uploadHelper(req, res, async function (err) {
+      try {
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
+            // console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
+            return response(res, 'fieldname doesnt match', {}, 500, false)
+          }
+          return response(res, err.message, {}, 500, false)
+        } else if (err) {
+          return response(res, err.message, {}, 401, false)
+        }
+        const dokumen = `uploads/${req.file.filename}`
+        const send = {
+          image: dokumen
+        }
+        const make = await user.findByPk(id)
+        if (make) {
+          await make.update(send)
+          return response(res, 'success upload image')
+        } else {
+          return response(res, 'success upload image')
+        }
+      } catch (error) {
+        return response(res, error.message, {}, 500, false)
+      }
+    })
   },
   deleteUser: async (req, res) => {
     try {

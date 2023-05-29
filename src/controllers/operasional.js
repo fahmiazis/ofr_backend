@@ -1,4 +1,4 @@
-const { ops, coa, depo, docuser, approve, ttd, role, document, veriftax } = require('../models')
+const { ops, coa, depo, docuser, approve, ttd, role, document, veriftax, faktur } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -38,7 +38,7 @@ module.exports = {
         no_faktur: joi.string().allow(''),
         dpp: joi.string().allow(''),
         ppn: joi.string().allow(''),
-        tgl_tagihanbayar: joi.date().allow(),
+        tgl_tagihanbayar: joi.date().required(),
         nilai_buku: joi.string().allow(''),
         nilai_utang: joi.string().allow(''),
         nilai_vendor: joi.string().allow(''),
@@ -106,11 +106,42 @@ module.exports = {
               // const monthComLast = moment(findDraft.periode_akhir).format('DD MMMM YYYY')
               // if (findDraft.no_coa === results.no_coa && month === monthCom && monthLast === monthComLast) {
               if (findDraft) {
-                const sendData = await ops.create(send)
-                if (sendData) {
-                  return response(res, 'success add ops1', { result: sendData })
+                if (results.no_faktur !== '' && results.no_faktur !== undefined) {
+                  const findFaktur = await faktur.findOne({
+                    where: {
+                      no_faktur: results.no_faktur
+                    }
+                  })
+                  const findData = await ops.findOne({
+                    where: {
+                      no_faktur: results.no_faktur
+                    }
+                  })
+                  if (findData) {
+                    return response(res, 'No faktur telah expired', {}, 400, false)
+                  } else {
+                    const dataEdit = {
+                      status: 'inactive'
+                    }
+                    const editFaktur = await findFaktur.update(dataEdit)
+                    if (editFaktur) {
+                      const sendData = await ops.create(send)
+                      if (sendData) {
+                        return response(res, 'success add ops1', { result: sendData })
+                      } else {
+                        return response(res, 'failed add ops 7', {}, 400, false)
+                      }
+                    } else {
+                      return response(res, 'failed add ops 8', {}, 400, false)
+                    }
+                  }
                 } else {
-                  return response(res, 'failed add ops 7', {}, 400, false)
+                  const sendData = await ops.create(send)
+                  if (sendData) {
+                    return response(res, 'success add ops1', { result: sendData })
+                  } else {
+                    return response(res, 'failed add ops 7', {}, 400, false)
+                  }
                 }
               } else {
                 return response(res, 'Pastikan program dan periode sama dalam satu pengajuan', {}, 400, false)
@@ -132,14 +163,76 @@ module.exports = {
                 const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
                 const monthCom = moment(findOps.periode_awall).format('DD MMMM YYYY')
                 const monthComLast = moment(findOps.periode_akhir).format('DD MMMM YYYY')
-                if (month === monthCom && monthLast === monthComLast) {
+                if (findOps.no_coa === results.no_coa && month === monthCom && monthLast === monthComLast) {
                   return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findOps })
                 } else {
-                  const sendData = await ops.create(send)
-                  if (sendData) {
-                    return response(res, 'success add ops2', { result: sendData })
+                  if (results.no_faktur !== '' && results.no_faktur !== undefined) {
+                    const findFaktur = await faktur.findOne({
+                      where: {
+                        no_faktur: results.no_faktur
+                      }
+                    })
+                    const findData = await ops.findOne({
+                      where: {
+                        no_faktur: results.no_faktur
+                      }
+                    })
+                    if (findData) {
+                      return response(res, 'No faktur telah expired', {}, 400, false)
+                    } else {
+                      const dataEdit = {
+                        status: 'inactive'
+                      }
+                      const editFaktur = await findFaktur.update(dataEdit)
+                      if (editFaktur) {
+                        const sendData = await ops.create(send)
+                        if (sendData) {
+                          return response(res, 'success add ops1', { result: sendData })
+                        } else {
+                          return response(res, 'failed add ops 7', {}, 400, false)
+                        }
+                      } else {
+                        return response(res, 'failed add ops 8', {}, 400, false)
+                      }
+                    }
                   } else {
-                    return response(res, 'failed add ops 7', {}, 400, false)
+                    if (results.no_faktur !== '' && results.no_faktur !== undefined) {
+                      const findFaktur = await faktur.findOne({
+                        where: {
+                          no_faktur: results.no_faktur
+                        }
+                      })
+                      const findData = await ops.findOne({
+                        where: {
+                          no_faktur: results.no_faktur
+                        }
+                      })
+                      if (findData) {
+                        return response(res, 'No faktur telah expired', {}, 400, false)
+                      } else {
+                        const dataEdit = {
+                          status: 'inactive'
+                        }
+                        const editFaktur = await findFaktur.update(dataEdit)
+                        if (editFaktur) {
+                          const sendData = await ops.create(send)
+                          if (sendData) {
+                            return response(res, 'success add ops1', { result: sendData })
+                          } else {
+                            return response(res, 'failed add ops 7', {}, 400, false)
+                          }
+                        } else {
+                          return response(res, 'failed add ops 8', {}, 400, false)
+                        }
+                      }
+                    } else {
+                      const sendData = await ops.create(send)
+                      if (sendData) {
+                        return response(res, 'success add ops1', { result: sendData })
+                      } else {
+                        return response(res, 'failed add ops 7', {}, 400, false)
+                      }
+                    }
                   }
                 }
               } else {
@@ -258,11 +351,29 @@ module.exports = {
     try {
       const id = req.params.id
       const findOps = await ops.findByPk(id)
-      if (findOps) {
+      if (findOps.no_faktur !== null && findOps.no_faktur !== undefined) {
+        const findFaktur = await faktur.findOne({
+          where: {
+            no_faktur: findOps.no_faktur
+          }
+        })
+        if (findFaktur) {
+          const dataEdit = {
+            status: null
+          }
+          const editFaktur = await findFaktur.update(dataEdit)
+          if (editFaktur) {
+            await findOps.destroy()
+            return response(res, 'success delete cart ops', { result: findOps })
+          } else {
+            return response(res, 'failed delete carrt ops 1', {}, 400, false)
+          }
+        } else {
+          return response(res, 'failed delete carrt ops 2', {}, 400, false)
+        }
+      } else {
         await findOps.destroy()
         return response(res, 'success delete cart ops', { result: findOps })
-      } else {
-        return response(res, 'failed get cart', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -271,85 +382,141 @@ module.exports = {
   submitOps: async (req, res) => {
     try {
       const kode = req.user.kode
-      const findNo = await ops.findAll({
-        where: {
-          [Op.not]: { no_transaksi: null }
-        },
-        order: [['id', 'DESC']],
-        limit: 50
+      const schema = joi.object({
+        list: joi.array()
       })
-      const cekNo = []
-      if (findNo.length > 0) {
-        for (let i = 0; i < findNo.length; i++) {
-          const no = findNo[i].no_transaksi.split('/')
-          cekNo.push(parseInt(no[0]))
-        }
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        cekNo.push(0)
-      }
-      const noOps = Math.max(...cekNo) + 1
-      const findOps = await ops.findAll({
-        where: {
-          kode_plant: kode,
-          [Op.or]: [
-            { status_transaksi: null },
-            { status_transaksi: 1 }
-          ]
+        const listId = results.list
+        const findNo = await ops.findAll({
+          where: {
+            [Op.not]: { no_transaksi: null }
+          },
+          order: [['id', 'DESC']],
+          limit: 50
+        })
+        const cekNo = []
+        if (findNo.length > 0) {
+          for (let i = 0; i < findNo.length; i++) {
+            const no = findNo[i].no_transaksi.split('/')
+            cekNo.push(parseInt(no[0]))
+          }
+        } else {
+          cekNo.push(0)
         }
-      })
-      if (findOps.length > 0) {
-        const temp = []
-        const change = noOps.toString().split('')
-        const notrans = change.length === 2 ? '00' + noOps : change.length === 1 ? '000' + noOps : change.length === 3 ? '0' + noOps : noOps
-        const month = parseInt(moment().format('MM'))
-        const year = moment().format('YYYY')
-        let rome = ''
-        if (month === 1) {
-          rome = 'I'
-        } else if (month === 2) {
-          rome = 'II'
-        } else if (month === 3) {
-          rome = 'III'
-        } else if (month === 4) {
-          rome = 'IV'
-        } else if (month === 5) {
-          rome = 'V'
-        } else if (month === 6) {
-          rome = 'VI'
-        } else if (month === 7) {
-          rome = 'VII'
-        } else if (month === 8) {
-          rome = 'VIII'
-        } else if (month === 9) {
-          rome = 'IX'
-        } else if (month === 10) {
-          rome = 'X'
-        } else if (month === 11) {
-          rome = 'XI'
-        } else if (month === 12) {
-          rome = 'XII'
-        }
-        const noTrans = findOps[0].no_transaksi === null ? `${notrans}/${kode}/${rome}/${year}-OPS` : findOps[0].no_transaksi
-        const data = {
-          status_transaksi: 1,
-          no_transaksi: noTrans
-        }
-        for (let i = 0; i < findOps.length; i++) {
-          const findDraft = await ops.findByPk(findOps[i].id)
-          if (findDraft) {
-            const upOps = await findDraft.update(data)
-            if (upOps) {
-              temp.push(1)
+        const noOps = Math.max(...cekNo) + 1
+        const findOps = await ops.findAll({
+          where: {
+            kode_plant: kode,
+            [Op.or]: [
+              { status_transaksi: null },
+              { status_transaksi: 1 }
+            ]
+          }
+        })
+        if (findOps.length > 0) {
+          const temp = []
+          const change = noOps.toString().split('')
+          const notrans = change.length === 2 ? '00' + noOps : change.length === 1 ? '000' + noOps : change.length === 3 ? '0' + noOps : noOps
+          const month = parseInt(moment().format('MM'))
+          const year = moment().format('YYYY')
+          let rome = ''
+          if (month === 1) {
+            rome = 'I'
+          } else if (month === 2) {
+            rome = 'II'
+          } else if (month === 3) {
+            rome = 'III'
+          } else if (month === 4) {
+            rome = 'IV'
+          } else if (month === 5) {
+            rome = 'V'
+          } else if (month === 6) {
+            rome = 'VI'
+          } else if (month === 7) {
+            rome = 'VII'
+          } else if (month === 8) {
+            rome = 'VIII'
+          } else if (month === 9) {
+            rome = 'IX'
+          } else if (month === 10) {
+            rome = 'X'
+          } else if (month === 11) {
+            rome = 'XI'
+          } else if (month === 12) {
+            rome = 'XII'
+          }
+          const cekTipe = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+          const tipe = cekTipe === 'ya' ? 'OPS' : 'OPSX'
+          const tempData = findOps.find(({no_transaksi}) => no_transaksi !== null) // eslint-disable-line
+          const cekData = tempData === undefined ? 'ya' : 'no'
+          const noNow = `${notrans}/${kode}/${rome}/${year}-${tipe}`
+          const noTrans = noNow
+          const data = {
+            status_transaksi: 1,
+            no_transaksi: noTrans
+          }
+          const dataRes = {
+            status_transaksi: null,
+            no_transaksi: null
+          }
+          for (let i = 0; i < findOps.length; i++) {
+            if (listId.find(e => e === findOps[i].id)) {
+              const findDraft = await ops.findByPk(findOps[i].id)
+              if (findDraft) {
+                const upOps = await findDraft.update(data)
+                if (upOps) {
+                  temp.push(1)
+                }
+              }
+            } else {
+              const findDraft = await ops.findByPk(findOps[i].id)
+              if (findDraft) {
+                const upOps = await findDraft.update(dataRes)
+                if (upOps) {
+                  temp.push(1)
+                }
+              }
             }
           }
-        }
-        if (temp.length) {
-          return response(res, 'success submit cart', { noops: noTrans })
+          if (temp.length) {
+            if (cekData === 'no') {
+              const findDoc = await docuser.findAll({
+                where: {
+                  no_transaksi: tempData.no_transaksi
+                }
+              })
+              if (findDoc.length > 0) {
+                const tempDoc = []
+                for (let i = 0; i < findDoc.length; i++) {
+                  const data = {
+                    no_transaksi: noTrans
+                  }
+                  const upDoc = await docuser.findByPk(findDoc[i].id)
+                  if (upDoc) {
+                    await upDoc.update(data)
+                    tempDoc.push(upDoc)
+                  }
+                }
+                if (tempDoc) {
+                  return response(res, 'success submit cart', { noops: noTrans })
+                } else {
+                  return response(res, 'success submit cart', { noops: noTrans })
+                }
+              } else {
+                return response(res, 'success submit cart', { noops: noTrans })
+              }
+            } else {
+              return response(res, 'success submit cart', { noops: noTrans })
+            }
+          } else {
+            return response(res, 'failed submit cart', { noops: noTrans })
+          }
         } else {
-          return response(res, 'failed submit cart', { noops: noTrans })
+          return response(res, 'failed submit cart', {}, 404, false)
         }
-      } else {
-        return response(res, 'failed submit cart', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -507,11 +674,15 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.name
       const role = req.user.role
-      const { status, reject, menu, type, category, data } = req.query
+      const { status, reject, menu, type, category, data, time1, time2 } = req.query
       const statTrans = status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
       const statData = data === 'undefined' ? null : data
+      const timeVal1 = time1 === 'undefined' ? 'all' : time1
+      const timeVal2 = time2 === 'undefined' ? 'all' : time2
+      const timeV1 = new Date(timeVal1)
+      const timeV2 = new Date(timeVal2)
       if (level === 5) {
         const findOps = await ops.findAll({
           where: {
@@ -519,7 +690,17 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ops: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  },
+              { [Op.not]: { status_transaksi: null } },
+              { [Op.not]: { status_transaksi: 1 } }
             ]
           },
           order: [
@@ -575,7 +756,15 @@ module.exports = {
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                   statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                  category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } }
+                  category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        start_ops: {
+                          [Op.gt]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
                 ]
               },
               order: [
@@ -615,10 +804,12 @@ module.exports = {
             const noDis = [...set]
             const result = hasil
             const newOps = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
+            console.log(moment(timeV1).format('DD MMMM YYYY'))
             return response(res, 'success get ops', { result, noDis, findDepo, newOps })
           } else {
             const result = hasil
             const noDis = []
+            console.log(moment(timeV1).format('DD MMMM YYYY'))
             return response(res, 'success get ops', { result, noDis, findDepo, newOps: [] })
           }
         } else {
@@ -630,7 +821,15 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ops: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  }
             ]
           },
           order: [
@@ -707,12 +906,17 @@ module.exports = {
           },
           order: [
             ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: depo,
@@ -996,6 +1200,7 @@ module.exports = {
                               status_transaksi: 3,
                               status_reject: null,
                               isreject: null,
+                              tgl_fullarea: moment(),
                               history: `${findOps[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                             }
                             const findRes = await ops.findByPk(findOps[i].id)
@@ -1124,6 +1329,7 @@ module.exports = {
                               status_transaksi: 7,
                               status_reject: null,
                               isreject: null,
+                              tgl_fullsublist: moment(),
                               history: `${findOps[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                             }
                             const findRes = await ops.findByPk(findOps[i].id)
@@ -1625,13 +1831,17 @@ module.exports = {
         })
         if (findOps.length > 0) {
           const temp = []
+          const cekData = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+          const resData = level === 2 && cekData === 'ya' ? 5 : 4
           for (let i = 0; i < findOps.length; i++) {
             const findRes = await ops.findByPk(findOps[i].id)
             if (findRes) {
               const data = {
-                status_transaksi: level === 2 ? 4 : 5,
+                status_transaksi: level === 2 ? resData : 5,
                 status_reject: null,
                 isreject: null,
+                tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
                 history: `${findOps[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findRes.update(data)
@@ -1639,9 +1849,9 @@ module.exports = {
             }
           }
           if (temp.length > 0) {
-            return response(res, 'success verifikasi ops', {})
+            return response(res, 'success verifikasi ops', { cekData, resData })
           } else {
-            return response(res, 'success verifikasi ops', {})
+            return response(res, 'success verifikasi ops', { cekData, resData })
           }
         } else {
           return response(res, 'failed submit verifikasi ops', {}, 404, false)
@@ -1686,6 +1896,7 @@ module.exports = {
                   status_transaksi: 6,
                   no_pembayaran: results.no_transfer,
                   tanggal_transfer: results.tgl_transfer,
+                  tgl_sublist: moment(),
                   history: `${findOps[j].history}, submit ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                 }
                 const findRes = await ops.findByPk(findOps[j].id)
@@ -1712,10 +1923,14 @@ module.exports = {
       const level = req.user.level
       const kode = req.user.kode
       const name = req.user.name
-      const { status, reject, menu } = req.query
+      const { status, reject, menu, time1, time2 } = req.query
       const statTrans = status === 'undefined' || status === null ? 8 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
+      const timeVal1 = time1 === 'undefined' ? 'all' : time1
+      const timeVal2 = time2 === 'undefined' ? 'all' : time2
+      const timeV1 = new Date(timeVal1)
+      const timeV2 = new Date(timeVal2)
       if (level === 5) {
         const findOps = await ops.findAll({
           where: {
@@ -1723,7 +1938,17 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ops: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  },
+              { [Op.not]: { status_transaksi: null } },
+              { [Op.not]: { status_transaksi: 1 } }
             ],
             [Op.not]: [
               { status_transaksi: 1 }
@@ -1772,7 +1997,15 @@ module.exports = {
                 [Op.and]: [
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        start_ops: {
+                          [Op.gt]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
                 ]
               },
               order: [
@@ -1817,17 +2050,30 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ops: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  }
             ]
           },
           order: [
             ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: depo,

@@ -78,7 +78,13 @@ module.exports = (sequelize, DataTypes) => {
     nilai_buku: DataTypes.STRING,
     nilai_utang: DataTypes.STRING,
     nilai_vendor: DataTypes.STRING,
-    tgl_tagihanbayar: DataTypes.DATE
+    tgl_tagihanbayar: DataTypes.DATE,
+    tgl_faktur: DataTypes.DATE,
+    tgl_fullarea: DataTypes.DATE,
+    tgl_veriffin: DataTypes.DATE,
+    tgl_veriftax: DataTypes.DATE,
+    tgl_sublist: DataTypes.DATE,
+    tgl_fullsublist: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'ops'

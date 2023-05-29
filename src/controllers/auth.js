@@ -28,7 +28,7 @@ module.exports = {
           }
           )
           if (result) {
-            const { id, kode_plant, level, username, fullname, email, role } = result
+            const { id, kode_plant, level, username, fullname, email, role } = result // eslint-disable-line
             bcrypt.compare(results.password, result.password, function (_err, result) {
               if (result) {
                 jwt.sign({ id: id, level: level, kode: kode_plant, name: username, fullname: fullname, role: role.name, typerole: role.type }, `${APP_KEY}`, (_err, token) => {
@@ -44,7 +44,7 @@ module.exports = {
         } else {
           const result = await user.findOne({ where: { username: results.username }, include: [{ model: role, as: 'role' }] })
           if (result) {
-            const { id, kode_plant, level, username, fullname, email, role } = result
+            const { id, kode_plant, level, username, fullname, email, role } = result // eslint-disable-line
             bcrypt.compare(results.password, result.password, function (_err, result) {
               if (result) {
                 jwt.sign({ id: id, level: level, kode: kode_plant, name: username, fullname: fullname, role: role.name }, `${APP_KEY}`, (_err, token) => {

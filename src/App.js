@@ -15,6 +15,7 @@ app.use(morgan('dev'))
 app.use(cors())
 
 const authRoute = require('./routes/auth')
+const zarRoute = require('./routes/zarchive')
 // masterdata
 const userRoute = require('./routes/user')
 const depoRoute = require('./routes/depo')
@@ -30,6 +31,7 @@ const paguRoute = require('./routes/pagu')
 const emailRoute = require('./routes/email')
 const vendorRoute = require('./routes/vendor')
 const fakturRoute = require('./routes/faktur')
+const kppRoute = require('./routes/kpp')
 // transaksi
 const klaimRoute = require('./routes/klaim')
 const opsRoute = require('./routes/operasional')
@@ -60,6 +62,7 @@ app.use('/pagu', authMiddleware, paguRoute)
 app.use('/email', authMiddleware, emailRoute)
 app.use('/vendor', authMiddleware, vendorRoute)
 app.use('/faktur', authMiddleware, fakturRoute)
+app.use('/kpp', authMiddleware, kppRoute)
 // transaksi
 app.use('/klaim', authMiddleware, klaimRoute)
 app.use('/ops', authMiddleware, opsRoute)
@@ -67,6 +70,9 @@ app.use('/ikk', authMiddleware, ikkRoute)
 
 // show document
 app.use('/show', showRoute)
+
+// zarchive
+app.use('/zip', zarRoute)
 
 app.get('*', (req, res) => {
   response(res, 'Error route not found', {}, 404, false)

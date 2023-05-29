@@ -95,7 +95,13 @@ module.exports = (sequelize, DataTypes) => {
     saldo_awal: DataTypes.STRING,
     saldo_akhir: DataTypes.STRING,
     kasbon: DataTypes.STRING,
-    saldo_akhirtunai: DataTypes.STRING
+    saldo_akhirtunai: DataTypes.STRING,
+    tgl_faktur: DataTypes.DATE,
+    tgl_fullarea: DataTypes.DATE,
+    tgl_veriffin: DataTypes.DATE,
+    tgl_veriftax: DataTypes.DATE,
+    tgl_sublist: DataTypes.DATE,
+    tgl_fullsublist: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'ikk'

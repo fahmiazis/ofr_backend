@@ -307,7 +307,9 @@ module.exports = {
         } else if (month === 12) {
           rome = 'XII'
         }
-        const noTrans = findKlaim[0].no_transaksi === null ? `${notrans}/${kode}/${rome}/${year}-KLM` : findKlaim[0].no_transaksi
+        const tempData = findKlaim.find(({no_transaksi}) => no_transaksi !== null) // eslint-disable-line
+        const cekData = tempData === undefined ? 'ya' : 'no'
+        const noTrans = `${notrans}/${kode}/${rome}/${year}-KLM`
         const data = {
           status_transaksi: 1,
           no_transaksi: noTrans
@@ -322,7 +324,35 @@ module.exports = {
           }
         }
         if (temp.length) {
-          return response(res, 'success submit cart', { noklaim: noTrans })
+          if (cekData === 'no') {
+            const findDoc = await docuser.findAll({
+              where: {
+                no_transaksi: tempData.no_transaksi
+              }
+            })
+            if (findDoc.length > 0) {
+              const tempDoc = []
+              for (let i = 0; i < findDoc.length; i++) {
+                const data = {
+                  no_transaksi: noTrans
+                }
+                const upDoc = await docuser.findByPk(findDoc[i].id)
+                if (upDoc) {
+                  await upDoc.update(data)
+                  tempDoc.push(upDoc)
+                }
+              }
+              if (tempDoc) {
+                return response(res, 'success submit cart', { noklaim: noTrans })
+              } else {
+                return response(res, 'success submit cart', { noklaim: noTrans })
+              }
+            } else {
+              return response(res, 'success submit cart', { noklaim: noTrans })
+            }
+          } else {
+            return response(res, 'success submit cart', { noklaim: noTrans })
+          }
         } else {
           return response(res, 'failed submit cart', { noklaim: noTrans })
         }
@@ -485,11 +515,15 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.name
       const role = req.user.role
-      const { status, reject, menu, type, category, data } = req.query
+      const { status, reject, menu, type, category, data, time1, time2 } = req.query
       const statTrans = status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
       const statData = data === 'undefined' ? null : data
+      const timeVal1 = time1 === 'undefined' ? 'all' : time1
+      const timeVal2 = time2 === 'undefined' ? 'all' : time2
+      const timeV1 = new Date(timeVal1)
+      const timeV2 = new Date(timeVal2)
       if (level === 5) {
         const findKlaim = await klaim.findAll({
           where: {
@@ -497,7 +531,17 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_klaim: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  },
+              { [Op.not]: { status_transaksi: null } },
+              { [Op.not]: { status_transaksi: 1 } }
             ],
             [Op.not]: [
               { status_transaksi: 1 }
@@ -556,7 +600,15 @@ module.exports = {
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                   statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                  category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } }
+                  category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        start_klaim: {
+                          [Op.gt]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
                 ]
               },
               order: [
@@ -611,17 +663,30 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_klaim: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  }
             ]
           },
           order: [
             ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: depo,
@@ -688,12 +753,17 @@ module.exports = {
           },
           order: [
             ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: depo,
@@ -977,6 +1047,7 @@ module.exports = {
                               status_transaksi: 3,
                               status_reject: null,
                               isreject: null,
+                              tgl_fullarea: moment(),
                               history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                             }
                             const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -1105,6 +1176,7 @@ module.exports = {
                               status_transaksi: 7,
                               status_reject: null,
                               isreject: null,
+                              tgl_fullsublist: moment(),
                               history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                             }
                             const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -1613,6 +1685,8 @@ module.exports = {
                 status_transaksi: level === 2 ? 4 : 5,
                 status_reject: null,
                 isreject: null,
+                tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                tgl_verifklm: level !== 2 ? moment() : findRes.tgl_verifklm,
                 history: `${findKlaim[i].history}, verifikasi ${level === 2 ? 'finance' : 'klaim'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findRes.update(data)
@@ -1667,6 +1741,7 @@ module.exports = {
                   status_transaksi: 6,
                   no_pembayaran: results.no_transfer,
                   tanggal_transfer: results.tgl_transfer,
+                  tgl_sublist: moment(),
                   history: `${findKlaim[j].history}, submit ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                 }
                 const findRes = await klaim.findByPk(findKlaim[j].id)
@@ -1693,10 +1768,14 @@ module.exports = {
       const level = req.user.level
       const kode = req.user.kode
       const name = req.user.name
-      const { status, reject, menu } = req.query
+      const { status, reject, menu, time1, time2 } = req.query
       const statTrans = status === 'undefined' || status === null ? 8 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
+      const timeVal1 = time1 === 'undefined' ? 'all' : time1
+      const timeVal2 = time2 === 'undefined' ? 'all' : time2
+      const timeV1 = new Date(timeVal1)
+      const timeV2 = new Date(timeVal2)
       if (level === 5) {
         const findKlaim = await klaim.findAll({
           where: {
@@ -1704,7 +1783,17 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_klaim: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  },
+              { [Op.not]: { status_transaksi: null } },
+              { [Op.not]: { status_transaksi: 1 } }
             ],
             [Op.not]: [
               { status_transaksi: 1 }
@@ -1753,7 +1842,15 @@ module.exports = {
                 [Op.and]: [
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        start_klaim: {
+                          [Op.gt]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
                 ]
               },
               order: [
@@ -1798,17 +1895,30 @@ module.exports = {
             [Op.and]: [
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } }
+              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_klaim: {
+                      [Op.gt]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  }
             ]
           },
           order: [
             ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: depo,
