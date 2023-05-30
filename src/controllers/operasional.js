@@ -351,29 +351,136 @@ module.exports = {
     try {
       const id = req.params.id
       const findOps = await ops.findByPk(id)
-      if (findOps.no_faktur !== null && findOps.no_faktur !== undefined) {
-        const findFaktur = await faktur.findOne({
-          where: {
-            no_faktur: findOps.no_faktur
-          }
-        })
-        if (findFaktur) {
-          const dataEdit = {
-            status: null
-          }
-          const editFaktur = await findFaktur.update(dataEdit)
-          if (editFaktur) {
+      if (findOps.no_transaksi === null) {
+        if (findOps.no_faktur !== null && findOps.no_faktur !== undefined) {
+          const findFaktur = await faktur.findOne({
+            where: {
+              no_faktur: findOps.no_faktur
+            }
+          })
+          if (findFaktur) {
+            const dataEdit = {
+              status: null
+            }
+            const editFaktur = await findFaktur.update(dataEdit)
+            if (editFaktur) {
+              await findOps.destroy()
+              return response(res, 'success delete cart ops', { result: findOps })
+            } else {
+              return response(res, 'failed delete carrt ops 1', {}, 400, false)
+            }
+          } else {
             await findOps.destroy()
             return response(res, 'success delete cart ops', { result: findOps })
-          } else {
-            return response(res, 'failed delete carrt ops 1', {}, 400, false)
           }
         } else {
-          return response(res, 'failed delete carrt ops 2', {}, 400, false)
+          await findOps.destroy()
+          return response(res, 'success delete cart ops', { result: findOps })
         }
       } else {
-        await findOps.destroy()
-        return response(res, 'success delete cart ops', { result: findOps })
+        const findAllOps = await ops.findAll({
+          where: {
+            no_transaksi: findOps.no_transaksi
+          }
+        })
+        if (findAllOps.length === 1) {
+          const findDoc = await docuser.findAll({
+            where: {
+              no_transaksi: findOps.no_transaksi
+            }
+          })
+          if (findDoc.length > 0) {
+            const tempDoc = []
+            for (let i = 0; i < findDoc.length; i++) {
+              const upDoc = await docuser.findByPk(findDoc[i].id)
+              if (upDoc) {
+                await upDoc.destroy()
+                tempDoc.push(upDoc)
+              }
+            }
+            if (tempDoc.length > 0) {
+              if (findOps.no_faktur !== null && findOps.no_faktur !== undefined) {
+                const findFaktur = await faktur.findOne({
+                  where: {
+                    no_faktur: findOps.no_faktur
+                  }
+                })
+                if (findFaktur) {
+                  const dataEdit = {
+                    status: null
+                  }
+                  const editFaktur = await findFaktur.update(dataEdit)
+                  if (editFaktur) {
+                    await findOps.destroy()
+                    return response(res, 'success delete cart ops', { result: findOps })
+                  } else {
+                    return response(res, 'failed delete carrt ops 1', {}, 400, false)
+                  }
+                } else {
+                  await findOps.destroy()
+                  return response(res, 'success delete cart ops', { result: findOps })
+                }
+              } else {
+                await findOps.destroy()
+                return response(res, 'success delete cart ops', { result: findOps })
+              }
+            } else {
+              return response(res, 'failed delete carrt ops 1', {}, 400, false)
+            }
+          } else {
+            if (findOps.no_faktur !== null && findOps.no_faktur !== undefined) {
+              const findFaktur = await faktur.findOne({
+                where: {
+                  no_faktur: findOps.no_faktur
+                }
+              })
+              if (findFaktur) {
+                const dataEdit = {
+                  status: null
+                }
+                const editFaktur = await findFaktur.update(dataEdit)
+                if (editFaktur) {
+                  await findOps.destroy()
+                  return response(res, 'success delete cart ops', { result: findOps })
+                } else {
+                  return response(res, 'failed delete carrt ops 1', {}, 400, false)
+                }
+              } else {
+                await findOps.destroy()
+                return response(res, 'success delete cart ops', { result: findOps })
+              }
+            } else {
+              await findOps.destroy()
+              return response(res, 'success delete cart ops', { result: findOps })
+            }
+          }
+        } else {
+          if (findOps.no_faktur !== null && findOps.no_faktur !== undefined) {
+            const findFaktur = await faktur.findOne({
+              where: {
+                no_faktur: findOps.no_faktur
+              }
+            })
+            if (findFaktur) {
+              const dataEdit = {
+                status: null
+              }
+              const editFaktur = await findFaktur.update(dataEdit)
+              if (editFaktur) {
+                await findOps.destroy()
+                return response(res, 'success delete cart ops', { result: findOps })
+              } else {
+                return response(res, 'failed delete carrt ops 1', {}, 400, false)
+              }
+            } else {
+              await findOps.destroy()
+              return response(res, 'success delete cart ops', { result: findOps })
+            }
+          } else {
+            await findOps.destroy()
+            return response(res, 'success delete cart ops', { result: findOps })
+          }
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
