@@ -135,7 +135,7 @@ module.exports = {
           for (let i = 1; i < rows.length; i++) {
             const a = rows[i]
             kode.push(`${a[0]}`)
-            cost.push(`Kode plant ${a[0]}`)
+            cost.push(`Kode plant ${[i]}`)
           }
           const result = []
           const dupCost = {}
