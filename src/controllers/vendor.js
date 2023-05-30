@@ -86,120 +86,120 @@ module.exports = {
     }
   },
   uploadMasterVendor: async (req, res) => {
-    const level = req.user.level
-    if (level === 1) {
-      uploadMaster(req, res, async function (err) {
-        try {
-          if (err instanceof multer.MulterError) {
-            if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
-              console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
-              return response(res, 'fieldname doesnt match', {}, 500, false)
-            }
-            return response(res, err.message, {}, 500, false)
-          } else if (err) {
-            return response(res, err.message, {}, 401, false)
+    const level = req.user.level // eslint-disable-line
+    // if (level === 1) {
+    uploadMaster(req, res, async function (err) {
+      try {
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
+            console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
+            return response(res, 'fieldname doesnt match', {}, 500, false)
           }
-          const dokumen = `assets/masters/${req.files[0].filename}`
-          const rows = await readXlsxFile(dokumen)
-          const count = []
-          const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT']
-          const valid = rows[0]
-          for (let i = 0; i < cek.length; i++) {
-            console.log(valid[i] === cek[i])
-            if (valid[i] === cek[i]) {
-              count.push(1)
+          return response(res, err.message, {}, 500, false)
+        } else if (err) {
+          return response(res, err.message, {}, 401, false)
+        }
+        const dokumen = `assets/masters/${req.files[0].filename}`
+        const rows = await readXlsxFile(dokumen)
+        const count = []
+        const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT']
+        const valid = rows[0]
+        for (let i = 0; i < cek.length; i++) {
+          console.log(valid[i] === cek[i])
+          if (valid[i] === cek[i]) {
+            count.push(1)
+          }
+        }
+        console.log(count.length)
+        if (count.length === cek.length) {
+          const cost = []
+          const kode = []
+          for (let i = 1; i < rows.length; i++) {
+            const a = rows[i]
+            kode.push(`${a[0]}`)
+            cost.push(`Nama ${a[0]} ${i} dan alamat ${a[3]}`)
+          }
+          const result = []
+          const dupCost = {}
+
+          cost.forEach(item => {
+            if (!dupCost[item]) { dupCost[item] = 0 }
+            dupCost[item] += 1
+          })
+
+          for (const prop in dupCost) {
+            if (dupCost[prop] >= 2) {
+              result.push(prop)
             }
           }
-          console.log(count.length)
-          if (count.length === cek.length) {
-            const cost = []
-            const kode = []
-            for (let i = 1; i < rows.length; i++) {
-              const a = rows[i]
-              kode.push(`${a[0]}`)
-              cost.push(`Nama ${a[0]} ${i} dan alamat ${a[3]}`)
-            }
-            const result = []
-            const dupCost = {}
 
-            cost.forEach(item => {
-              if (!dupCost[item]) { dupCost[item] = 0 }
-              dupCost[item] += 1
-            })
-
-            for (const prop in dupCost) {
-              if (dupCost[prop] >= 2) {
-                result.push(prop)
-              }
-            }
-
-            if (result.length > 0) {
-              return response(res, 'there is duplication in your file master', { result }, 404, false)
-            } else {
-              const arr = []
-              rows.shift()
-              for (let i = 0; i < rows.length; i++) {
-                const dataVendor = rows[i]
-                const select = await vendor.findOne({
-                  where: {
-                    [Op.and]: [
-                      { nama: { [Op.like]: `%${dataVendor[0]}%` } },
-                      { no_ktp: { [Op.like]: `%${dataVendor[2]}%` } }
-                    ]
-                  }
-                })
-                if (select) {
-                  const data = {
-                    nama: dataVendor[0],
-                    no_npwp: dataVendor[1],
-                    no_ktp: dataVendor[2],
-                    alamat: dataVendor[3]
-                  }
-                  const upbank = await select.update(data)
-                  if (upbank) {
-                    arr.push(1)
-                  }
-                } else {
-                  const data = {
-                    nama: dataVendor[0],
-                    no_npwp: dataVendor[1],
-                    no_ktp: dataVendor[2],
-                    alamat: dataVendor[3]
-                  }
-                  const createVendor = await vendor.create(data)
-                  if (createVendor) {
-                    arr.push(1)
-                  }
+          if (result.length > 0) {
+            return response(res, 'there is duplication in your file master', { result }, 404, false)
+          } else {
+            const arr = []
+            rows.shift()
+            for (let i = 0; i < rows.length; i++) {
+              const dataVendor = rows[i]
+              const select = await vendor.findOne({
+                where: {
+                  [Op.and]: [
+                    { nama: { [Op.like]: `%${dataVendor[0]}%` } },
+                    { no_ktp: { [Op.like]: `%${dataVendor[2]}%` } }
+                  ]
+                }
+              })
+              if (select) {
+                const data = {
+                  nama: dataVendor[0],
+                  no_npwp: dataVendor[1],
+                  no_ktp: dataVendor[2],
+                  alamat: dataVendor[3]
+                }
+                const upbank = await select.update(data)
+                if (upbank) {
+                  arr.push(1)
+                }
+              } else {
+                const data = {
+                  nama: dataVendor[0],
+                  no_npwp: dataVendor[1],
+                  no_ktp: dataVendor[2],
+                  alamat: dataVendor[3]
+                }
+                const createVendor = await vendor.create(data)
+                if (createVendor) {
+                  arr.push(1)
                 }
               }
-              if (arr.length > 0) {
-                fs.unlink(dokumen, function (err) {
-                  if (err) throw err
-                  console.log('success')
-                })
-                return response(res, 'successfully upload file master')
-              } else {
-                fs.unlink(dokumen, function (err) {
-                  if (err) throw err
-                  console.log('success')
-                })
-                return response(res, 'failed to upload file', {}, 404, false)
-              }
             }
-          } else {
-            fs.unlink(dokumen, function (err) {
-              if (err) throw err
-              console.log('success')
-            })
-            return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
+            if (arr.length > 0) {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+                console.log('success')
+              })
+              return response(res, 'successfully upload file master')
+            } else {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+                console.log('success')
+              })
+              return response(res, 'failed to upload file', {}, 404, false)
+            }
           }
-        } catch (error) {
-          return response(res, error.message, {}, 500, false)
+        } else {
+          fs.unlink(dokumen, function (err) {
+            if (err) throw err
+            console.log('success')
+          })
+          return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
         }
-      })
-    } else {
-      return response(res, "You're not super administrator", {}, 404, false)
-    }
+      } catch (error) {
+        return response(res, error.message, {}, 500, false)
+      }
+    })
+    // } else {
+    //   return response(res, "You're not super administrator", {}, 404, false)
+    // }
   },
   getVendor: async (req, res) => {
     try {

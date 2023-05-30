@@ -106,118 +106,118 @@ module.exports = {
     }
   },
   uploadMasterTarif: async (req, res) => {
-    const level = req.user.level
-    if (level === 1) {
-      uploadMaster(req, res, async function (err) {
-        try {
-          if (err instanceof multer.MulterError) {
-            if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
-              console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
-              return response(res, 'fieldname doesnt match', {}, 500, false)
-            }
-            return response(res, err.message, {}, 500, false)
-          } else if (err) {
-            return response(res, err.message, {}, 401, false)
+    const level = req.user.level // eslint-disable-line
+    // if (level === 1) {
+    uploadMaster(req, res, async function (err) {
+      try {
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
+            console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
+            return response(res, 'fieldname doesnt match', {}, 500, false)
           }
-          const dokumen = `assets/masters/${req.files[0].filename}`
-          const rows = await readXlsxFile(dokumen)
-          const count = []
-          const cek = ['No', 'SAP/REDPINE', 'GL Account', 'GL Name', 'Jenis Transaksi', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
-          const valid = rows[0]
-          for (let i = 0; i < cek.length; i++) {
-            if (valid[i] === cek[i]) {
-              count.push(1)
-            }
-          }
-          if (count.length === cek.length) {
-            const cost = []
-            const kode = []
-            for (let i = 1; i < rows.length; i++) {
-              const a = rows[i]
-              kode.push(`${a[0]}`)
-              cost.push(`Kode plant ${a[0]}`)
-            }
-            const result = []
-            const dupCost = {}
-
-            cost.forEach(item => {
-              if (!dupCost[item]) { dupCost[item] = 0 }
-              dupCost[item] += 1
-            })
-
-            for (const prop in dupCost) {
-              if (dupCost[prop] >= 2) {
-                result.push(prop)
-              }
-            }
-
-            if (result.length > 0) {
-              return response(res, 'there is duplication in your file master', { result }, 404, false)
-            } else {
-              const arr = []
-              rows.shift()
-              for (let i = 0; i < rows.length; i++) {
-                const dataTarif = rows[i]
-                const select = await veriftax.findOne({
-                  where: {
-                    gl_account: { [Op.like]: `%${dataTarif[2]}` },
-                    jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
-                    type_transaksi: { [Op.like]: `%${dataTarif[5]}` },
-                    status_npwp: { [Op.like]: `%${dataTarif[7]}` }
-                  }
-                })
-                const data = {
-                  system: dataTarif[1],
-                  gl_account: dataTarif[2],
-                  gl_name: dataTarif[3],
-                  jenis_transaksi: dataTarif[4],
-                  type_transaksi: dataTarif[5],
-                  jenis_pph: dataTarif[6],
-                  status_npwp: dataTarif[7],
-                  tarif_pph: parseFloat(dataTarif[8]) + '%',
-                  dpp_nongrossup: parseFloat(dataTarif[9]) + '%',
-                  dpp_grossup: parseFloat(dataTarif[10]) + '%'
-                }
-                if (select) {
-                  const upverif = await select.update(data)
-                  if (upverif) {
-                    arr.push(1)
-                  }
-                } else {
-                  const createTarif = await veriftax.create(data)
-                  if (createTarif) {
-                    arr.push(1)
-                  }
-                }
-              }
-              if (arr.length > 0) {
-                fs.unlink(dokumen, function (err) {
-                  if (err) throw err
-                  console.log('success')
-                })
-                return response(res, 'successfully upload file master')
-              } else {
-                fs.unlink(dokumen, function (err) {
-                  if (err) throw err
-                  console.log('success')
-                })
-                return response(res, 'failed to upload file', {}, 404, false)
-              }
-            }
-          } else {
-            fs.unlink(dokumen, function (err) {
-              if (err) throw err
-              console.log('success')
-            })
-            return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
-          }
-        } catch (error) {
-          return response(res, error.message, {}, 500, false)
+          return response(res, err.message, {}, 500, false)
+        } else if (err) {
+          return response(res, err.message, {}, 401, false)
         }
-      })
-    } else {
-      return response(res, "You're not super administrator", {}, 404, false)
-    }
+        const dokumen = `assets/masters/${req.files[0].filename}`
+        const rows = await readXlsxFile(dokumen)
+        const count = []
+        const cek = ['No', 'SAP/REDPINE', 'GL Account', 'GL Name', 'Jenis Transaksi', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
+        const valid = rows[0]
+        for (let i = 0; i < cek.length; i++) {
+          if (valid[i] === cek[i]) {
+            count.push(1)
+          }
+        }
+        if (count.length === cek.length) {
+          const cost = []
+          const kode = []
+          for (let i = 1; i < rows.length; i++) {
+            const a = rows[i]
+            kode.push(`${a[0]}`)
+            cost.push(`Kode plant ${a[0]}`)
+          }
+          const result = []
+          const dupCost = {}
+
+          cost.forEach(item => {
+            if (!dupCost[item]) { dupCost[item] = 0 }
+            dupCost[item] += 1
+          })
+
+          for (const prop in dupCost) {
+            if (dupCost[prop] >= 2) {
+              result.push(prop)
+            }
+          }
+
+          if (result.length > 0) {
+            return response(res, 'there is duplication in your file master', { result }, 404, false)
+          } else {
+            const arr = []
+            rows.shift()
+            for (let i = 0; i < rows.length; i++) {
+              const dataTarif = rows[i]
+              const select = await veriftax.findOne({
+                where: {
+                  gl_account: { [Op.like]: `%${dataTarif[2]}` },
+                  jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
+                  type_transaksi: { [Op.like]: `%${dataTarif[5]}` },
+                  status_npwp: { [Op.like]: `%${dataTarif[7]}` }
+                }
+              })
+              const data = {
+                system: dataTarif[1],
+                gl_account: dataTarif[2],
+                gl_name: dataTarif[3],
+                jenis_transaksi: dataTarif[4],
+                type_transaksi: dataTarif[5],
+                jenis_pph: dataTarif[6],
+                status_npwp: dataTarif[7],
+                tarif_pph: parseFloat(dataTarif[8]) + '%',
+                dpp_nongrossup: parseFloat(dataTarif[9]) + '%',
+                dpp_grossup: parseFloat(dataTarif[10]) + '%'
+              }
+              if (select) {
+                const upverif = await select.update(data)
+                if (upverif) {
+                  arr.push(1)
+                }
+              } else {
+                const createTarif = await veriftax.create(data)
+                if (createTarif) {
+                  arr.push(1)
+                }
+              }
+            }
+            if (arr.length > 0) {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+                console.log('success')
+              })
+              return response(res, 'successfully upload file master')
+            } else {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+                console.log('success')
+              })
+              return response(res, 'failed to upload file', {}, 404, false)
+            }
+          }
+        } else {
+          fs.unlink(dokumen, function (err) {
+            if (err) throw err
+            console.log('success')
+          })
+          return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
+        }
+      } catch (error) {
+        return response(res, error.message, {}, 500, false)
+      }
+    })
+    // } else {
+    //   return response(res, "You're not super administrator", {}, 404, false)
+    // }
   },
   getAllTarif: async (req, res) => {
     try {

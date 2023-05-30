@@ -90,113 +90,113 @@ module.exports = {
     }
   },
   uploadMasterFaktur: async (req, res) => {
-    const level = req.user.level
-    if (level === 1) {
-      uploadMaster(req, res, async function (err) {
-        try {
-          if (err instanceof multer.MulterError) {
-            if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
-              console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
-              return response(res, 'fieldname doesnt match', {}, 500, false)
-            }
-            return response(res, err.message, {}, 500, false)
-          } else if (err) {
-            return response(res, err.message, {}, 401, false)
+    const level = req.user.level // eslint-disable-line
+    // if (level === 1) {
+    uploadMaster(req, res, async function (err) {
+      try {
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
+            console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
+            return response(res, 'fieldname doesnt match', {}, 500, false)
           }
-          const dokumen = `assets/masters/${req.files[0].filename}`
-          const rows = await readXlsxFile(dokumen)
-          const count = []
-          const cek = ['NOMOR_FAKTUR', 'TANGGAL_FAKTUR', 'NPWP', 'NAMA', 'JUMLAH_DPP', 'JUMLAH_PPN']
-          const valid = rows[0]
-          for (let i = 0; i < cek.length; i++) {
-            console.log(valid[i] === cek[i])
-            if (valid[i] === cek[i]) {
-              count.push(1)
-            }
-          }
-          console.log(count.length)
-          if (count.length === cek.length) {
-            const cost = []
-            const kode = []
-            for (let i = 1; i < rows.length; i++) {
-              const a = rows[i]
-              kode.push(`${a[0]}`)
-              cost.push(`No faktur ${a[0]}`)
-            }
-            const result = []
-            const dupCost = {}
-
-            cost.forEach(item => {
-              if (!dupCost[item]) { dupCost[item] = 0 }
-              dupCost[item] += 1
-            })
-
-            for (const prop in dupCost) {
-              if (dupCost[prop] >= 2) {
-                result.push(prop)
-              }
-            }
-
-            if (result.length > 0) {
-              return response(res, 'there is duplication in your file master', { result }, 404, false)
-            } else {
-              const arr = []
-              rows.shift()
-              for (let i = 0; i < rows.length; i++) {
-                const dataFaktur = rows[i]
-                const select = await faktur.findOne({
-                  where: {
-                    no_faktur: { [Op.like]: `%${dataFaktur[0]}%` }
-                  }
-                })
-                const data = {
-                  no_faktur: dataFaktur[0],
-                  tgl_faktur: dataFaktur[1],
-                  npwp: dataFaktur[2],
-                  nama: dataFaktur[3],
-                  jumlah_dpp: dataFaktur[4],
-                  jumlah_ppn: dataFaktur[5]
-                }
-                if (select) {
-                  const upbank = await select.update(data)
-                  if (upbank) {
-                    arr.push(1)
-                  }
-                } else {
-                  const createFaktur = await faktur.create(data)
-                  if (createFaktur) {
-                    arr.push(1)
-                  }
-                }
-              }
-              if (arr.length > 0) {
-                fs.unlink(dokumen, function (err) {
-                  if (err) throw err
-                  console.log('success')
-                })
-                return response(res, 'successfully upload file master')
-              } else {
-                fs.unlink(dokumen, function (err) {
-                  if (err) throw err
-                  console.log('success')
-                })
-                return response(res, 'failed to upload file', {}, 404, false)
-              }
-            }
-          } else {
-            fs.unlink(dokumen, function (err) {
-              if (err) throw err
-              console.log('success')
-            })
-            return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
-          }
-        } catch (error) {
-          return response(res, error.message, {}, 500, false)
+          return response(res, err.message, {}, 500, false)
+        } else if (err) {
+          return response(res, err.message, {}, 401, false)
         }
-      })
-    } else {
-      return response(res, "You're not super administrator", {}, 404, false)
-    }
+        const dokumen = `assets/masters/${req.files[0].filename}`
+        const rows = await readXlsxFile(dokumen)
+        const count = []
+        const cek = ['NOMOR_FAKTUR', 'TANGGAL_FAKTUR', 'NPWP', 'NAMA', 'JUMLAH_DPP', 'JUMLAH_PPN']
+        const valid = rows[0]
+        for (let i = 0; i < cek.length; i++) {
+          console.log(valid[i] === cek[i])
+          if (valid[i] === cek[i]) {
+            count.push(1)
+          }
+        }
+        console.log(count.length)
+        if (count.length === cek.length) {
+          const cost = []
+          const kode = []
+          for (let i = 1; i < rows.length; i++) {
+            const a = rows[i]
+            kode.push(`${a[0]}`)
+            cost.push(`No faktur ${a[0]}`)
+          }
+          const result = []
+          const dupCost = {}
+
+          cost.forEach(item => {
+            if (!dupCost[item]) { dupCost[item] = 0 }
+            dupCost[item] += 1
+          })
+
+          for (const prop in dupCost) {
+            if (dupCost[prop] >= 2) {
+              result.push(prop)
+            }
+          }
+
+          if (result.length > 0) {
+            return response(res, 'there is duplication in your file master', { result }, 404, false)
+          } else {
+            const arr = []
+            rows.shift()
+            for (let i = 0; i < rows.length; i++) {
+              const dataFaktur = rows[i]
+              const select = await faktur.findOne({
+                where: {
+                  no_faktur: { [Op.like]: `%${dataFaktur[0]}%` }
+                }
+              })
+              const data = {
+                no_faktur: dataFaktur[0],
+                tgl_faktur: dataFaktur[1],
+                npwp: dataFaktur[2],
+                nama: dataFaktur[3],
+                jumlah_dpp: dataFaktur[4],
+                jumlah_ppn: dataFaktur[5]
+              }
+              if (select) {
+                const upbank = await select.update(data)
+                if (upbank) {
+                  arr.push(1)
+                }
+              } else {
+                const createFaktur = await faktur.create(data)
+                if (createFaktur) {
+                  arr.push(1)
+                }
+              }
+            }
+            if (arr.length > 0) {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+                console.log('success')
+              })
+              return response(res, 'successfully upload file master')
+            } else {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+                console.log('success')
+              })
+              return response(res, 'failed to upload file', {}, 404, false)
+            }
+          }
+        } else {
+          fs.unlink(dokumen, function (err) {
+            if (err) throw err
+            console.log('success')
+          })
+          return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
+        }
+      } catch (error) {
+        return response(res, error.message, {}, 500, false)
+      }
+    })
+    // } else {
+    //   return response(res, "You're not super administrator", {}, 404, false)
+    // }
   },
   getFaktur: async (req, res) => {
     try {
