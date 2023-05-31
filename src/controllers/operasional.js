@@ -789,7 +789,7 @@ module.exports = {
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal2)
+      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal2)
       if (level === 5) {
         const findOps = await ops.findAll({
           where: {
@@ -2037,7 +2037,7 @@ module.exports = {
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal2)
+      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal2)
       if (level === 5) {
         const findOps = await ops.findAll({
           where: {
