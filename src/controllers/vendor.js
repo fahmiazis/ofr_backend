@@ -144,7 +144,9 @@ module.exports = {
                 where: {
                   [Op.and]: [
                     { nama: { [Op.like]: `%${dataVendor[0]}%` } },
-                    { no_ktp: { [Op.like]: `%${dataVendor[2]}%` } }
+                    { no_npwp: { [Op.like]: `%${dataVendor[1]}%` } },
+                    { no_ktp: { [Op.like]: `%${dataVendor[2]}%` } },
+                    { alamat: { [Op.like]: `%${dataVendor[3]}%` } }
                   ]
                 }
               })
