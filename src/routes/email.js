@@ -8,7 +8,8 @@ route.get('/detail/:no', email.getDetailEmail)
 route.patch('/update/:id', email.updateEmail)
 route.delete('/del/:id', email.deleteEmail)
 route.delete('/delall', email.deleteAll)
-route.patch('/draft', email.getDraftEmail)
+route.patch('/draft', email.draftEmail)
+route.patch('/drajuan', email.draftEmailAjuan)
 route.patch('/send', email.sendEmail)
 
 module.exports = route

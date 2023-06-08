@@ -258,7 +258,7 @@ module.exports = {
         offset: (page - 1) * limit
       })
       const pageInfo = pagination('/pagu/get', req.query, page, limit, findPagu.count)
-      if (findPagu.rows.length > 0) {
+      if (findPagu) {
         return response(res, 'succes get pagu', { result: findPagu, pageInfo })
       } else {
         return response(res, 'failed get pagu', { findPagu }, 404, false)

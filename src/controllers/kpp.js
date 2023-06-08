@@ -255,7 +255,7 @@ module.exports = {
         offset: (page - 1) * limit
       })
       const pageInfo = pagination('/kpp/get', req.query, page, limit, findKpp.count)
-      if (findKpp.rows.length > 0) {
+      if (findKpp) {
         return response(res, 'succes get kpp', { result: findKpp, pageInfo })
       } else {
         return response(res, 'failed get kpp', { findKpp }, 404, false)

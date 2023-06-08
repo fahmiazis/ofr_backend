@@ -253,10 +253,10 @@ module.exports = {
         offset: (page - 1) * limit
       })
       const pageInfo = pagination('/vendor/get', req.query, page, limit, findVendor.count)
-      if (findVendor.rows.length > 0) {
+      if (findVendor) {
         return response(res, 'succes get vendor', { result: findVendor, pageInfo })
       } else {
-        return response(res, 'failed get vendor', { findVendor }, 404, false)
+        return response(res, 'failed get vendor', { result: [], pageInfo })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

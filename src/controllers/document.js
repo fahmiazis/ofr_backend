@@ -10,6 +10,7 @@ const fs = require('fs')
 const excel = require('exceljs')
 const vs = require('fs-extra')
 const { APP_URL } = process.env
+const moment = require('moment')
 
 module.exports = {
   showDokumen: async (req, res) => {
@@ -456,12 +457,12 @@ module.exports = {
   approveDoc: async (req, res) => {
     try {
       const level = req.user.level
-      // const name = req.user.name
+      const name = req.user.name
       const id = req.params.id
       const result = await docuser.findByPk(id)
       if (result) {
         const data = {
-          status: `${result.status}, level ${level}; status approve;`
+          status: `${result.status}, level ${level}; status approve; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
         }
         const updateData = await result.update(data)
         if (updateData) {
@@ -479,12 +480,12 @@ module.exports = {
   rejectDoc: async (req, res) => {
     try {
       const level = req.user.level
-      // const name = req.user.name
+      const name = req.user.name
       const id = req.params.id
       const result = await docuser.findByPk(id)
       if (result) {
         const data = {
-          status: `${result.status}, level ${level}; status reject;`
+          status: `${result.status}, level ${level}; status reject; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
         }
         const updateData = await result.update(data)
         if (updateData) {

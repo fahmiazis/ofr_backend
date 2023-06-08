@@ -288,7 +288,7 @@ module.exports = {
         offset: (page - 1) * limit
       })
       const pageInfo = pagination('/tarif/get', req.query, page, limit, findTarif.count)
-      if (findTarif.rows.length > 0) {
+      if (findTarif) {
         return response(res, 'succes get tarif', { result: findTarif, pageInfo })
       } else {
         return response(res, 'failed get tarif', { findTarif }, 404, false)

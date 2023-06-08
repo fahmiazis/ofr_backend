@@ -213,8 +213,7 @@ module.exports = {
       console.log(dataFind)
       const findFaktur = await faktur.findAll({
         where: {
-          npwp: { [Op.like]: `%${dataFind}%` },
-          status: null
+          npwp: { [Op.like]: `%${dataFind}%` }
         }
       })
       if (findFaktur.length > 0) {
@@ -265,7 +264,7 @@ module.exports = {
         offset: (page - 1) * limit
       })
       const pageInfo = pagination('/faktur/get', req.query, page, limit, findFaktur.count)
-      if (findFaktur.rows.length > 0) {
+      if (findFaktur) {
         return response(res, 'succes get faktur', { result: findFaktur, pageInfo })
       } else {
         return response(res, 'failed get faktur', { findFaktur }, 404, false)

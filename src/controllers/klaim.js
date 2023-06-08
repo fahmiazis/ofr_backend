@@ -29,7 +29,10 @@ module.exports = {
         no_npwp: joi.string().allow(''),
         nama_ktp: joi.string().allow(''),
         no_ktp: joi.string().allow(''),
-        periode: joi.string().allow('')
+        periode: joi.string().allow(''),
+        no_surkom: joi.string().required(),
+        nama_program: joi.string().required(),
+        dn_area: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -50,7 +53,10 @@ module.exports = {
             const findDraft = await klaim.findOne({
               where: {
                 kode_plant: kode,
-                status_transaksi: null
+                [Op.or]: [
+                  { status_transaksi: null },
+                  { status_transaksi: 1 }
+                ]
               }
             })
             const send = {
@@ -74,24 +80,30 @@ module.exports = {
               no_npwp: results.no_npwp,
               nama_ktp: results.nama_ktp,
               no_ktp: results.no_ktp,
-              periode: results.periode
+              periode: results.periode,
+              no_surkom: results.no_surkom,
+              nama_program: results.nama_program,
+              dn_area: results.dn_area
             }
             if (findDraft) {
+              return response(res, 'Maximal 1 data dalam satu ajuan klaim', {}, 400, false)
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
               // const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
               // const monthCom = moment(findDraft.periode_awal).format('DD MMMM YYYY')
               // const monthComLast = moment(findDraft.periode_akhir).format('DD MMMM YYYY')
               // if (findDraft.no_coa === results.no_coa && month === monthCom && monthLast === monthComLast) {
-              if (findDraft) {
-                const sendData = await klaim.create(send)
-                if (sendData) {
-                  return response(res, 'success add klaim1', { result: sendData })
-                } else {
-                  return response(res, 'failed add klaim 7', {}, 400, false)
-                }
-              } else {
-                return response(res, 'Pastikan program dan periode sama dalam satu pengajuan', {}, 400, false)
-              }
+
+              // nonaktif
+              // if (findDraft) {
+              //   const sendData = await klaim.create(send)
+              //   if (sendData) {
+              //     return response(res, 'success add klaim1', { result: sendData })
+              //   } else {
+              //     return response(res, 'failed add klaim 7', {}, 400, false)
+              //   }
+              // } else {
+              //   return response(res, 'Pastikan program dan periode sama dalam satu pengajuan', {}, 400, false)
+              // }
             } else {
               const findKlaim = await klaim.findOne({
                 where: {
@@ -109,7 +121,7 @@ module.exports = {
                 const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
                 const monthCom = moment(findKlaim.periode_awall).format('DD MMMM YYYY')
                 const monthComLast = moment(findKlaim.periode_akhir).format('DD MMMM YYYY')
-                if (month === monthCom && monthLast === monthComLast) {
+                if (month === monthCom && monthLast === monthComLast && results.nama_subcoa === findKlaim.nama_subcoa) {
                   return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findKlaim })
                 } else {
                   const sendData = await klaim.create(send)
@@ -141,9 +153,10 @@ module.exports = {
   },
   editKlaim: async (req, res) => {
     try {
+      const kode = req.user.kode
+      const id = req.params.id
       // const name = req.user.name
       // const level = req.user.level
-      const id = req.params.id
       const schema = joi.object({
         no_coa: joi.string().required(),
         keterangan: joi.string().required(),
@@ -154,57 +167,133 @@ module.exports = {
         norek_ajuan: joi.string().required(),
         nama_tujuan: joi.string().required(),
         status_npwp: joi.number().required(),
+        tujuan_tf: joi.string().required(),
         nama_npwp: joi.string().allow(''),
+        tiperek: joi.string().allow(''),
         no_npwp: joi.string().allow(''),
         nama_ktp: joi.string().allow(''),
         no_ktp: joi.string().allow(''),
-        periode: joi.string().allow('')
+        periode: joi.string().allow(''),
+        no_surkom: joi.string().required(),
+        nama_program: joi.string().required(),
+        dn_area: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const result = await coa.findOne({
+        const findDepo = await depo.findAll({
           where: {
-            no_coa: results.no_coa
+            kode_plant: kode
           }
         })
-        if (result) {
-          const findDraft = await klaim.findByPk(id)
-          const send = {
-            no_coa: results.no_coa,
-            nama_coa: result.nama_coa,
-            sub_coa: result.nama_subcoa,
-            keterangan: results.keterangan,
-            periode_awal: results.periode_awal,
-            periode_akhir: results.periode_akhir,
-            nilai_ajuan: results.nilai_ajuan,
-            bank_tujuan: results.bank_tujuan,
-            norek_ajuan: results.norek_ajuan,
-            nama_tujuan: results.nama_tujuan,
-            status_npwp: results.status_npwp,
-            nama_npwp: results.nama_npwp,
-            no_npwp: results.no_npwp,
-            nama_ktp: results.nama_ktp,
-            no_ktp: results.no_ktp,
-            periode: results.periode
-          }
-          if (findDraft) {
-            if (findDraft.no_coa === results.no_coa) {
-              const sendData = await findDraft.update(send)
-              if (sendData) {
-                return response(res, 'success add klaim1', { result: sendData })
-              } else {
-                return response(res, 'failed add klaim 7', {}, 400, false)
+        const findUpdate = await klaim.findByPk(id)
+        if (findDepo.length > 0 && findUpdate) {
+          const result = await coa.findOne({
+            where: {
+              no_coa: results.no_coa
+            }
+          })
+          if (result) {
+            const findDraft = await klaim.findOne({
+              where: {
+                kode_plant: kode,
+                [Op.or]: [
+                  { status_transaksi: null },
+                  { status_transaksi: 1 }
+                ],
+                [Op.not]: [
+                  { id: id }
+                ]
               }
+            })
+            const send = {
+              kode_plant: findDepo[0].kode_plant,
+              area: findDepo[0].area,
+              cost_center: findDepo[0].cost_center,
+              no_coa: results.no_coa,
+              nama_coa: result.nama_coa,
+              sub_coa: result.nama_subcoa,
+              keterangan: results.keterangan,
+              periode_awal: results.periode_awal,
+              periode_akhir: results.periode_akhir,
+              nilai_ajuan: results.nilai_ajuan,
+              bank_tujuan: results.bank_tujuan,
+              norek_ajuan: results.norek_ajuan,
+              nama_tujuan: results.nama_tujuan,
+              status_npwp: results.status_npwp,
+              tujuan_tf: results.tujuan_tf,
+              tiperek: results.tiperek,
+              nama_npwp: results.nama_npwp,
+              no_npwp: results.no_npwp,
+              nama_ktp: results.nama_ktp,
+              no_ktp: results.no_ktp,
+              periode: results.periode,
+              no_surkom: results.no_surkom,
+              nama_program: results.nama_program,
+              dn_area: results.dn_area
+            }
+            if (findDraft) {
+              return response(res, 'Maximal 1 data dalam satu ajuan klaim', {}, 400, false)
+              // const month = moment(results.periode_awal).format('DD MMMM YYYY')
+              // const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
+              // const monthCom = moment(findDraft.periode_awal).format('DD MMMM YYYY')
+              // const monthComLast = moment(findDraft.periode_akhir).format('DD MMMM YYYY')
+              // if (findDraft.no_coa === results.no_coa && month === monthCom && monthLast === monthComLast) {
+
+              // nonaktif
+              // if (findDraft) {
+              //   const sendData = await klaim.create(send)
+              //   if (sendData) {
+              //     return response(res, 'success add klaim1', { result: sendData })
+              //   } else {
+              //     return response(res, 'failed add klaim 7', {}, 400, false)
+              //   }
+              // } else {
+              //   return response(res, 'Pastikan program dan periode sama dalam satu pengajuan', {}, 400, false)
+              // }
             } else {
-              return response(res, 'Pastikan program dan periode sama dalam satu pengajuan', {}, 400, false)
+              const findKlaim = await klaim.findOne({
+                where: {
+                  no_coa: results.no_coa,
+                  kode_plant: kode,
+                  [Op.not]: [
+                    { status_transaksi: null },
+                    { status_transaksi: 0 },
+                    { status_transaksi: 1 }
+                    // { status_transaksi: 8 }
+                  ]
+                }
+              })
+              if (findKlaim) {
+                const month = moment(results.periode_awal).format('DD MMMM YYYY')
+                const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
+                const monthCom = moment(findKlaim.periode_awall).format('DD MMMM YYYY')
+                const monthComLast = moment(findKlaim.periode_akhir).format('DD MMMM YYYY')
+                if (month === monthCom && monthLast === monthComLast && results.nama_subcoa === findKlaim.nama_subcoa) {
+                  return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findKlaim })
+                } else {
+                  const sendData = await findUpdate.update(send)
+                  if (sendData) {
+                    return response(res, 'success add klaim2', { result: sendData })
+                  } else {
+                    return response(res, 'failed add klaim 7', {}, 400, false)
+                  }
+                }
+              } else {
+                const sendData = await findUpdate.update(send)
+                if (sendData) {
+                  return response(res, 'success add klaim3', { result: sendData })
+                } else {
+                  return response(res, 'failed add klaim 7', {}, 400, false)
+                }
+              }
             }
           } else {
-            return response(res, 'failed add klaim 7', {}, 400, false)
+            return response(res, 'failed add klaim 3', {}, 400, false)
           }
         } else {
-          return response(res, 'failed add klaim 3', {}, 400, false)
+          return response(res, 'failed add klaim 1', {}, 400, false)
         }
       }
     } catch (error) {
@@ -522,8 +611,8 @@ module.exports = {
       const statData = data === 'undefined' ? null : data
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
-      const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal2)
+      const timeV1 = moment(timeVal1)
+      const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
       if (level === 5) {
         const findKlaim = await klaim.findAll({
           where: {
@@ -536,7 +625,7 @@ module.exports = {
                 ? { [Op.not]: { id: null } }
                 : {
                     start_klaim: {
-                      [Op.gt]: timeV1,
+                      [Op.gte]: timeV1,
                       [Op.lt]: timeV2
                     }
                   },
@@ -548,7 +637,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['start_klaim', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
           ],
           include: [
@@ -605,14 +694,14 @@ module.exports = {
                     ? { [Op.not]: { id: null } }
                     : {
                         start_klaim: {
-                          [Op.gt]: timeV1,
+                          [Op.gte]: timeV1,
                           [Op.lt]: timeV2
                         }
                       }
                 ]
               },
               order: [
-                ['id', 'ASC'],
+                ['start_klaim', 'DESC'],
                 [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
                 [{ model: ttd, as: 'appList' }, 'id', 'DESC']
               ],
@@ -668,14 +757,14 @@ module.exports = {
                 ? { [Op.not]: { id: null } }
                 : {
                     start_klaim: {
-                      [Op.gt]: timeV1,
+                      [Op.gte]: timeV1,
                       [Op.lt]: timeV2
                     }
                   }
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['start_klaim', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
@@ -722,7 +811,7 @@ module.exports = {
             no_pembayaran: no
           },
           order: [
-            ['id', 'ASC'],
+            ['start_klaim', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
@@ -752,7 +841,7 @@ module.exports = {
             no_transaksi: no
           },
           order: [
-            ['id', 'ASC'],
+            ['start_klaim', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
@@ -776,6 +865,42 @@ module.exports = {
         } else {
           return response(res, 'failed get dokumen', { result: [] })
         }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getDetailId: async (req, res) => {
+    try {
+      const { id } = req.params
+      const findKlaim = await klaim.findOne({
+        where: {
+          id: id
+        },
+        order: [
+          ['id', 'ASC'],
+          [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+          [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+        ],
+        include: [
+          {
+            model: ttd,
+            as: 'appForm'
+          },
+          {
+            model: ttd,
+            as: 'appList'
+          },
+          {
+            model: depo,
+            as: 'depo'
+          }
+        ]
+      })
+      if (findKlaim) {
+        return response(res, 'success get dokumen', { result: findKlaim })
+      } else {
+        return response(res, 'failed get dokumen', { result: [] })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -1774,8 +1899,10 @@ module.exports = {
       const statMenu = menu === 'undefined' ? null : menu
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
-      const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal2)
+      const timeV1 = moment(timeVal1)
+      const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
+      console.log(timeV2)
+      console.log(timeVal1 === timeVal2)
       if (level === 5) {
         const findKlaim = await klaim.findAll({
           where: {
@@ -1788,7 +1915,7 @@ module.exports = {
                 ? { [Op.not]: { id: null } }
                 : {
                     start_klaim: {
-                      [Op.gt]: timeV1,
+                      [Op.gte]: timeV1,
                       [Op.lt]: timeV2
                     }
                   },
@@ -1800,7 +1927,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['start_klaim', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
           ],
           include: [
@@ -1847,14 +1974,14 @@ module.exports = {
                     ? { [Op.not]: { id: null } }
                     : {
                         start_klaim: {
-                          [Op.gt]: timeV1,
+                          [Op.gte]: timeV1,
                           [Op.lt]: timeV2
                         }
                       }
                 ]
               },
               order: [
-                ['id', 'ASC'],
+                ['start_klaim', 'DESC'],
                 [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
                 [{ model: ttd, as: 'appList' }, 'id', 'DESC']
               ],
@@ -1900,14 +2027,14 @@ module.exports = {
                 ? { [Op.not]: { id: null } }
                 : {
                     start_klaim: {
-                      [Op.gt]: timeV1,
+                      [Op.gte]: timeV1,
                       [Op.lt]: timeV2
                     }
                   }
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['start_klaim', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
@@ -1931,6 +2058,121 @@ module.exports = {
         } else {
           return response(res, 'success get data klaim', { result: findKlaim })
         }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getDocBayar: async (req, res) => {
+    try {
+      const { no } = req.body
+      const findDoc = await docuser.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      const send = {
+        desc: 'BUKTI BAYAR',
+        jenis_form: 'List Klaim',
+        no_transaksi: no,
+        tipe: 'List Ajuan Bayar Klaim',
+        stat_upload: 1
+      }
+      if (findDoc.length > 0) {
+        return response(res, 'success get dokumen', { result: findDoc })
+      } else {
+        const make = await docuser.create(send)
+        if (make) {
+          const findDocCre = await docuser.findAll({
+            where: {
+              no_transaksi: no
+            }
+          })
+          if (findDocCre.length > 0) {
+            return response(res, 'success get dokumen', { result: findDocCre })
+          } else {
+            return response(res, 'failed get dokumen', { result: [] })
+          }
+        } else {
+          return response(res, 'failed get doc bukti bayar')
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  uploadBukti: async (req, res) => {
+    try {
+      const { id } = req.query
+      uploadHelper(req, res, async function (err) {
+        try {
+          if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
+              // console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
+              return response(res, 'fieldname doesnt match', {}, 500, false)
+            }
+            return response(res, err.message, {}, 500, false)
+          } else if (err) {
+            return response(res, err.message, {}, 401, false)
+          }
+          const findDoc = await docuser.findByPk(id)
+          const dokumen = `assets/documents/${req.file.filename}`
+          const send = {
+            path: dokumen,
+            divisi: 'klaim',
+            history: req.file.originalname,
+            jenis_dok: 'lampiran'
+          }
+          if (findDoc) {
+            const make = await findDoc.update(send)
+            if (make) {
+              return response(res, 'success upload bukti bayar')
+            } else {
+              return response(res, 'success upload bukti bayar')
+            }
+          } else {
+            return response(res, 'failed upload bukti bayar', {}, 400, false)
+          }
+        } catch (error) {
+          return response(res, error.message, {}, 500, false)
+        }
+      })
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitBuktiBayar: async (req, res) => {
+    try {
+      const { no } = req.body
+      const name = req.user.name
+      const findKlaim = await klaim.findAll({
+        where: {
+          no_pembayaran: no
+        }
+      })
+      if (findKlaim.length > 0) {
+        const temp = []
+        for (let i = 0; i < findKlaim.length; i++) {
+          const findData = await klaim.findByPk(findKlaim[i].id)
+          if (findData) {
+            const data = {
+              end_klaim: moment(),
+              status_transaksi: 8,
+              status_reject: null,
+              isreject: null,
+              history: `${findKlaim[i].history}, submit bukti bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+            }
+            await findData.update(data)
+            temp.push(findData)
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, 'success submit bukti bayar')
+        } else {
+          return response(res, 'failed submit bukti bayar', {}, 400, false)
+        }
+      } else {
+        return response(res, 'failed submit bukti bayar', {}, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

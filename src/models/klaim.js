@@ -72,7 +72,10 @@ module.exports = (sequelize, DataTypes) => {
     tgl_veriffin: DataTypes.DATE,
     tgl_verifklm: DataTypes.DATE,
     tgl_sublist: DataTypes.DATE,
-    tgl_fullsublist: DataTypes.DATE
+    tgl_fullsublist: DataTypes.DATE,
+    no_surkom: DataTypes.STRING,
+    nama_program: DataTypes.STRING,
+    dn_area: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'klaim'
