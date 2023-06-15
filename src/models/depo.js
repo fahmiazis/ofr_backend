@@ -27,11 +27,16 @@ module.exports = (sequelize, DataTypes) => {
     om: DataTypes.STRING,
     bm: DataTypes.STRING,
     aos: DataTypes.STRING,
-    pic_1: DataTypes.STRING,
-    pic_2: DataTypes.STRING,
-    pic_3: DataTypes.STRING,
-    pic_4: DataTypes.STRING,
-    asman: DataTypes.STRING
+    pic_finance: DataTypes.STRING,
+    spv_finance: DataTypes.STRING,
+    asman_finance: DataTypes.STRING,
+    manager_finance: DataTypes.STRING,
+    asman: DataTypes.STRING,
+    pic_klaim: DataTypes.STRING,
+    manager_klaim: DataTypes.STRING,
+    pic_tax: DataTypes.STRING,
+    manager_tax: DataTypes.STRING
+
   }, {
     sequelize,
     modelName: 'depo'

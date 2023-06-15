@@ -10,6 +10,6 @@ const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 const m = moment()
 m.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
 // console.log(m.toISOString())
-const data = 'king'
-const cekVal = moment().format('YYYY-MM-DD')
+const data = [1, 2, 3]
+const cekVal = data.map((x, index) => { return { urut: index, val: x } })
 console.log(cekVal)

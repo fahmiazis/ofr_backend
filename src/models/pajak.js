@@ -84,7 +84,10 @@ module.exports = (sequelize, DataTypes) => {
     tgl_veriffin: DataTypes.DATE,
     tgl_veriftax: DataTypes.DATE,
     tgl_sublist: DataTypes.DATE,
-    tgl_fullsublist: DataTypes.DATE
+    tgl_fullsublist: DataTypes.DATE,
+    typeniknpwp: DataTypes.STRING,
+    new_ident: DataTypes.STRING,
+    type_kasbon: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'ops'

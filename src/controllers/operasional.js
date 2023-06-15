@@ -6,6 +6,7 @@ const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
+const access = [10, 11, 12, 2, 7, 8, 9, 4, 14]
 
 module.exports = {
   addCart: async (req, res) => {
@@ -44,7 +45,9 @@ module.exports = {
         nilai_vendor: joi.string().allow(''),
         jenis_pph: joi.string().allow(''),
         nilai_bayar: joi.string().allow(''),
-        tgl_faktur: joi.string().allow('')
+        tgl_faktur: joi.string().allow(''),
+        typeniknpwp: joi.string().allow(''),
+        type_kasbon: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -103,7 +106,9 @@ module.exports = {
               nilai_bayar: results.nilai_bayar,
               jenis_pph: results.jenis_pph,
               jenis_vendor: result.type_transaksi,
-              tgl_faktur: results.tgl_faktur
+              tgl_faktur: results.tgl_faktur,
+              typeniknpwp: results.typeniknpwp,
+              type_kasbon: results.type_kasbon
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -298,7 +303,8 @@ module.exports = {
         nilai_vendor: joi.string().allow(''),
         jenis_pph: joi.string().allow(''),
         nilai_bayar: joi.string().allow(''),
-        tgl_faktur: joi.string().allow('')
+        tgl_faktur: joi.string().allow(''),
+        typeniknpwp: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -359,7 +365,8 @@ module.exports = {
               nilai_bayar: results.nilai_bayar,
               jenis_pph: results.jenis_pph,
               jenis_vendor: result.type_transaksi,
-              tgl_faktur: results.tgl_faktur
+              tgl_faktur: results.tgl_faktur,
+              typeniknpwp: results.typeniknpwp
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -557,9 +564,12 @@ module.exports = {
   getCartOps: async (req, res) => {
     try {
       const kode = req.user.kode
+      const { tipe } = req.query
+      const finTipe = tipe === 'kasbon' ? 'kasbon' : null
       const findOps = await ops.findAll({
         where: {
           kode_plant: kode,
+          type_kasbon: finTipe,
           [Op.or]: [
             { status_transaksi: 1 },
             { status_transaksi: null }
@@ -718,7 +728,8 @@ module.exports = {
     try {
       const kode = req.user.kode
       const schema = joi.object({
-        list: joi.array()
+        list: joi.array(),
+        tipe: joi.string()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -742,9 +753,11 @@ module.exports = {
           cekNo.push(0)
         }
         const noOps = Math.max(...cekNo) + 1
+        const finTipe = results.tipe === 'kasbon' ? 'kasbon' : null
         const findOps = await ops.findAll({
           where: {
             kode_plant: kode,
+            type_kasbon: finTipe,
             [Op.or]: [
               { status_transaksi: null },
               { status_transaksi: 1 }
@@ -896,6 +909,8 @@ module.exports = {
   },
   uploadDocument: async (req, res) => {
     const { no, id } = req.query
+    const level = req.user.level
+    const name = req.user.name
     uploadHelper(req, res, async function (err) {
       try {
         if (err instanceof multer.MulterError) {
@@ -909,14 +924,15 @@ module.exports = {
         }
         const dokumen = `assets/documents/${req.file.filename}`
         console.log(no)
-        const send = {
-          path: dokumen,
-          divisi: 'ops',
-          history: req.file.originalname,
-          jenis_dok: 'lampiran'
-        }
         const make = await docuser.findByPk(id)
         if (make) {
+          const send = {
+            path: dokumen,
+            divisi: 'ops',
+            history: req.file.originalname,
+            jenis_dok: 'lampiran',
+            status: `${make.status}, level ${level}; upload document; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
+          }
           await make.update(send)
           return response(res, 'success upload dokumen')
         } else {
@@ -1067,21 +1083,23 @@ module.exports = {
         } else {
           return response(res, 'success get data ops', { result: findOps, noDis, newOps: [] })
         }
-      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
+      } else if (access.find(item => item === level) !== undefined) {
         const findDepo = await depo.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
               { om: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
-              { pic_1: level === 2 ? name : 'undefined' },
-              { pic_2: level === 7 ? name : 'undefined' },
-              { pic_3: level === 8 ? name : 'undefined' },
-              { pic_4: level === 9 ? name : 'undefined' }
+              { pic_finance: level === 2 ? name : 'undefined' },
+              { spv_finance: level === 7 ? name : 'undefined' },
+              { asman_finance: level === 8 ? name : 'undefined' },
+              { manager_finance: level === 9 ? name : 'undefined' },
+              { pic_tax: level === 4 ? name : 'undefined' },
+              { manager_tax: level === 14 ? name : 'undefined' }
             ]
           }
         })
-        if (findDepo.length) {
+        if (findDepo) {
           const hasil = []
           for (let i = 0; i < findDepo.length; i++) {
             const result = await ops.findAll({
@@ -1453,7 +1471,7 @@ module.exports = {
               for (let i = 0; i < findApp.length; i++) {
                 const data = {
                   jabatan: findApp[i].jabatan,
-                  nama: i === 0 ? findDepo.pic_1 : null,
+                  nama: i === 0 ? findDepo.pic_finance : null,
                   status: i === 0 ? 1 : null,
                   no_transaksi: no,
                   sebagai: findApp[i].sebagai,
@@ -2184,48 +2202,119 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
+  confirmNewIdent: async (req, res) => {
+    try {
+      const id = req.params.id
+      const findOps = await ops.findByPk(id)
+      if (findOps) {
+        const data = {
+          new_ident: 'confirm'
+        }
+        const dataNull = {
+          new_ident: null
+        }
+        if (findOps.new_ident === null || findOps.new_ident === '') {
+          const updateOps = await findOps.update(data)
+          if (updateOps) {
+            return response(res, 'success edit verif ops', { updateOps })
+          } else {
+            return response(res, 'failed edit verif ops', {}, 404, false)
+          }
+        } else {
+          const updateOps = await findOps.update(dataNull)
+          if (updateOps) {
+            return response(res, 'success edit verif ops', { updateOps })
+          } else {
+            return response(res, 'failed edit verif ops', {}, 404, false)
+          }
+        }
+      } else {
+        return response(res, 'failed edit verif ops', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
   submitVerif: async (req, res) => {
     try {
       const name = req.user.name
       const level = req.user.level
       const schema = joi.object({
-        no: joi.string().required()
+        no: joi.string().required(),
+        list: joi.array()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findOps = await ops.findAll({
-          where: {
-            no_transaksi: results.no
-          }
-        })
-        if (findOps.length > 0) {
+        const list = results.list
+        if (list.length > 0) {
           const temp = []
-          const cekData = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
-          const resData = level === 2 && cekData === 'ya' ? 5 : 4
-          for (let i = 0; i < findOps.length; i++) {
-            const findRes = await ops.findByPk(findOps[i].id)
-            if (findRes) {
-              const data = {
-                status_transaksi: level === 2 ? resData : 5,
-                status_reject: null,
-                isreject: null,
-                tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
-                tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
-                history: `${findOps[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+          for (let i = 0; i < list.length; i++) {
+            const findOps = await ops.findAll({
+              where: {
+                no_transaksi: list[i]
               }
-              await findRes.update(data)
-              temp.push(findRes)
+            })
+            if (findOps.length > 0) {
+              const temp = []
+              const cekData = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+              const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              for (let j = 0; j < findOps.length; j++) {
+                const findRes = await ops.findByPk(findOps[j].id)
+                if (findRes) {
+                  const data = {
+                    status_transaksi: level === 2 ? resData : 5,
+                    status_reject: null,
+                    isreject: null,
+                    tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                    tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
+                    history: `${findOps[j].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                  }
+                  await findRes.update(data)
+                  temp.push(findRes)
+                }
+              }
             }
           }
           if (temp.length > 0) {
-            return response(res, 'success verifikasi ops', { cekData, resData })
+            return response(res, 'success verifikasi ops', { temp })
           } else {
-            return response(res, 'success verifikasi ops', { cekData, resData })
+            return response(res, 'success verifikasi ops', { temp })
           }
         } else {
-          return response(res, 'failed submit verifikasi ops', {}, 404, false)
+          const findOps = await ops.findAll({
+            where: {
+              no_transaksi: results.no
+            }
+          })
+          if (findOps.length > 0) {
+            const temp = []
+            const cekData = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+            const resData = level === 2 && cekData === 'ya' ? 5 : 4
+            for (let i = 0; i < findOps.length; i++) {
+              const findRes = await ops.findByPk(findOps[i].id)
+              if (findRes) {
+                const data = {
+                  status_transaksi: level === 2 ? resData : 5,
+                  status_reject: null,
+                  isreject: null,
+                  tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                  tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
+                  history: `${findOps[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                }
+                await findRes.update(data)
+                temp.push(findRes)
+              }
+            }
+            if (temp.length > 0) {
+              return response(res, 'success verifikasi ops', { cekData, resData })
+            } else {
+              return response(res, 'success verifikasi ops', { cekData, resData })
+            }
+          } else {
+            return response(res, 'failed submit verifikasi ops', {}, 404, false)
+          }
         }
       }
     } catch (error) {
@@ -2345,21 +2434,23 @@ module.exports = {
         } else {
           return response(res, 'success get data ops', { result: findOps })
         }
-      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
+      } else if (access.find(item => item === level) !== undefined) {
         const findDepo = await depo.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
               { om: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
-              { pic_1: level === 2 ? name : 'undefined' },
-              { pic_2: level === 7 ? name : 'undefined' },
-              { pic_3: level === 8 ? name : 'undefined' },
-              { pic_4: level === 9 ? name : 'undefined' }
+              { pic_finance: level === 2 ? name : 'undefined' },
+              { spv_finance: level === 7 ? name : 'undefined' },
+              { asman_finance: level === 8 ? name : 'undefined' },
+              { manager_finance: level === 9 ? name : 'undefined' },
+              { pic_tax: level === 4 ? name : 'undefined' },
+              { manager_tax: level === 14 ? name : 'undefined' }
             ]
           }
         })
-        if (findDepo.length) {
+        if (findDepo) {
           const hasil = []
           for (let i = 0; i < findDepo.length; i++) {
             const result = await ops.findAll({
@@ -2457,6 +2548,121 @@ module.exports = {
         } else {
           return response(res, 'success get data ops', { result: findOps })
         }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getDocBayar: async (req, res) => {
+    try {
+      const { no } = req.body
+      const findDoc = await docuser.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      const send = {
+        desc: 'BUKTI BAYAR',
+        jenis_form: 'List Ops',
+        no_transaksi: no,
+        tipe: 'List Ajuan Bayar Ops',
+        stat_upload: 1
+      }
+      if (findDoc.length > 0) {
+        return response(res, 'success get dokumen', { result: findDoc })
+      } else {
+        const make = await docuser.create(send)
+        if (make) {
+          const findDocCre = await docuser.findAll({
+            where: {
+              no_transaksi: no
+            }
+          })
+          if (findDocCre.length > 0) {
+            return response(res, 'success get dokumen', { result: findDocCre })
+          } else {
+            return response(res, 'failed get dokumen', { result: [] })
+          }
+        } else {
+          return response(res, 'failed get doc bukti bayar')
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  uploadBukti: async (req, res) => {
+    try {
+      const { id } = req.query
+      uploadHelper(req, res, async function (err) {
+        try {
+          if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
+              // console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
+              return response(res, 'fieldname doesnt match', {}, 500, false)
+            }
+            return response(res, err.message, {}, 500, false)
+          } else if (err) {
+            return response(res, err.message, {}, 401, false)
+          }
+          const findDoc = await docuser.findByPk(id)
+          const dokumen = `assets/documents/${req.file.filename}`
+          const send = {
+            path: dokumen,
+            divisi: 'ops',
+            history: req.file.originalname,
+            jenis_dok: 'lampiran'
+          }
+          if (findDoc) {
+            const make = await findDoc.update(send)
+            if (make) {
+              return response(res, 'success upload bukti bayar')
+            } else {
+              return response(res, 'success upload bukti bayar')
+            }
+          } else {
+            return response(res, 'failed upload bukti bayar', {}, 400, false)
+          }
+        } catch (error) {
+          return response(res, error.message, {}, 500, false)
+        }
+      })
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitBuktiBayar: async (req, res) => {
+    try {
+      const { no } = req.body
+      const name = req.user.name
+      const findOps = await ops.findAll({
+        where: {
+          no_pembayaran: no
+        }
+      })
+      if (findOps.length > 0) {
+        const temp = []
+        for (let i = 0; i < findOps.length; i++) {
+          const findData = await ops.findByPk(findOps[i].id)
+          if (findData) {
+            const data = {
+              end_ops: moment(),
+              status_transaksi: 8,
+              status_reject: null,
+              isreject: null,
+              history: `${findOps[i].history}, submit bukti bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+            }
+            await findData.update(data)
+            temp.push(findData)
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, 'success submit bukti bayar')
+        } else {
+          return response(res, 'failed submit bukti bayar', {}, 400, false)
+        }
+      } else {
+        return response(res, 'failed submit bukti bayar', {}, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

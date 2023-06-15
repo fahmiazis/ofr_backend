@@ -6,6 +6,7 @@ const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
+const access = [10, 11, 12, 2, 7, 8, 9, 4, 14]
 
 module.exports = {
   addCart: async (req, res) => {
@@ -46,7 +47,8 @@ module.exports = {
         jenis_pph: joi.string().allow(''),
         user_jabatan: joi.string().allow(''),
         no_bpkk: joi.string().required(),
-        tgl_faktur: joi.string().allow('')
+        tgl_faktur: joi.string().allow(''),
+        typeniknpwp: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -107,7 +109,8 @@ module.exports = {
               nilai_bayar: results.nilai_bayar,
               jenis_pph: results.jenis_pph,
               jenis_vendor: result.type_transaksi,
-              tgl_faktur: results.tgl_faktur
+              tgl_faktur: results.tgl_faktur,
+              typeniknpwp: results.typeniknpwp
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -506,6 +509,8 @@ module.exports = {
   },
   uploadDocument: async (req, res) => {
     const { no, id } = req.query
+    const level = req.user.level
+    const name = req.user.name
     uploadHelper(req, res, async function (err) {
       try {
         if (err instanceof multer.MulterError) {
@@ -519,14 +524,15 @@ module.exports = {
         }
         const dokumen = `assets/documents/${req.file.filename}`
         console.log(no)
-        const send = {
-          path: dokumen,
-          divisi: 'ikk',
-          history: req.file.originalname,
-          jenis_dok: 'lampiran'
-        }
         const make = await docuser.findByPk(id)
         if (make) {
+          const send = {
+            path: dokumen,
+            divisi: 'ikk',
+            history: req.file.originalname,
+            jenis_dok: 'lampiran',
+            status: `${make.status}, level ${level}; upload document; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
+          }
           await make.update(send)
           return response(res, 'success upload dokumen')
         } else {
@@ -677,21 +683,23 @@ module.exports = {
         } else {
           return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk: [] })
         }
-      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
+      } else if (access.find(item => item === level) !== undefined) {
         const findDepo = await depo.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
               { om: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
-              { pic_1: level === 2 ? name : 'undefined' },
-              { pic_2: level === 7 ? name : 'undefined' },
-              { pic_3: level === 8 ? name : 'undefined' },
-              { pic_4: level === 9 ? name : 'undefined' }
+              { pic_finance: level === 2 ? name : 'undefined' },
+              { spv_finance: level === 7 ? name : 'undefined' },
+              { asman_finance: level === 8 ? name : 'undefined' },
+              { manager_finance: level === 9 ? name : 'undefined' },
+              { pic_tax: level === 4 ? name : 'undefined' },
+              { manager_tax: level === 14 ? name : 'undefined' }
             ]
           }
         })
-        if (findDepo.length) {
+        if (findDepo) {
           const hasil = []
           for (let i = 0; i < findDepo.length; i++) {
             const result = await ikk.findAll({
@@ -1395,7 +1403,8 @@ module.exports = {
         jenis_pph: joi.string().allow(''),
         user_jabatan: joi.string().allow(''),
         no_bpkk: joi.string().required(),
-        tgl_faktur: joi.string().allow('')
+        tgl_faktur: joi.string().allow(''),
+        typeniknpwp: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -1457,7 +1466,8 @@ module.exports = {
               nilai_bayar: results.nilai_bayar,
               jenis_pph: results.jenis_pph,
               jenis_vendor: result.type_transaksi,
-              tgl_faktur: results.tgl_faktur
+              tgl_faktur: results.tgl_faktur,
+              typeniknpwp: results.typeniknpwp
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -1692,39 +1702,78 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  submitVerif: async (req, res) => {
+  updateDataVerif: async (req, res) => {
     try {
-      const name = req.user.name
-      const level = req.user.level
+      const id = req.params.id
       const schema = joi.object({
-        no: joi.string().required()
+        dpp: joi.string().allow(''),
+        ppn: joi.string().required(),
+        nilai_utang: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findIkk = await ikk.findAll({
-          where: {
-            no_transaksi: results.no
+        const findIkk = await ikk.findByPk(id)
+        if (findIkk) {
+          const data = {
+            dpp: results.dpp,
+            ppn: results.ppn,
+            nilai_utang: results.nilai_utang
           }
-        })
-        if (findIkk.length > 0) {
+          const updateIkk = await findIkk.update(data)
+          if (updateIkk) {
+            return response(res, 'success edit verif ikk', { updateIkk })
+          } else {
+            return response(res, 'failed edit verif ikk', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed edit verif ikk', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitVerif: async (req, res) => {
+    try {
+      const name = req.user.name
+      const level = req.user.level
+      const schema = joi.object({
+        no: joi.string().required(),
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const list = results.list
+        if (list.length > 0) {
           const temp = []
-          const cekData = findIkk.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
-          const resData = level === 2 && cekData === 'ya' ? 5 : 4
-          for (let i = 0; i < findIkk.length; i++) {
-            const findRes = await ikk.findByPk(findIkk[i].id)
-            if (findRes) {
-              const data = {
-                status_transaksi: level === 2 ? resData : 5,
-                status_reject: null,
-                isreject: null,
-                tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
-                tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
-                history: `${findIkk[i].history}, verifikasi finance by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+          for (let i = 0; i < list.length; i++) {
+            const findIkk = await ikk.findAll({
+              where: {
+                no_transaksi: list[i]
               }
-              await findRes.update(data)
-              temp.push(findRes)
+            })
+            if (findIkk.length > 0) {
+              const cekData = findIkk.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+              const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              for (let h = 0; h < findIkk.length; h++) {
+                const findRes = await ikk.findByPk(findIkk[h].id)
+                if (findRes) {
+                  const data = {
+                    status_transaksi: level === 2 ? resData : 5,
+                    status_reject: null,
+                    isreject: null,
+                    tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                    tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
+                    history: `${findIkk[h].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                  }
+                  await findRes.update(data)
+                  temp.push(findRes)
+                }
+              }
             }
           }
           if (temp.length > 0) {
@@ -1733,7 +1782,38 @@ module.exports = {
             return response(res, 'success verifikasi ikk', {})
           }
         } else {
-          return response(res, 'failed submit verifikasi ikk', {}, 404, false)
+          const findIkk = await ikk.findAll({
+            where: {
+              no_transaksi: results.no
+            }
+          })
+          if (findIkk.length > 0) {
+            const temp = []
+            const cekData = findIkk.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+            const resData = level === 2 && cekData === 'ya' ? 5 : 4
+            for (let i = 0; i < findIkk.length; i++) {
+              const findRes = await ikk.findByPk(findIkk[i].id)
+              if (findRes) {
+                const data = {
+                  status_transaksi: level === 2 ? resData : 5,
+                  status_reject: null,
+                  isreject: null,
+                  tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                  tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
+                  history: `${findIkk[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                }
+                await findRes.update(data)
+                temp.push(findRes)
+              }
+            }
+            if (temp.length > 0) {
+              return response(res, 'success verifikasi ikk', {})
+            } else {
+              return response(res, 'success verifikasi ikk', {})
+            }
+          } else {
+            return response(res, 'failed submit verifikasi ikk', {}, 404, false)
+          }
         }
       }
     } catch (error) {
@@ -1842,7 +1922,7 @@ module.exports = {
               for (let i = 0; i < findApp.length; i++) {
                 const data = {
                   jabatan: findApp[i].jabatan,
-                  nama: i === 0 ? findDepo.pic_1 : null,
+                  nama: i === 0 ? findDepo.pic_finance : null,
                   status: i === 0 ? 1 : null,
                   no_transaksi: no,
                   sebagai: findApp[i].sebagai,
@@ -2219,23 +2299,25 @@ module.exports = {
         } else {
           return response(res, 'success get data ikk', { result: findIkk })
         }
-      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
+      } else if (access.find(item => item === level) !== undefined) {
         const findDepo = await depo.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
               { om: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
-              { pic_1: level === 2 ? name : 'undefined' },
-              { pic_2: level === 7 ? name : 'undefined' },
-              { pic_3: level === 8 ? name : 'undefined' },
-              { pic_4: level === 9 ? name : 'undefined' }
+              { pic_finance: level === 2 ? name : 'undefined' },
+              { spv_finance: level === 7 ? name : 'undefined' },
+              { asman_finance: level === 8 ? name : 'undefined' },
+              { manager_finance: level === 9 ? name : 'undefined' },
+              { pic_tax: level === 4 ? name : 'undefined' },
+              { manager_tax: level === 14 ? name : 'undefined' }
             ]
           }
         })
-        if (findDepo.length) {
+        if (findDepo) {
           const hasil = []
-          for (let i = 0; i < findDepo.length; i++) {
+          for (let i = 0; i < findDepo.length > 0 ? 1 : 0; i++) {
             const result = await ikk.findAll({
               where: {
                 kode_plant: findDepo[i].kode_plant,
@@ -2331,6 +2413,154 @@ module.exports = {
         } else {
           return response(res, 'success get data ikk', { result: findIkk })
         }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  confirmNewIdent: async (req, res) => {
+    try {
+      const id = req.params.id
+      const findIkk = await ikk.findByPk(id)
+      if (findIkk) {
+        const data = {
+          new_ident: 'confirm'
+        }
+        const dataNull = {
+          new_ident: null
+        }
+        if (findIkk.new_ident === null || findIkk.new_ident === '') {
+          const updateIkk = await findIkk.update(data)
+          if (updateIkk) {
+            return response(res, 'success edit verif ikk', { updateIkk })
+          } else {
+            return response(res, 'failed edit verif ikk', {}, 404, false)
+          }
+        } else {
+          const updateIkk = await findIkk.update(dataNull)
+          if (updateIkk) {
+            return response(res, 'success edit verif ikk', { updateIkk })
+          } else {
+            return response(res, 'failed edit verif ikk', {}, 404, false)
+          }
+        }
+      } else {
+        return response(res, 'failed edit verif ikk', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getDocBayar: async (req, res) => {
+    try {
+      const { no } = req.body
+      const findDoc = await docuser.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      const send = {
+        desc: 'BUKTI BAYAR',
+        jenis_form: 'List Ikk',
+        no_transaksi: no,
+        tipe: 'List Ajuan Bayar Ikk',
+        stat_upload: 1
+      }
+      if (findDoc.length > 0) {
+        return response(res, 'success get dokumen', { result: findDoc })
+      } else {
+        const make = await docuser.create(send)
+        if (make) {
+          const findDocCre = await docuser.findAll({
+            where: {
+              no_transaksi: no
+            }
+          })
+          if (findDocCre.length > 0) {
+            return response(res, 'success get dokumen', { result: findDocCre })
+          } else {
+            return response(res, 'failed get dokumen', { result: [] })
+          }
+        } else {
+          return response(res, 'failed get doc bukti bayar')
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  uploadBukti: async (req, res) => {
+    try {
+      const { id } = req.query
+      uploadHelper(req, res, async function (err) {
+        try {
+          if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
+              // console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
+              return response(res, 'fieldname doesnt match', {}, 500, false)
+            }
+            return response(res, err.message, {}, 500, false)
+          } else if (err) {
+            return response(res, err.message, {}, 401, false)
+          }
+          const findDoc = await docuser.findByPk(id)
+          const dokumen = `assets/documents/${req.file.filename}`
+          const send = {
+            path: dokumen,
+            divisi: 'ikk',
+            history: req.file.originalname,
+            jenis_dok: 'lampiran'
+          }
+          if (findDoc) {
+            const make = await findDoc.update(send)
+            if (make) {
+              return response(res, 'success upload bukti bayar')
+            } else {
+              return response(res, 'success upload bukti bayar')
+            }
+          } else {
+            return response(res, 'failed upload bukti bayar', {}, 400, false)
+          }
+        } catch (error) {
+          return response(res, error.message, {}, 500, false)
+        }
+      })
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitBuktiBayar: async (req, res) => {
+    try {
+      const { no } = req.body
+      const name = req.user.name
+      const findIkk = await ikk.findAll({
+        where: {
+          no_pembayaran: no
+        }
+      })
+      if (findIkk.length > 0) {
+        const temp = []
+        for (let i = 0; i < findIkk.length; i++) {
+          const findData = await ikk.findByPk(findIkk[i].id)
+          if (findData) {
+            const data = {
+              end_ikk: moment(),
+              status_transaksi: 8,
+              status_reject: null,
+              isreject: null,
+              history: `${findIkk[i].history}, submit bukti bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+            }
+            await findData.update(data)
+            temp.push(findData)
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, 'success submit bukti bayar')
+        } else {
+          return response(res, 'failed submit bukti bayar', {}, 400, false)
+        }
+      } else {
+        return response(res, 'failed submit bukti bayar', {}, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

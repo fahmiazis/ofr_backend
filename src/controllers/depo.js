@@ -1,8 +1,8 @@
 const joi = require('joi')
-const { depo, sequelize } = require('../models')
+const { depo } = require('../models')
 const { pagination } = require('../helpers/pagination')
 const response = require('../helpers/response')
-const { Op, QueryTypes } = require('sequelize')
+const { Op } = require('sequelize')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
 const uploadMaster = require('../helpers/uploadMaster')
@@ -29,10 +29,14 @@ module.exports = {
         om: joi.string().required(),
         bm: joi.string().required(),
         aos: joi.string().required(),
-        pic_1: joi.string().allow(''),
-        pic_2: joi.string().allow(''),
-        pic_3: joi.string().allow(''),
-        pic_4: joi.string().allow('')
+        pic_finance: joi.string().allow(''),
+        spv_finance: joi.string().allow(''),
+        asman_finance: joi.string().allow(''),
+        manager_finance: joi.string().allow(''),
+        pic_klaim: joi.string().allow(''),
+        manager_klaim: joi.string().allow(''),
+        pic_tax: joi.string().allow(''),
+        manager_tax: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -41,7 +45,7 @@ module.exports = {
         if (level === 1) {
           const result = await depo.findAll({ where: { kode_plant: results.kode_plant } })
           if (result.length > 0) {
-            return response(res, 'kode depo already use', {}, 404, false)
+            return response(res, 'kode plant already use', {}, 404, false)
           } else {
             const result = await depo.findAll({ where: { kode_sap_1: results.kode_sap_1 } })
             if (result.length > 0) {
@@ -101,10 +105,14 @@ module.exports = {
         om: joi.string().required(),
         bm: joi.string().required(),
         aos: joi.string().allow(''),
-        pic_1: joi.string().allow(''),
-        pic_2: joi.string().allow(''),
-        pic_3: joi.string().allow(''),
-        pic_4: joi.string().allow('')
+        pic_finance: joi.string().allow(''),
+        spv_finance: joi.string().allow(''),
+        asman_finance: joi.string().allow(''),
+        manager_finance: joi.string().allow(''),
+        pic_klaim: joi.string().allow(''),
+        manager_klaim: joi.string().allow(''),
+        pic_tax: joi.string().allow(''),
+        manager_tax: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -113,7 +121,7 @@ module.exports = {
         if (level === 1) {
           const result = await depo.findAll({ where: { kode_plant: results.kode_plant, [Op.not]: { id: id } } })
           if (result.length > 0) {
-            return response(res, 'kode depo already use', {}, 404, false)
+            return response(res, 'kode plant already use', {}, 404, false)
           } else {
             const result = await depo.findAll({ where: { kode_sap_1: results.kode_sap_1, [Op.not]: { id: id } } })
             if (result.length > 0) {
@@ -239,10 +247,14 @@ module.exports = {
               { om: { [Op.like]: `%${searchValue}%` } },
               { bm: { [Op.like]: `%${searchValue}%` } },
               { aos: { [Op.like]: `%${searchValue}%` } },
-              { pic_1: { [Op.like]: `%${searchValue}%` } },
-              { pic_2: { [Op.like]: `%${searchValue}%` } },
-              { pic_3: { [Op.like]: `%${searchValue}%` } },
-              { pic_4: { [Op.like]: `%${searchValue}%` } }
+              { pic_finance: { [Op.like]: `%${searchValue}%` } },
+              { spv_finance: { [Op.like]: `%${searchValue}%` } },
+              { asman_finance: { [Op.like]: `%${searchValue}%` } },
+              { manager_finance: { [Op.like]: `%${searchValue}%` } },
+              { pic_klaim: { [Op.like]: `%${searchValue}%` } },
+              { manager_klaim: { [Op.like]: `%${searchValue}%` } },
+              { pic_tax: { [Op.like]: `%${searchValue}%` } },
+              { manager_tax: { [Op.like]: `%${searchValue}%` } }
             ]
           },
           order: [[sortValue, 'ASC']],
@@ -302,7 +314,7 @@ module.exports = {
           const dokumen = `assets/masters/${req.files[0].filename}`
           const rows = await readXlsxFile(dokumen)
           const count = []
-          const cek = ['Kode Plant', 'Home Town', 'Channel', 'Distribution', 'Status Depo', 'Profit Center', 'Cost Center', 'Kode SAP 1', 'Kode SAP 2', 'NOM', 'OM', 'BM', 'AOS', 'PIC 1', 'PIC 2', 'PIC 3', 'PIC 4']
+          const cek = ['Kode Plant', 'Home Town', 'Channel', 'Distribution', 'Status Depo', 'Profit Center', 'Cost Center', 'Kode SAP 1', 'Kode SAP 2', 'NOM', 'OM', 'BM', 'AOS', 'PIC FINANCE', 'SPV FINANCE', 'ASMAN FINANCE', 'MANAGER FINANCE', 'PIC KLAIM', 'MANAGER KLAIM', 'PIC TAX', 'MANAGER TAX']
           const valid = rows[0]
           for (let i = 0; i < cek.length; i++) {
             console.log(valid[i] === cek[i])
@@ -382,57 +394,61 @@ module.exports = {
               return response(res, 'there is duplication in your file master', { result }, 404, false)
             } else {
               const arr = []
-              for (let i = 0; i < rows.length - 1; i++) {
-                const select = await sequelize.query(`SELECT kode_plant, area from depos WHERE kode_plant='${kode[i]}'`, {
-                  type: QueryTypes.SELECT
+              rows.shift()
+              for (let i = 0; i < rows.length; i++) {
+                const dataDepo = rows[i]
+                const select = await depo.findOne({
+                  where: {
+                    kode_plant: { [Op.like]: `%${dataDepo[0]}%` }
+                  }
                 })
-                await sequelize.query(`DELETE from depos WHERE kode_plant='${kode[i]}'`, {
-                  type: QueryTypes.DELETE
-                })
-                if (select.length > 0) {
-                  arr.push(select[0])
+                const data = {
+                  kode_plant: dataDepo[0],
+                  area: dataDepo[1],
+                  channel: dataDepo[2],
+                  distribution: dataDepo[3],
+                  status_area: dataDepo[4],
+                  profit_center: dataDepo[5],
+                  cost_center: dataDepo[6],
+                  kode_sap_1: dataDepo[7],
+                  kode_sap_2: dataDepo[8],
+                  nom: dataDepo[9],
+                  om: dataDepo[10],
+                  bm: dataDepo[11],
+                  aos: dataDepo[12],
+                  pic_finance: dataDepo[13],
+                  spv_finance: dataDepo[14],
+                  asman_finance: dataDepo[15],
+                  manager_finance: dataDepo[16],
+                  pic_klaim: dataDepo[17],
+                  manager_klaim: dataDepo[18],
+                  pic_tax: dataDepo[19],
+                  manager_tax: dataDepo[20]
+                }
+                if (select) {
+                  const updepo = await select.update(data)
+                  if (updepo) {
+                    arr.push(1)
+                  }
+                } else {
+                  const createDepo = await depo.create(data)
+                  if (createDepo) {
+                    arr.push(1)
+                  }
                 }
               }
               if (arr.length > 0) {
-                rows.shift()
-                const result = await sequelize.query(`INSERT INTO depos (kode_plant, area, channel, distribution, status_area, profit_center, cost_center, kode_sap_1, kode_sap_2, nom, om, bm, aos, pic_1, pic_2, pic_3, pic_4) VALUES ${rows.map(a => '(?)').join(',')}`,
-                  {
-                    replacements: rows,
-                    type: QueryTypes.INSERT
-                  })
-                if (result) {
-                  fs.unlink(dokumen, function (err) {
-                    if (err) throw err
-                    console.log('success')
-                  })
-                  return response(res, 'successfully upload file master')
-                } else {
-                  fs.unlink(dokumen, function (err) {
-                    if (err) throw err
-                    console.log('success')
-                  })
-                  return response(res, 'failed to upload file', {}, 404, false)
-                }
+                fs.unlink(dokumen, function (err) {
+                  if (err) throw err
+                  console.log('success')
+                })
+                return response(res, 'successfully upload file master')
               } else {
-                rows.shift()
-                const result = await sequelize.query(`INSERT INTO depos (kode_plant, area, channel, distribution, status_area, profit_center, cost_center, kode_sap_1, kode_sap_2, nom, om, bm, aos, pic_1, pic_2, pic_3, pic_4) VALUES ${rows.map(a => '(?)').join(',')}`,
-                  {
-                    replacements: rows,
-                    type: QueryTypes.INSERT
-                  })
-                if (result) {
-                  fs.unlink(dokumen, function (err) {
-                    if (err) throw err
-                    console.log('success')
-                  })
-                  return response(res, 'successfully upload file master')
-                } else {
-                  fs.unlink(dokumen, function (err) {
-                    if (err) throw err
-                    console.log('success')
-                  })
-                  return response(res, 'failed to upload file', {}, 404, false)
-                }
+                fs.unlink(dokumen, function (err) {
+                  if (err) throw err
+                  console.log('success')
+                })
+                return response(res, 'failed to upload file', {}, 404, false)
               }
             }
           } else {
@@ -457,8 +473,8 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['Kode Plant', 'Home Town', 'Channel', 'Distribution', 'Status Depo', 'Profit Center', 'Cost Center', 'Kode SAP 1', 'Kode SAP 2', 'NOM', 'OM', 'BM', 'AOS', 'PIC 1', 'PIC 2', 'PIC 3', 'PIC 4']
-        const key = ['kode_plant', 'area', 'channel', 'distribution', 'status_area', 'profit_center', 'cost_center', 'kode_sap_1', 'kode_sap_2', 'nom', 'om', 'bm', 'aos', 'pic_1', 'pic_2', 'pic_3', 'pic_4']
+        const header = ['Kode Plant', 'Home Town', 'Channel', 'Distribution', 'Status Depo', 'Profit Center', 'Cost Center', 'Kode SAP 1', 'Kode SAP 2', 'NOM', 'OM', 'BM', 'AOS', 'PIC FINANCE', 'SPV FINANCE', 'ASMAN FINANCE', 'MANAGER FINANCE', 'PIC KLAIM', 'MANAGER KLAIM', 'PIC TAX', 'MANAGER TAX']
+        const key = ['kode_plant', 'area', 'channel', 'distribution', 'status_area', 'profit_center', 'cost_center', 'kode_sap_1', 'kode_sap_2', 'nom', 'om', 'bm', 'aos', 'pic_finance', 'spv_finance', 'asman_finance', 'manager_finance', 'pic_klaim', 'manager_klaim', 'pic_tax', 'manager_tax']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)

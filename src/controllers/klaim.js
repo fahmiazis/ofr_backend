@@ -6,6 +6,7 @@ const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
+const access = [10, 11, 12, 2, 7, 8, 9, 3, 13]
 
 module.exports = {
   addCart: async (req, res) => {
@@ -491,6 +492,8 @@ module.exports = {
   },
   uploadDocument: async (req, res) => {
     const { no, id } = req.query
+    const level = req.user.level
+    const name = req.user.name
     uploadHelper(req, res, async function (err) {
       try {
         if (err instanceof multer.MulterError) {
@@ -504,14 +507,15 @@ module.exports = {
         }
         const dokumen = `assets/documents/${req.file.filename}`
         console.log(no)
-        const send = {
-          path: dokumen,
-          divisi: 'klaim',
-          history: req.file.originalname,
-          jenis_dok: 'lampiran'
-        }
         const make = await docuser.findByPk(id)
         if (make) {
+          const send = {
+            path: dokumen,
+            divisi: 'klaim',
+            history: req.file.originalname,
+            jenis_dok: 'lampiran',
+            status: `${make.status}, level ${level}; upload document; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
+          }
           await make.update(send)
           return response(res, 'success upload dokumen')
         } else {
@@ -665,21 +669,23 @@ module.exports = {
         } else {
           return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [] })
         }
-      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
+      } else if (access.find(item => item === level)) {
         const findDepo = await depo.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
               { om: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
-              { pic_1: level === 2 ? name : 'undefined' },
-              { pic_2: level === 7 ? name : 'undefined' },
-              { pic_3: level === 8 ? name : 'undefined' },
-              { pic_4: level === 9 ? name : 'undefined' }
+              { pic_finance: level === 2 ? name : 'undefined' },
+              { spv_finance: level === 7 ? name : 'undefined' },
+              { asman_finance: level === 8 ? name : 'undefined' },
+              { manager_finance: level === 9 ? name : 'undefined' },
+              { pic_klaim: level === 3 ? name : 'undefined' },
+              { manager_klaim: level === 13 ? name : 'undefined' }
             ]
           }
         })
-        if (findDepo.length) {
+        if (findDepo) {
           const hasil = []
           for (let i = 0; i < findDepo.length; i++) {
             const result = await klaim.findAll({
@@ -1054,7 +1060,7 @@ module.exports = {
               for (let i = 0; i < findApp.length; i++) {
                 const data = {
                   jabatan: findApp[i].jabatan,
-                  nama: i === 0 ? findDepo.pic_1 : null,
+                  nama: i === 0 ? findDepo.pic_finance : null,
                   status: i === 0 ? 1 : null,
                   no_transaksi: no,
                   sebagai: findApp[i].sebagai,
@@ -1901,8 +1907,6 @@ module.exports = {
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
-      console.log(timeV2)
-      console.log(timeVal1 === timeVal2)
       if (level === 5) {
         const findKlaim = await klaim.findAll({
           where: {
@@ -1946,21 +1950,23 @@ module.exports = {
         } else {
           return response(res, 'success get data klaim', { result: findKlaim })
         }
-      } else if (level === 10 || level === 11 || level === 12 || level === 2 || level === 7 || level === 8 || level === 9) {
+      } else if (access.find(item => item === level)) {
         const findDepo = await depo.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
               { om: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
-              { pic_1: level === 2 ? name : 'undefined' },
-              { pic_2: level === 7 ? name : 'undefined' },
-              { pic_3: level === 8 ? name : 'undefined' },
-              { pic_4: level === 9 ? name : 'undefined' }
+              { pic_finance: level === 2 ? name : 'undefined' },
+              { spv_finance: level === 7 ? name : 'undefined' },
+              { asman_finance: level === 8 ? name : 'undefined' },
+              { manager_finance: level === 9 ? name : 'undefined' },
+              { pic_klaim: level === 3 ? name : 'undefined' },
+              { manager_klaim: level === 13 ? name : 'undefined' }
             ]
           }
         })
-        if (findDepo.length) {
+        if (findDepo) {
           const hasil = []
           for (let i = 0; i < findDepo.length; i++) {
             const result = await klaim.findAll({
