@@ -25,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'depo'
       })
+      ikk.hasOne(models.finance, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'finance'
+      })
     }
   }
   ikk.init({

@@ -14,5 +14,7 @@ route.patch('/reset/:id', user.resetPassword)
 route.post('/role/add', user.createRole)
 route.get('/role/get', user.getRole)
 route.patch('/role/update/:id', user.updateRole)
+route.patch('/generate', user.generateUser)
+route.delete('/dellevel', user.deleteUserByLevel)
 
 module.exports = route

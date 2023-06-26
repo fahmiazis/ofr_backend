@@ -1,6 +1,6 @@
 const joi = require('joi')
 const response = require('../helpers/response')
-const { user, role } = require('../models')
+const { user, role, depo } = require('../models')
 const bcrypt = require('bcryptjs')
 const { Op } = require('sequelize')
 const { pagination } = require('../helpers/pagination')
@@ -565,74 +565,6 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  //   createUserAuto: async (req, res) => {
-  //     try {
-  //       const level = req.user.level
-  //       if (level === 1) {
-  //         const findKey = await depo.findOne()
-  //         if (findKey) {
-  //           const dataKey = Object.keys(findKey.dataValues)
-  //           const exc = ['createdAt', 'updatedAt']
-  //           for (let i = dataKey.findIndex(x => x === 'nama_nom') - 1; i >= 0; i--) {
-  //             exc.push(dataKey[i])
-  //           }
-  //           const result = await depo.findAll({
-  //             attributes: { exclude: exc }
-  //           })
-  //           const users = await user.findAll()
-  //           if (result) {
-  //             const data = []
-  //             const dataUser = []
-  //             for (let i = 0; i < result.length; i++) {
-  //               data.push(result[i])
-  //             }
-  //             users.map(x => {
-  //               return (
-  //                 dataUser.push(x.username)
-  //               )
-  //             })
-  //             const set = new Set(data)
-  //             const newData = [...set]
-  //             const filter = []
-  //             for (let i = 0; i < newData.length; i++) {
-  //               const pos = dataUser.indexOf(newData[i])
-  //               if (pos === -1) {
-  //                 filter.push(newData[i])
-  //               }
-  //             }
-  //             return response(res, 'success create user auto', { result })
-  //           // if (filter.length !== 0) {
-  //           //   const send = []
-  //           //   for (let i = 0; i < filter.length; i++) {
-  //           //     const create = [filter[i], await bcrypt.hash(filter[i], await bcrypt.genSalt()), 3]
-  //           //     send.push(create)
-  //           //   }
-  //           //   const results = await sequelize.query(`INSERT INTO user (username, password, level) VALUES ${send.map(a => '(?)').join(',')}`,
-  //           //     {
-  //           //       replacements: send,
-  //           //       type: QueryTypes.INSERT
-  //           //     })
-  //           //   if (results) {
-  //           //     return response(res, 'success create user pic')
-  //           //   } else {
-  //           //     return response(res, 'failed create user pic', {}, 404, false)
-  //           //   }
-  //           // } else {
-  //           //   return response(res, 'All Pic has user account')
-  //           // }
-  //           } else {
-  //             return response(res, 'failed get pic', {}, 404, false)
-  //           }
-  //         } else {
-  //           return response(res, 'failed get pic', {}, 404, false)
-  //         }
-  //       } else {
-  //         return response(res, "You're not super administrator", {}, 404, false)
-  //       }
-  //     } catch (error) {
-  //       return response(res, error.message, {}, 500, false)
-  //     }
-  //   },
   changePassword: async (req, res) => {
     try {
       const id = req.user.id
@@ -788,6 +720,145 @@ module.exports = {
             } else {
               return response(res, 'Fail to create role', {}, 400, false)
             }
+          }
+        } else {
+          return response(res, "You're not super administrator", {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  generateUser: async (req, res) => {
+    try {
+      const level = req.user.level
+      const schema = joi.object({
+        column: joi.string().required(),
+        level: joi.number().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 401, false)
+      } else {
+        if (level === 1) {
+          const findDepo = await depo.findAll({
+            group: [results.column]
+          })
+          if (findDepo.length > 0) {
+            if (results.level === 5 || results.level === 6) {
+              const temp = []
+              for (let i = 0; i < findDepo.length; i++) {
+                const result = await user.findOne({ where: { username: { [Op.like]: `%${findDepo[i].kode_plant}%` } } })
+                if (result) {
+                  console.log('failed create')
+                } else {
+                  const result = await user.findOne({
+                    where: {
+                      [Op.and]: [
+                        { kode_plant: findDepo[i].kode_plant },
+                        { level: results.level }
+                      ]
+                    }
+                  })
+                  if (result) {
+                    console.log('failed create')
+                  } else {
+                    const data = {
+                      username: findDepo[i].kode_plant,
+                      email: 'tester@mail.com',
+                      fullname: findDepo[i].aos,
+                      password: 'pma12345',
+                      kode_plant: findDepo[i].kode_plant,
+                      level: results.level
+                    }
+                    data.password = await bcrypt.hash(data.password, await bcrypt.genSalt())
+                    const createUser = await user.create(data)
+                    if (createUser) {
+                      temp.push(createUser)
+                    }
+                  }
+                }
+              }
+              if (temp.length > 0) {
+                return response(res, 'geenerate User succesfully', { temp })
+              } else {
+                return response(res, 'Fail to create user', {}, 400, false)
+              }
+            } else {
+              const temp = []
+              for (let i = 0; i < findDepo.length; i++) {
+                const dataName = findDepo[i][results.column]
+                const result = await user.findOne({ where: { username: { [Op.like]: `%${dataName}%` } } })
+                if (result) {
+                  console.log('failed create')
+                } else {
+                  const data = {
+                    username: dataName,
+                    email: 'tester@mail.com',
+                    fullname: dataName,
+                    password: 'pma12345',
+                    kode_plant: '',
+                    level: results.level
+                  }
+                  data.password = await bcrypt.hash(data.password, await bcrypt.genSalt())
+                  const createUser = await user.create(data)
+                  if (createUser) {
+                    temp.push(createUser)
+                  }
+                }
+              }
+              if (temp.length > 0) {
+                console.log(typeof findDepo[0][results.column])
+                return response(res, 'geenerate User succesfully', { temp })
+              } else {
+                return response(res, 'Fail to create user', {}, 400, false)
+              }
+            }
+          } else {
+            return response(res, 'Fail to create user', {}, 400, false)
+          }
+        } else {
+          return response(res, "You're not super administrator", {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  deleteUserByLevel: async (req, res) => {
+    try {
+      const level = req.user.level
+      const schema = joi.object({
+        level: joi.number().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 401, false)
+      } else {
+        if (level === 1) {
+          const result = await user.findAll({
+            where: {
+              level: results.level
+            }
+          })
+          if (result.length) {
+            const temp = []
+            for (let i = 0; i < result.length; i++) {
+              const findUser = await user.findByPk(result[i].id)
+              if (findUser) {
+                const delUser = await findUser.destroy()
+                if (delUser) {
+                  temp.push(delUser)
+                }
+              }
+            }
+            if (temp.length > 0) {
+              return response(res, 'delete user success', { result })
+            } else {
+              return response(res, 'failed delete user success', { result })
+            }
+          } else {
+            return response(res, 'user not found', {}, 404, false)
           }
         } else {
           return response(res, "You're not super administrator", {}, 404, false)

@@ -1,4 +1,4 @@
-const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur } = require('../models')
+const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur, finance } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -2248,7 +2248,7 @@ module.exports = {
       const level = req.user.level
       const kode = req.user.kode
       const name = req.user.name
-      const { status, reject, menu, time1, time2 } = req.query
+      const { status, reject, menu, type, time1, time2 } = req.query
       const statTrans = status === 'undefined' || status === null ? 8 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
@@ -2291,6 +2291,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: finance,
+              as: 'finance'
             }
           ]
         })
@@ -2325,6 +2329,8 @@ module.exports = {
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                   statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  type === 'reject' ? { [Op.not]: { status_reject: null } } : { [Op.not]: { id: null } },
+                  type === 'reject' ? { [Op.not]: { status_reject: 0 } } : { [Op.not]: { id: null } },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
                     : {
@@ -2352,6 +2358,10 @@ module.exports = {
                 {
                   model: depo,
                   as: 'depo'
+                },
+                {
+                  model: finance,
+                  as: 'finance'
                 }
               ]
             })
@@ -2378,6 +2388,8 @@ module.exports = {
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
               statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              type === 'reject' ? { [Op.not]: { status_reject: null } } : { [Op.not]: { id: null } },
+              type === 'reject' ? { [Op.not]: { status_reject: 0 } } : { [Op.not]: { id: null } },
               timeVal1 === 'all'
                 ? { [Op.not]: { id: null } }
                 : {
@@ -2405,6 +2417,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: finance,
+              as: 'finance'
             }
           ]
         })

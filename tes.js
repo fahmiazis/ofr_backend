@@ -10,6 +10,31 @@ const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 const m = moment()
 m.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
 // console.log(m.toISOString())
-const data = [1, 2, 3]
-const cekVal = data.map((x, index) => { return { urut: index, val: x } })
-console.log(cekVal)
+const res = {
+  column: 'aos'
+}
+// const data = [{ aos: 'king', nom: 2, bm: 3 }, { aos: 'kang', nom: 12, bm: 13 }, { aos: 'kong', nom: 22, bm: 23 }]
+// const dataName = data.map(item => { return item[res.column] })
+
+const data = [
+  {
+    itemOne: 111,
+    itemTwo: 1,
+    itemThree: '2022-02-01T00:00:00.000Z'
+  },
+  {
+    itemOne: 222,
+    itemTwo: 2,
+    itemThree: '2022-01-01T00:00:00.000Z'
+  },
+  {
+    itemOne: 333,
+    itemTwo: 3,
+    itemThree: '2021-12-01T00:00:00.000Z'
+  }
+]
+data.sort((a, b) => {
+  return new Date(a.itemThree) - new Date(b.itemThree)
+})
+
+console.log(data)
