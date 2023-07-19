@@ -25,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'depo'
       })
+      klaim.hasOne(models.finance, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'finance'
+      })
     }
   }
   klaim.init({
@@ -76,7 +81,8 @@ module.exports = (sequelize, DataTypes) => {
     no_surkom: DataTypes.STRING,
     nama_program: DataTypes.STRING,
     dn_area: DataTypes.STRING,
-    kode_vendor: DataTypes.STRING
+    kode_vendor: DataTypes.STRING,
+    people_reject: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'klaim'

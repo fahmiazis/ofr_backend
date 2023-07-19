@@ -108,7 +108,8 @@ module.exports = (sequelize, DataTypes) => {
     tgl_sublist: DataTypes.DATE,
     tgl_fullsublist: DataTypes.DATE,
     typeniknpwp: DataTypes.STRING,
-    new_ident: DataTypes.STRING
+    new_ident: DataTypes.STRING,
+    people_reject: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'ikk'

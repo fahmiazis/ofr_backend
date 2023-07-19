@@ -1,4 +1,4 @@
-const { klaim, coa, depo, docuser, approve, ttd, role, document } = require('../models')
+const { klaim, coa, depo, docuser, approve, ttd, role, document, reservoir, finance } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -339,9 +339,10 @@ module.exports = {
   submitKlaim: async (req, res) => {
     try {
       const kode = req.user.kode
-      const findNo = await klaim.findAll({
+      const findNo = await reservoir.findAll({
         where: {
-          [Op.not]: { no_transaksi: null }
+          transaksi: 'klaim',
+          tipe: 'area'
         },
         order: [['id', 'DESC']],
         limit: 50
@@ -433,7 +434,33 @@ module.exports = {
                 }
               }
               if (tempDoc) {
-                return response(res, 'success submit cart', { noklaim: noTrans })
+                const findReser = await reservoir.findOne({
+                  where: {
+                    no_transaksi: tempData.no_transaksi
+                  }
+                })
+                const findNewReser = await reservoir.findOne({
+                  where: {
+                    no_transaksi: noTrans
+                  }
+                })
+                const upDataReser = {
+                  status: 'expired'
+                }
+                const creDataReser = {
+                  no_transaksi: noTrans,
+                  kode_plant: kode,
+                  transaksi: 'klaim',
+                  tipe: 'area',
+                  status: 'delayed'
+                }
+                if (findReser && !findNewReser) {
+                  await findReser.update(upDataReser)
+                  await reservoir.create(creDataReser)
+                  return response(res, 'success submit cart', { noklaim: noTrans })
+                } else {
+                  return response(res, 'success submit cart', { noklaim: noTrans })
+                }
               } else {
                 return response(res, 'success submit cart', { noklaim: noTrans })
               }
@@ -441,7 +468,24 @@ module.exports = {
               return response(res, 'success submit cart', { noklaim: noTrans })
             }
           } else {
-            return response(res, 'success submit cart', { noklaim: noTrans })
+            const findNewReser = await reservoir.findOne({
+              where: {
+                no_transaksi: noTrans
+              }
+            })
+            if (findNewReser) {
+              return response(res, 'success submit cart', { noklaim: noTrans })
+            } else {
+              const creDataReser = {
+                no_transaksi: noTrans,
+                kode_plant: kode,
+                transaksi: 'klaim',
+                tipe: 'area',
+                status: 'delayed'
+              }
+              await reservoir.create(creDataReser)
+              return response(res, 'success submit cart', { noklaim: noTrans })
+            }
           }
         } else {
           return response(res, 'failed submit cart', { noklaim: noTrans })
@@ -479,7 +523,21 @@ module.exports = {
           }
         }
         if (temp.length > 0) {
-          return response(res, 'success submit cart')
+          const findNewReser = await reservoir.findOne({
+            where: {
+              no_transaksi: no
+            }
+          })
+          if (findNewReser) {
+            const upDataReser = {
+              status: 'used',
+              createdAt: moment()
+            }
+            await findNewReser.update(upDataReser)
+            return response(res, 'success submit cart')
+          } else {
+            return response(res, 'success submit cart')
+          }
         } else {
           return response(res, 'failed submit cart', {}, 404, false)
         }
@@ -616,7 +674,7 @@ module.exports = {
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
-      const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
+      const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd')
       if (level === 5) {
         const findKlaim = await klaim.findAll({
           where: {
@@ -693,8 +751,8 @@ module.exports = {
                 kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  statRej === 'all' ? { [Op.not]: { start_klaim: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { start_klaim: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                   category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
@@ -1402,6 +1460,7 @@ module.exports = {
                   isreject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
+                  people_reject: level,
                   history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                 }
                 const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -1414,6 +1473,7 @@ module.exports = {
                   status_reject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
+                  people_reject: level,
                   history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                 }
                 const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -1488,6 +1548,7 @@ module.exports = {
                                     isreject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
+                                    people_reject: level,
                                     history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                   }
                                   const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -1500,6 +1561,7 @@ module.exports = {
                                     status_reject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
+                                    people_reject: level,
                                     history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                   }
                                   const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -1629,6 +1691,7 @@ module.exports = {
                                   isreject: 1,
                                   reason: results.alasan,
                                   menu_rev: results.menu,
+                                  people_reject: level,
                                   history: `${findKlaim[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -1641,6 +1704,7 @@ module.exports = {
                                   status_reject: 1,
                                   reason: results.alasan,
                                   menu_rev: results.menu,
+                                  people_reject: level,
                                   history: `${findKlaim[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -1764,7 +1828,8 @@ module.exports = {
       const schema = joi.object({
         ppu: joi.string().allow(''),
         pa: joi.string().required(),
-        nominal: joi.string().required()
+        nominal: joi.string().required(),
+        kode_vendor: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -1775,7 +1840,8 @@ module.exports = {
           const data = {
             ppu: results.ppu,
             pa: results.pa,
-            nominal: results.nominal
+            nominal: results.nominal,
+            kode_vendor: results.kode_vendor
           }
           const updateKlaim = await findKlaim.update(data)
           if (updateKlaim) {
@@ -1850,7 +1916,7 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNo = await ttd.findOne({
+        const findNo = await reservoir.findOne({
           where: {
             no_transaksi: results.no_transfer
           }
@@ -1899,7 +1965,7 @@ module.exports = {
       const level = req.user.level
       const kode = req.user.kode
       const name = req.user.name
-      const { status, reject, menu, time1, time2 } = req.query
+      const { status, reject, menu, time1, time2, type } = req.query
       const statTrans = status === 'undefined' || status === null ? 8 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
@@ -1915,6 +1981,8 @@ module.exports = {
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
               statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              type === 'reject' ? { [Op.not]: { status_reject: null } } : { [Op.not]: { id: null } },
+              type === 'reject' ? { [Op.not]: { status_reject: 0 } } : { [Op.not]: { id: null } },
               timeVal1 === 'all'
                 ? { [Op.not]: { id: null } }
                 : {
@@ -1942,6 +2010,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: finance,
+              as: 'finance'
             }
           ]
         })
@@ -2003,6 +2075,10 @@ module.exports = {
                 {
                   model: depo,
                   as: 'depo'
+                },
+                {
+                  model: finance,
+                  as: 'finance'
                 }
               ]
             })
@@ -2056,6 +2132,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: finance,
+              as: 'finance'
             }
           ]
         })

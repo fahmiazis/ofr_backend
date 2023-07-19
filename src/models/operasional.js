@@ -25,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'depo'
       })
+      ops.hasOne(models.finance, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'finance'
+      })
     }
   }
   ops.init({
@@ -87,7 +92,12 @@ module.exports = (sequelize, DataTypes) => {
     tgl_fullsublist: DataTypes.DATE,
     typeniknpwp: DataTypes.STRING,
     new_ident: DataTypes.STRING,
-    type_kasbon: DataTypes.STRING
+    type_kasbon: DataTypes.STRING,
+    type_po: DataTypes.STRING,
+    no_po: DataTypes.STRING,
+    people_reject: DataTypes.STRING,
+    nilai_po: DataTypes.STRING,
+    nilai_pr: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'ops'

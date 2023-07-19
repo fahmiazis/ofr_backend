@@ -1,4 +1,4 @@
-const { ops, depo, docuser, approve, ttd, role, document, veriftax, faktur } = require('../models')
+const { ops, depo, docuser, approve, ttd, role, document, veriftax, faktur, reservoir } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -47,7 +47,11 @@ module.exports = {
         nilai_bayar: joi.string().allow(''),
         tgl_faktur: joi.string().allow(''),
         typeniknpwp: joi.string().allow(''),
-        type_kasbon: joi.string().allow('')
+        type_kasbon: joi.string().allow(''),
+        type_po: joi.string().allow(''),
+        no_po: joi.string().allow(''),
+        nilai_po: joi.string().allow(''),
+        nilai_pr: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -108,7 +112,11 @@ module.exports = {
               jenis_vendor: result.type_transaksi,
               tgl_faktur: results.tgl_faktur,
               typeniknpwp: results.typeniknpwp,
-              type_kasbon: results.type_kasbon
+              type_kasbon: results.type_kasbon,
+              type_po: results.type_po,
+              no_po: results.no_po,
+              nilai_po: results.nilai_po,
+              nilai_pr: results.nilai_pr
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -304,7 +312,11 @@ module.exports = {
         jenis_pph: joi.string().allow(''),
         nilai_bayar: joi.string().allow(''),
         tgl_faktur: joi.string().allow(''),
-        typeniknpwp: joi.string().allow('')
+        typeniknpwp: joi.string().allow(''),
+        type_po: joi.string().allow(''),
+        no_po: joi.string().allow(''),
+        nilai_po: joi.string().allow(''),
+        nilai_pr: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -366,7 +378,11 @@ module.exports = {
               jenis_pph: results.jenis_pph,
               jenis_vendor: result.type_transaksi,
               tgl_faktur: results.tgl_faktur,
-              typeniknpwp: results.typeniknpwp
+              typeniknpwp: results.typeniknpwp,
+              type_po: results.type_po,
+              no_po: results.no_po,
+              nilai_po: results.nilai_po,
+              nilai_pr: results.nilai_pr
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -736,9 +752,10 @@ module.exports = {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
         const listId = results.list
-        const findNo = await ops.findAll({
+        const findNo = await reservoir.findAll({
           where: {
-            [Op.not]: { no_transaksi: null }
+            transaksi: 'ops',
+            tipe: 'area'
           },
           order: [['id', 'DESC']],
           limit: 50
@@ -849,7 +866,33 @@ module.exports = {
                   }
                 }
                 if (tempDoc) {
-                  return response(res, 'success submit cart', { noops: noTrans })
+                  const findReser = await reservoir.findOne({
+                    where: {
+                      no_transaksi: tempData.no_transaksi
+                    }
+                  })
+                  const findNewReser = await reservoir.findOne({
+                    where: {
+                      no_transaksi: noTrans
+                    }
+                  })
+                  const upDataReser = {
+                    status: 'expired'
+                  }
+                  const creDataReser = {
+                    no_transaksi: noTrans,
+                    kode_plant: kode,
+                    transaksi: 'ops',
+                    tipe: 'area',
+                    status: 'delayed'
+                  }
+                  if (findReser && !findNewReser) {
+                    await findReser.update(upDataReser)
+                    await reservoir.create(creDataReser)
+                    return response(res, 'success submit cart', { noops: noTrans })
+                  } else {
+                    return response(res, 'success submit cart', { noops: noTrans })
+                  }
                 } else {
                   return response(res, 'success submit cart', { noops: noTrans })
                 }
@@ -857,7 +900,24 @@ module.exports = {
                 return response(res, 'success submit cart', { noops: noTrans })
               }
             } else {
-              return response(res, 'success submit cart', { noops: noTrans })
+              const findNewReser = await reservoir.findOne({
+                where: {
+                  no_transaksi: noTrans
+                }
+              })
+              if (findNewReser) {
+                return response(res, 'success submit cart', { noops: noTrans })
+              } else {
+                const creDataReser = {
+                  no_transaksi: noTrans,
+                  kode_plant: kode,
+                  transaksi: 'ops',
+                  tipe: 'area',
+                  status: 'delayed'
+                }
+                await reservoir.create(creDataReser)
+                return response(res, 'success submit cart', { noops: noTrans })
+              }
             }
           } else {
             return response(res, 'failed submit cart', { noops: noTrans })
@@ -896,7 +956,21 @@ module.exports = {
           }
         }
         if (temp.length > 0) {
-          return response(res, 'success submit cart')
+          const findNewReser = await reservoir.findOne({
+            where: {
+              no_transaksi: no
+            }
+          })
+          if (findNewReser) {
+            const upDataReser = {
+              status: 'used',
+              createdAt: moment()
+            }
+            await findNewReser.update(upDataReser)
+            return response(res, 'success submit cart')
+          } else {
+            return response(res, 'success submit cart')
+          }
         } else {
           return response(res, 'failed submit cart', {}, 404, false)
         }
@@ -1025,15 +1099,16 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.name
       const role = req.user.role
-      const { status, reject, menu, type, category, data, time1, time2 } = req.query
+      const { status, reject, menu, type, category, data, time1, time2, kasbon } = req.query
       const statTrans = status === 'undefined' || status === null ? 2 : status
-      const statRej = reject === 'undefined' ? null : reject
-      const statMenu = menu === 'undefined' ? null : menu
-      const statData = data === 'undefined' ? null : data
+      const statRej = reject === 'undefined' ? 'all' : reject
+      const statMenu = menu === 'undefined' ? 'all' : menu
+      const statData = data === 'undefined' ? 'all' : data
+      const statKasbon = kasbon === 'undefined' ? 'all' : kasbon
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
-      const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
+      const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd')
       if (level === 5) {
         const findOps = await ops.findAll({
           where: {
@@ -1042,6 +1117,18 @@ module.exports = {
               statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
               statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              statKasbon === 'kasbon'
+                ? { type_kasbon: statKasbon }
+                : statKasbon === 'non kasbon'
+                  ? {
+                      [Op.or]: [
+                        { type_kasbon: null },
+                        { type_kasbon: statKasbon }
+                      ]
+                    }
+                  : {
+                      [Op.not]: { id: null }
+                    },
               timeVal1 === 'all'
                 ? { [Op.not]: { id: null } }
                 : {
@@ -1107,9 +1194,21 @@ module.exports = {
                 kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  statRej === 'all' ? { [Op.not]: { start_ops: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { start_ops: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                   category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                  statKasbon === 'kasbon'
+                    ? { type_kasbon: statKasbon }
+                    : statKasbon === 'non kasbon'
+                      ? {
+                          [Op.or]: [
+                            { type_kasbon: null },
+                            { type_kasbon: statKasbon }
+                          ]
+                        }
+                      : {
+                          [Op.not]: { id: null }
+                        },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
                     : {
@@ -1175,6 +1274,7 @@ module.exports = {
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
               statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+              statKasbon === 'all' ? { [Op.not]: { id: null } } : { type_kasbon: { [Op.like]: `%${statKasbon}%` } },
               timeVal1 === 'all'
                 ? { [Op.not]: { id: null } }
                 : {
@@ -2269,7 +2369,7 @@ module.exports = {
                     isreject: null,
                     tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
                     tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
-                    history: `${findOps[j].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                    history: `${findOps[j].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} pengajuan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                   }
                   await findRes.update(data)
                   temp.push(findRes)
@@ -2301,7 +2401,89 @@ module.exports = {
                   isreject: null,
                   tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
                   tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
-                  history: `${findOps[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                  history: `${findOps[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} pengajuan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                }
+                await findRes.update(data)
+                temp.push(findRes)
+              }
+            }
+            if (temp.length > 0) {
+              return response(res, 'success verifikasi ops', { cekData, resData })
+            } else {
+              return response(res, 'success verifikasi ops', { cekData, resData })
+            }
+          } else {
+            return response(res, 'failed submit verifikasi ops', {}, 404, false)
+          }
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  submitRealisasi: async (req, res) => {
+    try {
+      const name = req.user.name
+      const level = req.user.level
+      const schema = joi.object({
+        no: joi.string().required(),
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const list = results.list
+        if (list.length > 0) {
+          const temp = []
+          for (let i = 0; i < list.length; i++) {
+            const findOps = await ops.findAll({
+              where: {
+                no_transaksi: list[i]
+              }
+            })
+            if (findOps.length > 0) {
+              const temp = []
+              const cekData = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+              const resData = level === 2 && cekData === 'ya' ? 11 : 10
+              for (let j = 0; j < findOps.length; j++) {
+                const findRes = await ops.findByPk(findOps[j].id)
+                if (findRes) {
+                  const data = {
+                    status_transaksi: level === 5 ? 9 : level === 2 ? resData : 11,
+                    status_reject: null,
+                    isreject: null,
+                    history: `${findOps[j].history}, ${level === 5 ? 'submit' : 'verifikasi'}  ${level === 5 ? '' : level === 2 ? 'finance' : 'tax'} realisasi kasbon by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                  }
+                  await findRes.update(data)
+                  temp.push(findRes)
+                }
+              }
+            }
+          }
+          if (temp.length > 0) {
+            return response(res, 'success verifikasi ops', { temp })
+          } else {
+            return response(res, 'success verifikasi ops', { temp })
+          }
+        } else {
+          const findOps = await ops.findAll({
+            where: {
+              no_transaksi: results.no
+            }
+          })
+          if (findOps.length > 0) {
+            const temp = []
+            const cekData = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+            const resData = level === 2 && cekData === 'ya' ? 11 : 10
+            for (let i = 0; i < findOps.length; i++) {
+              const findRes = await ops.findByPk(findOps[i].id)
+              if (findRes) {
+                const data = {
+                  status_transaksi: level === 5 ? 9 : level === 2 ? resData : 11,
+                  status_reject: null,
+                  isreject: null,
+                  history: `${findOps[i].history}, ${level === 5 ? 'submit' : 'verifikasi'}  ${level === 5 ? '' : level === 2 ? 'finance' : 'tax'} realisasi kasbon by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                 }
                 await findRes.update(data)
                 temp.push(findRes)
@@ -2334,7 +2516,7 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNo = await ttd.findOne({
+        const findNo = await reservoir.findOne({
           where: {
             no_transaksi: results.no_transfer
           }

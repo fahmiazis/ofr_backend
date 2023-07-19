@@ -1,4 +1,4 @@
-const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur, finance } = require('../models')
+const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -341,9 +341,10 @@ module.exports = {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
         const listId = results.list
-        const findNo = await ikk.findAll({
+        const findNo = await reservoir.findAll({
           where: {
-            [Op.not]: { no_transaksi: null }
+            transaksi: 'ops',
+            tipe: 'area'
           },
           order: [['id', 'DESC']],
           limit: 50
@@ -449,7 +450,33 @@ module.exports = {
                   }
                 }
                 if (tempDoc) {
-                  return response(res, 'success submit cart', { noikk: noTrans })
+                  const findReser = await reservoir.findOne({
+                    where: {
+                      no_transaksi: tempData.no_transaksi
+                    }
+                  })
+                  const findNewReser = await reservoir.findOne({
+                    where: {
+                      no_transaksi: noTrans
+                    }
+                  })
+                  const upDataReser = {
+                    status: 'expired'
+                  }
+                  const creDataReser = {
+                    no_transaksi: noTrans,
+                    kode_plant: kode,
+                    transaksi: 'ikk',
+                    tipe: 'area',
+                    status: 'delayed'
+                  }
+                  if (findReser && !findNewReser) {
+                    await findReser.update(upDataReser)
+                    await reservoir.create(creDataReser)
+                    return response(res, 'success submit cart', { noikk: noTrans })
+                  } else {
+                    return response(res, 'success submit cart', { noikk: noTrans })
+                  }
                 } else {
                   return response(res, 'success submit cart', { noikk: noTrans })
                 }
@@ -457,7 +484,24 @@ module.exports = {
                 return response(res, 'success submit cart', { noikk: noTrans })
               }
             } else {
-              return response(res, 'success submit cart', { noikk: noTrans })
+              const findNewReser = await reservoir.findOne({
+                where: {
+                  no_transaksi: noTrans
+                }
+              })
+              if (findNewReser) {
+                return response(res, 'success submit cart', { noikk: noTrans })
+              } else {
+                const creDataReser = {
+                  no_transaksi: noTrans,
+                  kode_plant: kode,
+                  transaksi: 'ikk',
+                  tipe: 'area',
+                  status: 'delayed'
+                }
+                await reservoir.create(creDataReser)
+                return response(res, 'success submit cart', { noikk: noTrans })
+              }
             }
           } else {
             return response(res, 'failed submit cart', { noikk: noTrans })
@@ -496,7 +540,21 @@ module.exports = {
           }
         }
         if (temp.length > 0) {
-          return response(res, 'success submit cart')
+          const findNewReser = await reservoir.findOne({
+            where: {
+              no_transaksi: no
+            }
+          })
+          if (findNewReser) {
+            const upDataReser = {
+              status: 'used',
+              createdAt: moment()
+            }
+            await findNewReser.update(upDataReser)
+            return response(res, 'success submit cart')
+          } else {
+            return response(res, 'success submit cart')
+          }
         } else {
           return response(res, 'failed submit cart', {}, 404, false)
         }
@@ -633,7 +691,7 @@ module.exports = {
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal2)
+      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal2).add(1, 'd')
       if (level === 5) {
         const findIkk = await ikk.findAll({
           where: {
@@ -707,8 +765,8 @@ module.exports = {
                 kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
                   statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  statRej === 'all' ? { [Op.not]: { start_ikk: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { start_ikk: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                   category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
@@ -1833,7 +1891,7 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNo = await ttd.findOne({
+        const findNo = await reservoir.findOne({
           where: {
             no_transaksi: results.no_transfer
           }
