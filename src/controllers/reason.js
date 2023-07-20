@@ -83,9 +83,13 @@ module.exports = {
   },
   getAllReason: async (req, res) => {
     try {
+      const arrReason = [
+        { id: 'open', desc: 'realisasi lebih besar dari nilai pengajuan awal' },
+        { id: 'close', desc: 'realisasi lebih kecil dari nilai pengajuan awal' }
+      ]
       const findReason = await reason.findAll()
       if (findReason.length > 0) {
-        return response(res, 'succes get reason', { result: findReason, length: findReason.length })
+        return response(res, 'succes get reason', { result: findReason, arrReason, length: findReason.length })
       } else {
         return response(res, 'failed get reason', {}, 404, false)
       }
@@ -96,6 +100,10 @@ module.exports = {
   getReason: async (req, res) => {
     try {
       let { limit, page, search, sort } = req.query
+      const arrReason = [
+        { id: 'open', desc: 'realisasi lebih besar dari nilai pengajuan awal' },
+        { id: 'close', desc: 'realisasi lebih kecil dari nilai pengajuan awal' }
+      ]
       let searchValue = ''
       let sortValue = ''
       if (typeof search === 'object') {
@@ -130,7 +138,7 @@ module.exports = {
       })
       const pageInfo = pagination('/reason/get', req.query, page, limit, findReason.count)
       if (findReason.rows.length > 0) {
-        return response(res, 'succes get reason', { result: findReason, pageInfo })
+        return response(res, 'succes get reason', { result: findReason, arrReason, pageInfo })
       } else {
         return response(res, 'failed get reason', { findReason }, 404, false)
       }

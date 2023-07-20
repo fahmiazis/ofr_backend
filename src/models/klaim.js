@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'finance'
       })
+      klaim.hasOne(models.kliring, {
+        foreignKey: 'nama_singkat',
+        sourceKey: 'bank_tujuan',
+        as: 'kliring'
+      })
     }
   }
   klaim.init({

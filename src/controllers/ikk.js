@@ -1,4 +1,4 @@
-const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir } = require('../models')
+const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir, kliring } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -691,7 +691,7 @@ module.exports = {
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal2).add(1, 'd')
+      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd'))
       if (level === 5) {
         const findIkk = await ikk.findAll({
           where: {
@@ -724,6 +724,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -795,6 +799,10 @@ module.exports = {
                 {
                   model: depo,
                   as: 'depo'
+                },
+                {
+                  model: kliring,
+                  as: 'kliring'
                 }
               ]
             })
@@ -858,6 +866,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -905,6 +917,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -935,6 +951,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -972,6 +992,10 @@ module.exports = {
           {
             model: depo,
             as: 'depo'
+          },
+          {
+            model: kliring,
+            as: 'kliring'
           }
         ]
       })
@@ -1247,6 +1271,7 @@ module.exports = {
                   isreject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
+                  people_reject: level,
                   history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                 }
                 const findRes = await ikk.findByPk(findIkk[i].id)
@@ -1259,6 +1284,7 @@ module.exports = {
                   status_reject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
+                  people_reject: level,
                   history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                 }
                 const findRes = await ikk.findByPk(findIkk[i].id)
@@ -1333,6 +1359,7 @@ module.exports = {
                                     isreject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
+                                    people_reject: level,
                                     history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                   }
                                   const findRes = await ikk.findByPk(findIkk[i].id)
@@ -1345,6 +1372,7 @@ module.exports = {
                                     status_reject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
+                                    people_reject: level,
                                     history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                   }
                                   const findRes = await ikk.findByPk(findIkk[i].id)
@@ -2242,6 +2270,7 @@ module.exports = {
                                   isreject: 1,
                                   reason: results.alasan,
                                   menu_rev: results.menu,
+                                  people_reject: level,
                                   history: `${findIkk[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await ikk.findByPk(findIkk[i].id)
@@ -2254,6 +2283,7 @@ module.exports = {
                                   status_reject: 1,
                                   reason: results.alasan,
                                   menu_rev: results.menu,
+                                  people_reject: level,
                                   history: `${findIkk[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await ikk.findByPk(findIkk[i].id)

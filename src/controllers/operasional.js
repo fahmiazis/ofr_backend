@@ -1,4 +1,4 @@
-const { ops, depo, docuser, approve, ttd, role, document, veriftax, faktur, reservoir } = require('../models')
+const { ops, depo, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -1099,7 +1099,7 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.name
       const role = req.user.role
-      const { status, reject, menu, type, category, data, time1, time2, kasbon } = req.query
+      const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi } = req.query
       const statTrans = status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? 'all' : reject
       const statMenu = menu === 'undefined' ? 'all' : menu
@@ -1114,7 +1114,7 @@ module.exports = {
           where: {
             kode_plant: kode,
             [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
+              statTrans === 'all' && realisasi === 'realisasi' ? { status_transaksi: { [Op.gte]: 8 } } : statTrans === 'all' && realisasi !== 'realisasi' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
               statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
               statKasbon === 'kasbon'
@@ -1153,6 +1153,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -1236,6 +1240,10 @@ module.exports = {
                 {
                   model: depo,
                   as: 'depo'
+                },
+                {
+                  model: kliring,
+                  as: 'kliring'
                 }
               ]
             })
@@ -1297,6 +1305,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -1344,6 +1356,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -1411,6 +1427,10 @@ module.exports = {
           {
             model: depo,
             as: 'depo'
+          },
+          {
+            model: kliring,
+            as: 'kliring'
           }
         ]
       })
@@ -1913,6 +1933,7 @@ module.exports = {
                   isreject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
+                  people_reject: level,
                   history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                 }
                 const findRes = await ops.findByPk(findOps[i].id)
@@ -1925,6 +1946,7 @@ module.exports = {
                   status_reject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
+                  people_reject: level,
                   history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                 }
                 const findRes = await ops.findByPk(findOps[i].id)
@@ -1999,6 +2021,7 @@ module.exports = {
                                     isreject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
+                                    people_reject: level,
                                     history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                   }
                                   const findRes = await ops.findByPk(findOps[i].id)
@@ -2011,6 +2034,7 @@ module.exports = {
                                     status_reject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
+                                    people_reject: level,
                                     history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                   }
                                   const findRes = await ops.findByPk(findOps[i].id)
@@ -2140,6 +2164,7 @@ module.exports = {
                                   isreject: 1,
                                   reason: results.alasan,
                                   menu_rev: results.menu,
+                                  people_reject: level,
                                   history: `${findOps[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await ops.findByPk(findOps[i].id)
@@ -2152,6 +2177,7 @@ module.exports = {
                                   status_reject: 1,
                                   reason: results.alasan,
                                   menu_rev: results.menu,
+                                  people_reject: level,
                                   history: `${findOps[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await ops.findByPk(findOps[i].id)
@@ -2608,6 +2634,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: finance,
+              as: 'finance'
             }
           ]
         })
@@ -2669,6 +2699,10 @@ module.exports = {
                 {
                   model: depo,
                   as: 'depo'
+                },
+                {
+                  model: finance,
+                  as: 'finance'
                 }
               ]
             })
@@ -2722,6 +2756,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: finance,
+              as: 'finance'
             }
           ]
         })
@@ -2845,6 +2883,72 @@ module.exports = {
         }
       } else {
         return response(res, 'failed submit bukti bayar', {}, 400, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  revisiKasbon: async (req, res) => {
+    try {
+      const level = req.user.level
+      const name = req.user.name
+      const schema = joi.object({
+        no: joi.string().required(),
+        alasan: joi.string().required(),
+        list: joi.array(),
+        type: joi.string(),
+        stat_kasbon: joi.string()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const no = results.no
+        const findOps = await ops.findAll({
+          where: {
+            no_transaksi: no
+          }
+        })
+        if (findOps.length > 0) {
+          const temp = []
+          for (let i = 0; i < findOps.length; i++) {
+            const listId = results.list
+            if (listId.find(e => e === findOps[i].id)) {
+              const send = {
+                status_reject: 1,
+                isreject: 1,
+                reason: results.alasan,
+                people_reject: level,
+                history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+              }
+              const findRes = await ops.findByPk(findOps[i].id)
+              if (findRes) {
+                await findRes.update(send)
+                temp.push(1)
+              }
+            } else {
+              const send = {
+                status_reject: 1,
+                reason: results.alasan,
+                stat_kasbon: results.stat_kasbon,
+                people_reject: level,
+                history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+              }
+              const findRes = await ops.findByPk(findOps[i].id)
+              if (findRes) {
+                await findRes.update(send)
+                temp.push(1)
+              }
+            }
+          }
+          if (temp.length) {
+            return response(res, 'success reject ops', {})
+          } else {
+            return response(res, 'success reject ops', {})
+          }
+        } else {
+          return response(res, 'failed revisi kasbon', {}, 400, false)
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

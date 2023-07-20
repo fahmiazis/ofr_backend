@@ -29,6 +29,7 @@ route.patch('/rejectlist', ops.rejectListOps)
 route.post('/uplist', ops.uploadBukti)
 route.patch('/sublistbayar', ops.submitBuktiBayar)
 route.patch('/getdocbayar', ops.getDocBayar)
+route.patch('/revkasbon', ops.revisiKasbon)
 route.get('/report', ops.getReport)
 
 module.exports = route

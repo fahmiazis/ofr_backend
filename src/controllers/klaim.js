@@ -1,4 +1,4 @@
-const { klaim, coa, depo, docuser, approve, ttd, role, document, reservoir, finance } = require('../models')
+const { klaim, coa, depo, docuser, approve, ttd, role, document, reservoir, finance, kliring } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -710,6 +710,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -781,6 +785,10 @@ module.exports = {
                 {
                   model: depo,
                   as: 'depo'
+                },
+                {
+                  model: kliring,
+                  as: 'kliring'
                 }
               ]
             })
@@ -844,6 +852,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -891,6 +903,10 @@ module.exports = {
             {
               model: depo,
               as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
             }
           ]
         })
@@ -958,6 +974,10 @@ module.exports = {
           {
             model: depo,
             as: 'depo'
+          },
+          {
+            model: kliring,
+            as: 'kliring'
           }
         ]
       })

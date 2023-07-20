@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'finance'
       })
+      ops.hasOne(models.kliring, {
+        foreignKey: 'nama_singkat',
+        sourceKey: 'bank_tujuan',
+        as: 'kliring'
+      })
     }
   }
   ops.init({
@@ -97,7 +102,8 @@ module.exports = (sequelize, DataTypes) => {
     no_po: DataTypes.STRING,
     people_reject: DataTypes.STRING,
     nilai_po: DataTypes.STRING,
-    nilai_pr: DataTypes.STRING
+    nilai_pr: DataTypes.STRING,
+    stat_kasbon: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'ops'
