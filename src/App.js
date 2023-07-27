@@ -40,6 +40,9 @@ const klaimRoute = require('./routes/klaim')
 const opsRoute = require('./routes/operasional')
 const ikkRoute = require('./routes/ikk')
 
+// redpine
+const redpineRoute = require('./routes/redpine')
+
 // show document
 const showRoute = require('./routes/show')
 
@@ -73,6 +76,9 @@ app.use('/reservoir', authMiddleware, reservoirRoute)
 app.use('/klaim', authMiddleware, klaimRoute)
 app.use('/ops', authMiddleware, opsRoute)
 app.use('/ikk', authMiddleware, ikkRoute)
+
+// redpine
+app.use('/redpine', redpineRoute)
 
 // show document
 app.use('/show', showRoute)
