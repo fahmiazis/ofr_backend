@@ -29,5 +29,7 @@ route.post('/uplist', ikk.uploadBukti)
 route.patch('/sublistbayar', ikk.submitBuktiBayar)
 route.patch('/getdocbayar', ikk.getDocBayar)
 route.patch('/confident/:id', ikk.confirmNewIdent)
+route.get('/getredpine', ikk.getRedpine)
+route.get('/postredpine', ikk.postRedpine)
 
 module.exports = route

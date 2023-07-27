@@ -313,6 +313,7 @@ module.exports = {
         nilai_bayar: joi.string().allow(''),
         tgl_faktur: joi.string().allow(''),
         typeniknpwp: joi.string().allow(''),
+        type_kasbon: joi.string().allow(''),
         type_po: joi.string().allow(''),
         no_po: joi.string().allow(''),
         nilai_po: joi.string().allow(''),

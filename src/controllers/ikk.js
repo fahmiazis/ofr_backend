@@ -7,6 +7,7 @@ const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
 const access = [10, 11, 12, 2, 7, 8, 9, 4, 14]
+const axios = require('axios')
 
 module.exports = {
   addCart: async (req, res) => {
@@ -685,9 +686,9 @@ module.exports = {
       const role = req.user.role
       const { status, reject, menu, type, category, data, time1, time2 } = req.query
       const statTrans = status === 'undefined' || status === null ? 2 : status
-      const statRej = reject === 'undefined' ? null : reject
-      const statMenu = menu === 'undefined' ? null : menu
-      const statData = data === 'undefined' ? null : data
+      const statRej = reject === 'undefined' ? 'all' : reject
+      const statMenu = menu === 'undefined' ? 'all' : menu
+      const statData = data === 'undefined' ? 'all' : data
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = new Date(timeVal1)
@@ -2665,6 +2666,214 @@ module.exports = {
         }
       } else {
         return response(res, 'failed submit bukti bayar', {}, 400, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getRedpine: async (req, res) => {
+    try {
+      const level = req.user.level
+      const { kode, noikk, time1, time2 } = req.query
+      const statTrans = 8
+      const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' ? 'all' : kode
+      const statNo = noikk === 'undefined' || noikk === undefined || noikk === null || noikk === '' ? 'all' : noikk
+      const timeVal1 = time1 === 'undefined' ? 'all' : time1
+      const timeVal2 = time2 === 'undefined' ? 'all' : time2
+      const timeV1 = new Date(timeVal1)
+      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd'))
+      if (level === 1) {
+        const findIkk = await ikk.findAll({
+          where: {
+            [Op.and]: [
+              { status_transaksi: statTrans },
+              statKode === 'all' ? { [Op.not]: { id: null } } : { kode_plant: statKode },
+              statNo === 'all' ? { [Op.not]: { id: null } } : { no_transaksi: { [Op.like]: `%${statNo}%` } },
+              timeVal1 === 'all'
+                ? { [Op.not]: { id: null } }
+                : {
+                    start_ikk: {
+                      [Op.gte]: timeV1,
+                      [Op.lt]: timeV2
+                    }
+                  }
+            ]
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
+            },
+            {
+              model: depo,
+              as: 'depo'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
+            }
+          ]
+        })
+        const data = []
+        findIkk.map(x => {
+          return (
+            data.push(x.no_transaksi)
+          )
+        })
+        const set = new Set(data)
+        const noDis = [...set]
+        if (findIkk.length > 0) {
+          const dataJurnal = []
+          for (let i = 0; i < noDis.length; i++) {
+            const data = {
+              no_ofr: noDis[i],
+              item: []
+            }
+            for (let j = 0; j < findIkk.length; j++) {
+              const jenisPph = findIkk[j].jenis_pph
+              const tipeTrans = findIkk[j].type_transaksi
+              if (findIkk[j].no_transaksi === noDis[i]) {
+                if ((jenisPph === 'Non PPh' || jenisPph === null) && tipeTrans !== 'Ya') {
+                  data.item = [[
+                    { name: findIkk[j].nama_coa, pph: null, dr: findIkk[j].nilai_ajuan, cr: null },
+                    { name: 'Kas Kecil', pph: null, dr: null, cr: findIkk[j].nilai_ajuan }
+                  ]]
+                } else if (jenisPph !== 'Non PPh' && tipeTrans !== 'Ya') {
+                  data.item = [[
+                    { name: findIkk[j].nama_coa, pph: jenisPph, dr: findIkk[j].nilai_ajuan, cr: null },
+                    { name: `Utang ${jenisPph}`, pph: jenisPph, dr: null, cr: findIkk[j].nilai_utang },
+                    { name: 'Kas Kecil', pph: jenisPph, dr: null, cr: findIkk[j].nilai_bayar }
+                  ]]
+                } else if (jenisPph !== 'Non PPh' && tipeTrans === 'Ya') {
+                  data.item = [[
+                    { name: findIkk[j].nama_coa, pph: jenisPph, dr: findIkk[j].dpp, cr: null },
+                    { name: 'PPN Masukan Non Dagang', pph: jenisPph, dr: findIkk[j].ppn, cr: null },
+                    { name: `Utang ${jenisPph}`, pph: jenisPph, dr: null, cr: findIkk[j].nilai_utang },
+                    { name: 'Kas Kecil', pph: jenisPph, dr: null, cr: findIkk[j].nilai_bayar }
+                  ]]
+                }
+              }
+            }
+            dataJurnal.push(data)
+          }
+          if (dataJurnal.length > 0) {
+            const temp = []
+            for (let i = 0; i < findIkk.length; i++) {
+              const findData = await ikk.findByPk(findIkk[i].id)
+              if (findData) {
+                const data = {
+                  flag_redpine: findData.flag_redpine + 1
+                }
+                const updateData = await findData.update(data)
+                if (updateData) {
+                  temp.push(updateData)
+                }
+              }
+            }
+            if (temp.length > 0) {
+              return response(res, 'success get jurnal ikk', { result: dataJurnal, no_ofr: noDis })
+            } else {
+              return response(res, 'success get jurnal ikk', { result: dataJurnal, no_ofr: noDis })
+            }
+          } else {
+            return response(res, 'success get jurnal ikk', { result: findIkk, no_ofr: noDis })
+          }
+        } else {
+          return response(res, 'success get jurnal ikk', { result: findIkk, no_ofr: noDis })
+        }
+      } else {
+        return response(res, 'failed get jurnal ikk', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  postRedpine: async (req, res) => {
+    try {
+      const { kode, noikk } = req.body
+      const statTrans = 8
+      const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' ? 'all' : kode
+      const statNo = noikk === 'undefined' || noikk === undefined || noikk === null || noikk === '' ? 'all' : noikk
+      const findIkk = await ikk.findAll({
+        where: {
+          [Op.and]: [
+            { status_transaksi: statTrans },
+            statKode === 'all' ? { [Op.not]: { id: null } } : { kode_plant: statKode },
+            statNo === 'all' ? { [Op.not]: { id: null } } : { no_transaksi: { [Op.like]: `%${statNo}%` } }
+          ]
+        },
+        order: [
+          ['id', 'ASC'],
+          [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+          [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+        ],
+        include: [
+          {
+            model: ttd,
+            as: 'appForm'
+          },
+          {
+            model: ttd,
+            as: 'appList'
+          },
+          {
+            model: depo,
+            as: 'depo'
+          },
+          {
+            model: kliring,
+            as: 'kliring'
+          }
+        ]
+      })
+      const data = []
+      findIkk.map(x => {
+        return (
+          data.push(x.no_transaksi)
+        )
+      })
+      const set = new Set(data)
+      const noDis = [...set]
+      if (findIkk) {
+        const send = await axios({
+          method: 'post',
+          url: 'https://redpine.pinusmerahabadi.co.id/api/jurnal',
+          data: { data: findIkk },
+          headers: { Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.c_G5Y7CbEKR4UncCqxLmGHtkcZDtibjh2XP_M7fTbAE' }
+        }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
+        if (send.status === 200) {
+          const temp = []
+          for (let i = 0; i < findIkk.length; i++) {
+            const findData = await ikk.findByPk(findIkk[i].id)
+            if (findData) {
+              const data = {
+                flag_redpine: findData.flag_redpine + 1
+              }
+              const updateData = await findData.update(data)
+              if (updateData) {
+                temp.push(updateData)
+              }
+            }
+          }
+          if (temp.length > 0) {
+            return response(res, send.message, { result: send.data })
+          } else {
+            return response(res, send.message, { result: send.data })
+          }
+        } else {
+          return response(res, 'gagal kirim ke redpine', { send }, 400, false)
+        }
+      } else {
+        return response(res, 'success get jurnal ikk', { result: findIkk, noDis })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
