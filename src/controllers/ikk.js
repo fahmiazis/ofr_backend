@@ -2678,8 +2678,8 @@ module.exports = {
       const statTrans = 8
       const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' ? 'all' : kode
       const statNo = noikk === 'undefined' || noikk === undefined || noikk === null || noikk === '' ? 'all' : noikk
-      const timeVal1 = time1 === 'undefined' ? 'all' : time1
-      const timeVal2 = time2 === 'undefined' ? 'all' : time2
+      const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' ? 'all' : time1
+      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' ? 'all' : time2
       const timeV1 = new Date(timeVal1)
       const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd'))
       if (level === 1) {
