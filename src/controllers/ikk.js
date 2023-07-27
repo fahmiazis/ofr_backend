@@ -2782,13 +2782,13 @@ module.exports = {
             if (temp.length > 0) {
               return response(res, 'success get jurnal ikk', { result: dataJurnal, no_ofr: noDis })
             } else {
-              return response(res, 'success get jurnal ikk', { result: dataJurnal, no_ofr: noDis })
+              return response(res, 'success get jurnal ikkg', { result: dataJurnal, no_ofr: noDis })
             }
           } else {
-            return response(res, 'success get jurnal ikk', { result: findIkk, no_ofr: noDis })
+            return response(res, 'success get jurnal ikkt', { result: findIkk, no_ofr: noDis })
           }
         } else {
-          return response(res, 'success get jurnal ikk', { result: findIkk, no_ofr: noDis })
+          return response(res, 'success get jurnal ikks', { result: findIkk, no_ofr: noDis })
         }
       } else {
         return response(res, 'failed get jurnal ikk', {}, 404, false)
