@@ -2685,8 +2685,8 @@ module.exports = {
       if (level === 1) {
         const findIkk = await ikk.findAll({
           where: {
+            status_transaksi: statTrans,
             [Op.and]: [
-              { status_transaksi: statTrans },
               statKode === 'all' ? { [Op.not]: { id: null } } : { kode_plant: statKode },
               statNo === 'all' ? { [Op.not]: { id: null } } : { no_transaksi: { [Op.like]: `%${statNo}%` } },
               timeVal1 === 'all'
