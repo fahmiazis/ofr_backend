@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'finance'
       })
+      ikk.hasOne(models.finance, {
+        foreignKey: 'rek_spending',
+        sourceKey: 'norek_ajuan',
+        as: 'spending'
+      })
       ikk.hasOne(models.kliring, {
         foreignKey: 'nama_singkat',
         sourceKey: 'bank_tujuan',

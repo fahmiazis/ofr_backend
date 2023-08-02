@@ -699,6 +699,134 @@ module.exports = {
           } else {
             return response(res, 'failed get email3', { findDraft }, 404, false)
           }
+        } else if (tipe === 'revisi') {
+          const findDraft = await email.findOne({
+            where: {
+              [Op.and]: [
+                { type: 'submit' },
+                { menu: menu }
+              ],
+              [Op.or]: [
+                { access: { [Op.like]: '%all' } },
+                { access: { [Op.like]: `%${kode}` } }
+              ]
+            }
+          })
+          if (findDraft) {
+            const temp = []
+            const arrCc = findDraft.cc.split(',')
+            for (let i = 0; i < arrCc.length; i++) {
+              const findLevel = await role.findOne({
+                where: {
+                  name: arrCc[i]
+                }
+              })
+              if (findLevel && findLevel.type === 'area') {
+                const findDraftUser = await user.findAll({
+                  where: {
+                    level: findLevel.level
+                  },
+                  include: [
+                    {
+                      model: role,
+                      as: 'role'
+                    }
+                  ]
+                })
+                if (findDraftUser) {
+                  for (let i = 0; i < findDraftUser.length; i++) {
+                    const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                      temp.push(findDraftUser[i])
+                    }
+                  }
+                }
+              } else if (findLevel && findLevel.type !== 'area') {
+                const findDraftUser = await user.findOne({
+                  where: {
+                    level: findLevel.level
+                  },
+                  include: [
+                    {
+                      model: role,
+                      as: 'role'
+                    }
+                  ]
+                })
+                if (findDraftUser) {
+                  temp.push(findDraftUser)
+                }
+              }
+            }
+            if (temp.length > 0) {
+              let noLevel = null
+              const tipeStat = parseInt(findTrans.people_reject)
+              for (let i = 0; i < 1; i++) {
+                const findLevel = await role.findOne({
+                  where: {
+                    level: tipeStat
+                  }
+                })
+                if (findLevel) {
+                  noLevel = findLevel
+                }
+              }
+              if (noLevel.type === 'area') {
+                const findUser = await user.findAll({
+                  where: {
+                    level: noLevel.level
+                  },
+                  include: [
+                    {
+                      model: role,
+                      as: 'role'
+                    }
+                  ]
+                })
+                if (findUser.length > 0) {
+                  let toMail = null
+                  for (let i = 0; i < findUser.length; i++) {
+                    const findName = findUser[i].username === null ? '' : findUser[i].username
+                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                      toMail = findUser[i]
+                    }
+                  }
+                  if (toMail !== null) {
+                    if (findDraft) {
+                      return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
+                    } else {
+                      return response(res, 'failed get email 2', { toMail }, 404, false)
+                    }
+                  } else {
+                    return response(res, 'failed get email 1 king', { toMail, findUser, listName }, 404, false)
+                  }
+                } else {
+                  return response(res, 'failed get email 0', { findUser }, 404, false)
+                }
+              } else {
+                const findUser = await user.findOne({
+                  where: {
+                    level: noLevel.level
+                  },
+                  include: [
+                    {
+                      model: role,
+                      as: 'role'
+                    }
+                  ]
+                })
+                if (findUser) {
+                  return response(res, 'success get draft email', { from: name, to: findUser, cc: temp, result: findDraft })
+                } else {
+                  return response(res, 'failed get email5', { findUser }, 404, false)
+                }
+              }
+            } else {
+              return response(res, 'failed get email4', { temp }, 404, false)
+            }
+          } else {
+            return response(res, 'failed get email3', { findDraft }, 404, false)
+          }
         }
       } else {
         return response(res, 'failed get email 1', { findRole, findDepo, findTrans }, 404, false)

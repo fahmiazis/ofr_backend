@@ -2384,6 +2384,10 @@ module.exports = {
             {
               model: finance,
               as: 'finance'
+            },
+            {
+              model: finance,
+              as: 'spending'
             }
           ]
         })
@@ -2451,6 +2455,10 @@ module.exports = {
                 {
                   model: finance,
                   as: 'finance'
+                },
+                {
+                  model: finance,
+                  as: 'spending'
                 }
               ]
             })
@@ -2510,6 +2518,10 @@ module.exports = {
             {
               model: finance,
               as: 'finance'
+            },
+            {
+              model: finance,
+              as: 'spending'
             }
           ]
         })

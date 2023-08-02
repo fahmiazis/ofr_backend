@@ -10,7 +10,11 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate (models) {
-      // define association here
+      depo.hasOne(models.kpp, {
+        foreignKey: 'profit_center',
+        sourceKey: 'profit_center',
+        as: 'kpp'
+      })
     }
   }
   depo.init({

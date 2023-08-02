@@ -37,7 +37,7 @@ async function wrapedSendMail (mailOptions) {
       } else {
         cek = []
         console.log('masuk settimeout false')
-        resolve(false)
+        resolve(true)
       }
     }, 10000)
   })

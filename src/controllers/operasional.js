@@ -1,4 +1,4 @@
-const { ops, depo, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring } = require('../models')
+const { ops, depo, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -582,11 +582,12 @@ module.exports = {
     try {
       const kode = req.user.kode
       const { tipe } = req.query
-      const finTipe = tipe === 'kasbon' ? 'kasbon' : null
       const findOps = await ops.findAll({
         where: {
-          kode_plant: kode,
-          type_kasbon: finTipe,
+          [Op.and]: [
+            { kode_plant: kode },
+            tipe === 'kasbon' ? { type_kasbon: tipe } : { [Op.not]: { type_kasbon: 'kasbon' } }
+          ],
           [Op.or]: [
             { status_transaksi: 1 },
             { status_transaksi: null }
@@ -1122,10 +1123,7 @@ module.exports = {
                 ? { type_kasbon: statKasbon }
                 : statKasbon === 'non kasbon'
                   ? {
-                      [Op.or]: [
-                        { type_kasbon: null },
-                        { type_kasbon: statKasbon }
-                      ]
+                      [Op.not]: { type_kasbon: 'kasbon' }
                     }
                   : {
                       [Op.not]: { id: null }
@@ -1240,7 +1238,8 @@ module.exports = {
                 },
                 {
                   model: depo,
-                  as: 'depo'
+                  as: 'depo',
+                  include: [{ model: kpp, as: 'kpp' }]
                 },
                 {
                   model: kliring,
@@ -1305,7 +1304,8 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: kliring,
@@ -2634,7 +2634,8 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: finance,
@@ -2699,7 +2700,8 @@ module.exports = {
                 },
                 {
                   model: depo,
-                  as: 'depo'
+                  as: 'depo',
+                  include: [{ model: kpp, as: 'kpp' }]
                 },
                 {
                   model: finance,
@@ -2756,7 +2758,8 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: finance,
