@@ -775,8 +775,10 @@ module.exports = {
         const finTipe = results.tipe === 'kasbon' ? 'kasbon' : null
         const findOps = await ops.findAll({
           where: {
-            kode_plant: kode,
-            type_kasbon: finTipe,
+            [Op.and]: [
+              { kode_plant: kode },
+              finTipe === 'kasbon' ? { type_kasbon: finTipe } : { [Op.not]: { type_kasbon: 'kasbon' } }
+            ],
             [Op.or]: [
               { status_transaksi: null },
               { status_transaksi: 1 }
@@ -922,10 +924,10 @@ module.exports = {
               }
             }
           } else {
-            return response(res, 'failed submit cart', { noops: noTrans })
+            return response(res, 'failed submit cart1', { noops: noTrans })
           }
         } else {
-          return response(res, 'failed submit cart', {}, 404, false)
+          return response(res, 'failed submit cart2', {}, 404, false)
         }
       }
     } catch (error) {
@@ -1204,10 +1206,7 @@ module.exports = {
                     ? { type_kasbon: statKasbon }
                     : statKasbon === 'non kasbon'
                       ? {
-                          [Op.or]: [
-                            { type_kasbon: null },
-                            { type_kasbon: statKasbon }
-                          ]
+                          [Op.not]: { type_kasbon: 'kasbon' }
                         }
                       : {
                           [Op.not]: { id: null }
@@ -1282,7 +1281,15 @@ module.exports = {
               statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
               statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-              statKasbon === 'all' ? { [Op.not]: { id: null } } : { type_kasbon: { [Op.like]: `%${statKasbon}%` } },
+              statKasbon === 'kasbon'
+                ? { type_kasbon: statKasbon }
+                : statKasbon === 'non kasbon'
+                  ? {
+                      [Op.not]: { type_kasbon: 'kasbon' }
+                    }
+                  : {
+                      [Op.not]: { id: null }
+                    },
               timeVal1 === 'all'
                 ? { [Op.not]: { id: null } }
                 : {
