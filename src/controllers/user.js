@@ -301,6 +301,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await user.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }
@@ -309,7 +312,6 @@ module.exports = {
       } else {
         page = parseInt(page)
       }
-      console.log(filter)
       if (filter === 'null' || filter === undefined) {
         const result = await user.findAndCountAll({
           where: {
@@ -405,7 +407,7 @@ module.exports = {
           const dokumen = `assets/masters/${req.files[0].filename}`
           const rows = await readXlsxFile(dokumen)
           const count = []
-          const cek = ['User Name', 'Password', 'Full Name', 'Kode Area', 'User Level', 'Email']
+          const cek = ['User Name', 'Full Name', 'Kode Area', 'Email', 'User Level']
           const valid = rows[0]
           for (let i = 0; i < cek.length; i++) {
             if (valid[i] === cek[i]) {
@@ -418,8 +420,9 @@ module.exports = {
             const cek = []
             for (let i = 1; i < rows.length; i++) {
               const a = rows[i]
-              if (a[4] === '5' || a[4] === 5) {
-                plant.push(`Kode area ${a[3]} dan  User level ${a[4]}`)
+              const cekLevel = a[4].split('-')
+              if (cekLevel[0] === '5' || cekLevel[0] === 5) {
+                plant.push(`Kode area ${a[2]} dan  User level ${a[4]}`)
               }
               userName.push(`User Name ${a[0]}`)
               cek.push(`${a[0]}`)
@@ -457,9 +460,9 @@ module.exports = {
               for (let i = 0; i < rows.length; i++) {
                 const noun = []
                 const process = rows[i]
-                for (let j = 0; j < process.length; j++) {
-                  if (j === 1) {
-                    let str = process[j]
+                for (let j = 0; j < process.length + 1; j++) {
+                  if (j === 5) {
+                    let str = 'pma12345'
                     str = await bcrypt.hash(str, await bcrypt.genSalt())
                     noun.push(str)
                   } else {
@@ -474,11 +477,11 @@ module.exports = {
                   const dataUser = create[i]
                   const data = {
                     username: dataUser[0],
-                    password: dataUser[1],
-                    fullname: dataUser[2],
-                    kode_plant: dataUser[3],
-                    level: dataUser[4],
-                    email: dataUser[5]
+                    fullname: dataUser[1],
+                    kode_plant: dataUser[2],
+                    email: dataUser[3],
+                    level: dataUser[4].split('-')[0],
+                    password: dataUser[5]
                   }
                   const findUser = await user.findOne({
                     where: {
@@ -536,8 +539,8 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['User Name', 'Password', 'Full Name', 'Kode Area', 'User Level', 'Email']
-        const key = ['username', 'password', 'fullname', 'kode_plant', 'level', 'email']
+        const header = ['User Name', 'Full Name', 'Kode Area', 'User Level', 'Email']
+        const key = ['username', 'fullname', 'kode_plant', 'level', 'email']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
@@ -782,7 +785,7 @@ module.exports = {
               if (temp.length > 0) {
                 return response(res, 'geenerate User succesfully', { temp })
               } else {
-                return response(res, 'Fail to create user', {}, 400, false)
+                return response(res, 'geenerate User succesfully', { temp })
               }
             } else {
               const temp = []
@@ -811,11 +814,11 @@ module.exports = {
                 console.log(typeof findDepo[0][results.column])
                 return response(res, 'geenerate User succesfully', { temp })
               } else {
-                return response(res, 'Fail to create user', {}, 400, false)
+                return response(res, 'geenerate User succesfully', { temp })
               }
             }
           } else {
-            return response(res, 'Fail to create user', {}, 400, false)
+            return response(res, 'Fail to create user2', {}, 400, false)
           }
         } else {
           return response(res, "You're not super administrator", {}, 404, false)

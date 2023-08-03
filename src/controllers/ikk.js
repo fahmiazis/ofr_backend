@@ -303,29 +303,136 @@ module.exports = {
     try {
       const id = req.params.id
       const findIkk = await ikk.findByPk(id)
-      if (findIkk.no_faktur !== null && findIkk.no_faktur !== undefined) {
-        const findFaktur = await faktur.findOne({
-          where: {
-            no_faktur: findIkk.no_faktur
-          }
-        })
-        if (findFaktur) {
-          const dataEdit = {
-            status: null
-          }
-          const editFaktur = await findFaktur.update(dataEdit)
-          if (editFaktur) {
+      if (findIkk.no_transaksi === null) {
+        if (findIkk.no_faktur !== null && findIkk.no_faktur !== '') {
+          const findFaktur = await faktur.findOne({
+            where: {
+              no_faktur: findIkk.no_faktur
+            }
+          })
+          if (findFaktur) {
+            const dataEdit = {
+              status: null
+            }
+            const editFaktur = await findFaktur.update(dataEdit)
+            if (editFaktur) {
+              await findIkk.destroy()
+              return response(res, 'success delete cart ikk', { result: findIkk })
+            } else {
+              return response(res, 'failed delete carrt ikk 1', {}, 400, false)
+            }
+          } else {
             await findIkk.destroy()
             return response(res, 'success delete cart ikk', { result: findIkk })
-          } else {
-            return response(res, 'failed delete carrt ikk 1', {}, 400, false)
           }
         } else {
-          return response(res, 'failed delete carrt ikk 2', {}, 400, false)
+          await findIkk.destroy()
+          return response(res, 'success delete cart ikk', { result: findIkk })
         }
       } else {
-        await findIkk.destroy()
-        return response(res, 'success delete cart ikk', { result: findIkk })
+        const findAllIkk = await ikk.findAll({
+          where: {
+            no_transaksi: findIkk.no_transaksi
+          }
+        })
+        if (findAllIkk.length === 1) {
+          const findDoc = await docuser.findAll({
+            where: {
+              no_transaksi: findIkk.no_transaksi
+            }
+          })
+          if (findDoc.length > 0) {
+            const tempDoc = []
+            for (let i = 0; i < findDoc.length; i++) {
+              const upDoc = await docuser.findByPk(findDoc[i].id)
+              if (upDoc) {
+                await upDoc.destroy()
+                tempDoc.push(upDoc)
+              }
+            }
+            if (tempDoc.length > 0) {
+              if (findIkk.no_faktur !== null && findIkk.no_faktur !== '') {
+                const findFaktur = await faktur.findOne({
+                  where: {
+                    no_faktur: findIkk.no_faktur
+                  }
+                })
+                if (findFaktur) {
+                  const dataEdit = {
+                    status: null
+                  }
+                  const editFaktur = await findFaktur.update(dataEdit)
+                  if (editFaktur) {
+                    await findIkk.destroy()
+                    return response(res, 'success delete cart ikk', { result: findIkk })
+                  } else {
+                    return response(res, 'failed delete carrt ikk 1', {}, 400, false)
+                  }
+                } else {
+                  await findIkk.destroy()
+                  return response(res, 'success delete cart ikk', { result: findIkk })
+                }
+              } else {
+                await findIkk.destroy()
+                return response(res, 'success delete cart ikk', { result: findIkk })
+              }
+            } else {
+              return response(res, 'failed delete carrt ikk 1', {}, 400, false)
+            }
+          } else {
+            if (findIkk.no_faktur !== null && findIkk.no_faktur !== '') {
+              const findFaktur = await faktur.findOne({
+                where: {
+                  no_faktur: findIkk.no_faktur
+                }
+              })
+              if (findFaktur) {
+                const dataEdit = {
+                  status: null
+                }
+                const editFaktur = await findFaktur.update(dataEdit)
+                if (editFaktur) {
+                  await findIkk.destroy()
+                  return response(res, 'success delete cart ikk', { result: findIkk })
+                } else {
+                  return response(res, 'failed delete carrt ikk 1', {}, 400, false)
+                }
+              } else {
+                await findIkk.destroy()
+                return response(res, 'success delete cart ikk', { result: findIkk })
+              }
+            } else {
+              await findIkk.destroy()
+              return response(res, 'success delete cart ikk', { result: findIkk })
+            }
+          }
+        } else {
+          if (findIkk.no_faktur !== null && findIkk.no_faktur !== '') {
+            const findFaktur = await faktur.findOne({
+              where: {
+                no_faktur: findIkk.no_faktur
+              }
+            })
+            if (findFaktur) {
+              const dataEdit = {
+                status: null
+              }
+              const editFaktur = await findFaktur.update(dataEdit)
+              if (editFaktur) {
+                await findIkk.destroy()
+                return response(res, 'success delete cart ikk', { result: findIkk })
+              } else {
+                return response(res, 'failed delete carrt ikk 1', {}, 400, false)
+              }
+            } else {
+              await findIkk.destroy()
+              return response(res, 'success delete cart ikk', { result: findIkk })
+            }
+          } else {
+            await findIkk.destroy()
+            return response(res, 'success delete cart ikk', { result: findIkk })
+          }
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -344,7 +451,7 @@ module.exports = {
         const listId = results.list
         const findNo = await reservoir.findAll({
           where: {
-            transaksi: 'ops',
+            transaksi: 'ikk',
             tipe: 'area'
           },
           order: [['id', 'DESC']],
