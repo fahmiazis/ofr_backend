@@ -1,4 +1,4 @@
-const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir, kliring } = require('../models')
+const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir, kliring, kpp, taxcode } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -831,11 +831,17 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: kliring,
               as: 'kliring'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })
@@ -906,11 +912,17 @@ module.exports = {
                 },
                 {
                   model: depo,
-                  as: 'depo'
+                  as: 'depo',
+                  include: [{ model: kpp, as: 'kpp' }]
                 },
                 {
                   model: kliring,
                   as: 'kliring'
+                },
+                {
+                  model: veriftax,
+                  as: 'veriftax',
+                  include: [{ model: taxcode, as: 'taxcode' }]
                 }
               ]
             })
@@ -973,11 +985,17 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: kliring,
               as: 'kliring'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })
@@ -1024,11 +1042,17 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: kliring,
               as: 'kliring'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })
@@ -1058,11 +1082,17 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: kliring,
               as: 'kliring'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })
@@ -1099,11 +1129,17 @@ module.exports = {
           },
           {
             model: depo,
-            as: 'depo'
+            as: 'depo',
+            include: [{ model: kpp, as: 'kpp' }]
           },
           {
             model: kliring,
             as: 'kliring'
+          },
+          {
+            model: veriftax,
+            as: 'veriftax',
+            include: [{ model: taxcode, as: 'taxcode' }]
           }
         ]
       })
@@ -2486,7 +2522,8 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: finance,
@@ -2495,6 +2532,15 @@ module.exports = {
             {
               model: finance,
               as: 'spending'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })
@@ -2557,7 +2603,8 @@ module.exports = {
                 },
                 {
                   model: depo,
-                  as: 'depo'
+                  as: 'depo',
+                  include: [{ model: kpp, as: 'kpp' }]
                 },
                 {
                   model: finance,
@@ -2566,6 +2613,15 @@ module.exports = {
                 {
                   model: finance,
                   as: 'spending'
+                },
+                {
+                  model: kliring,
+                  as: 'kliring'
+                },
+                {
+                  model: veriftax,
+                  as: 'veriftax',
+                  include: [{ model: taxcode, as: 'taxcode' }]
                 }
               ]
             })
@@ -2620,7 +2676,8 @@ module.exports = {
             },
             {
               model: depo,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
             },
             {
               model: finance,
@@ -2629,6 +2686,15 @@ module.exports = {
             {
               model: finance,
               as: 'spending'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })
@@ -2832,11 +2898,17 @@ module.exports = {
           },
           {
             model: depo,
-            as: 'depo'
+            as: 'depo',
+            include: [{ model: kpp, as: 'kpp' }]
           },
           {
             model: kliring,
             as: 'kliring'
+          },
+          {
+            model: veriftax,
+            as: 'veriftax',
+            include: [{ model: taxcode, as: 'taxcode' }]
           }
         ]
       })
@@ -2941,11 +3013,17 @@ module.exports = {
           },
           {
             model: depo,
-            as: 'depo'
+            as: 'depo',
+            include: [{ model: kpp, as: 'kpp' }]
           },
           {
             model: kliring,
             as: 'kliring'
+          },
+          {
+            model: veriftax,
+            as: 'veriftax',
+            include: [{ model: taxcode, as: 'taxcode' }]
           }
         ]
       })

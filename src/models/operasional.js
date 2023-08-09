@@ -35,6 +35,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'bank_tujuan',
         as: 'kliring'
       })
+      ops.hasOne(models.veriftax, {
+        foreignKey: 'gl_account',
+        sourceKey: 'no_coa',
+        as: 'veriftax'
+      })
     }
   }
   ops.init({

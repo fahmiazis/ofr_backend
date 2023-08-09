@@ -1,4 +1,4 @@
-const { ops, depo, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp } = require('../models')
+const { ops, depo, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, taxcode } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -1317,6 +1317,11 @@ module.exports = {
             {
               model: kliring,
               as: 'kliring'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })
@@ -2647,6 +2652,11 @@ module.exports = {
             {
               model: finance,
               as: 'finance'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })
@@ -2713,6 +2723,11 @@ module.exports = {
                 {
                   model: finance,
                   as: 'finance'
+                },
+                {
+                  model: veriftax,
+                  as: 'veriftax',
+                  include: [{ model: taxcode, as: 'taxcode' }]
                 }
               ]
             })
@@ -2771,6 +2786,11 @@ module.exports = {
             {
               model: finance,
               as: 'finance'
+            },
+            {
+              model: veriftax,
+              as: 'veriftax',
+              include: [{ model: taxcode, as: 'taxcode' }]
             }
           ]
         })

@@ -40,6 +40,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'bank_tujuan',
         as: 'kliring'
       })
+      ikk.hasOne(models.veriftax, {
+        foreignKey: 'gl_account',
+        sourceKey: 'no_coa',
+        as: 'veriftax'
+      })
     }
   }
   ikk.init({

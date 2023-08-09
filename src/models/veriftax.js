@@ -10,7 +10,11 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate (models) {
-      // define association here
+      veriftax.hasOne(models.taxcode, {
+        foreignKey: 'tax_code',
+        sourceKey: 'tax_code',
+        as: 'taxcode'
+      })
     }
   }
   veriftax.init({
@@ -24,7 +28,9 @@ module.exports = (sequelize, DataTypes) => {
     tarif_pph: DataTypes.STRING,
     dpp_nongrossup: DataTypes.STRING,
     dpp_grossup: DataTypes.STRING,
-    status_ident: DataTypes.STRING
+    status_ident: DataTypes.STRING,
+    tax_type: DataTypes.STRING,
+    tax_code: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'veriftax'
