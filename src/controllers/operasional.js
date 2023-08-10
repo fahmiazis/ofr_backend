@@ -81,6 +81,8 @@ module.exports = {
               no_coa: results.no_coa,
               sub_coa: result.jenis_transaksi,
               nama_coa: result.gl_name,
+              tax_type: result.tax_type,
+              tax_code: result.tax_code,
               keterangan: results.keterangan,
               periode_awal: results.periode_awal,
               periode_akhir: results.periode_akhir,
@@ -349,6 +351,8 @@ module.exports = {
               no_coa: results.no_coa,
               sub_coa: result.jenis_transaksi,
               nama_coa: result.gl_name,
+              tax_type: result.tax_type,
+              tax_code: result.tax_code,
               keterangan: results.keterangan,
               periode_awal: results.periode_awal,
               periode_akhir: results.periode_akhir,
@@ -1319,9 +1323,8 @@ module.exports = {
               as: 'kliring'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
           ]
         })
@@ -2654,9 +2657,8 @@ module.exports = {
               as: 'finance'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
           ]
         })
@@ -2725,9 +2727,8 @@ module.exports = {
                   as: 'finance'
                 },
                 {
-                  model: veriftax,
-                  as: 'veriftax',
-                  include: [{ model: taxcode, as: 'taxcode' }]
+                  model: taxcode,
+                  as: 'taxcode'
                 }
               ]
             })
@@ -2788,9 +2789,8 @@ module.exports = {
               as: 'finance'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
           ]
         })

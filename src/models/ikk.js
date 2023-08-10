@@ -45,6 +45,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'no_coa',
         as: 'veriftax'
       })
+      ikk.hasOne(models.taxcode, {
+        foreignKey: 'tax_code',
+        sourceKey: 'tax_code',
+        as: 'taxcode'
+      })
     }
   }
   ikk.init({
@@ -125,7 +130,9 @@ module.exports = (sequelize, DataTypes) => {
     typeniknpwp: DataTypes.STRING,
     new_ident: DataTypes.STRING,
     people_reject: DataTypes.STRING,
-    flag_redpine: DataTypes.INTEGER
+    flag_redpine: DataTypes.INTEGER,
+    tax_type: DataTypes.STRING,
+    tax_code: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'ikk'

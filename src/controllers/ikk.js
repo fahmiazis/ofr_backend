@@ -81,6 +81,8 @@ module.exports = {
               no_coa: results.no_coa,
               sub_coa: result.jenis_transaksi,
               nama_coa: result.gl_name,
+              tax_type: result.tax_type,
+              tax_code: result.tax_code,
               uraian: results.uraian,
               periode_awal: results.periode_awal,
               periode_akhir: results.periode_akhir,
@@ -839,9 +841,8 @@ module.exports = {
               as: 'kliring'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
           ]
         })
@@ -920,9 +921,8 @@ module.exports = {
                   as: 'kliring'
                 },
                 {
-                  model: veriftax,
-                  as: 'veriftax',
-                  include: [{ model: taxcode, as: 'taxcode' }]
+                  model: taxcode,
+                  as: 'taxcode'
                 }
               ]
             })
@@ -993,9 +993,8 @@ module.exports = {
               as: 'kliring'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
           ]
         })
@@ -1050,9 +1049,8 @@ module.exports = {
               as: 'kliring'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
           ]
         })
@@ -1090,9 +1088,8 @@ module.exports = {
               as: 'kliring'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
           ]
         })
@@ -1137,14 +1134,74 @@ module.exports = {
             as: 'kliring'
           },
           {
-            model: veriftax,
-            as: 'veriftax',
-            include: [{ model: taxcode, as: 'taxcode' }]
+            model: taxcode,
+            as: 'taxcode'
           }
         ]
       })
       if (findIkk) {
         return response(res, 'success get dokumen', { result: findIkk })
+      } else {
+        return response(res, 'failed get dokumen', { result: [] })
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getDetailReport: async (req, res) => {
+    try {
+      const { list } = req.body
+      const temp = []
+      for (let i = 0; i < list.length; i++) {
+        const findIkk = await ikk.findAll({
+          where: {
+            no_transaksi: list[i]
+          },
+          order: [
+            ['id', 'ASC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+          ],
+          include: [
+            {
+              model: ttd,
+              as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
+            },
+            {
+              model: depo,
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }]
+            },
+            {
+              model: finance,
+              as: 'finance'
+            },
+            {
+              model: finance,
+              as: 'spending'
+            },
+            {
+              model: kliring,
+              as: 'kliring'
+            },
+            {
+              model: taxcode,
+              as: 'taxcode'
+            }
+          ]
+        })
+        if (findIkk.length > 0) {
+          findIkk.map(item => {
+            return temp.push(item)
+          })
+        }
+      }
+      if (temp.length) {
+        return response(res, 'success get dokumen', { result: temp })
       } else {
         return response(res, 'failed get dokumen', { result: [] })
       }
@@ -1667,6 +1724,8 @@ module.exports = {
               no_coa: results.no_coa,
               sub_coa: result.jenis_transaksi,
               nama_coa: result.gl_name,
+              tax_type: result.tax_type,
+              tax_code: result.tax_code,
               uraian: results.uraian,
               periode_awal: results.periode_awal,
               periode_akhir: results.periode_akhir,
@@ -2538,11 +2597,11 @@ module.exports = {
               as: 'kliring'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
-          ]
+          ],
+          group: ['no_transaksi']
         })
         if (findIkk) {
           return response(res, 'success get data ikk', { result: findIkk })
@@ -2619,11 +2678,11 @@ module.exports = {
                   as: 'kliring'
                 },
                 {
-                  model: veriftax,
-                  as: 'veriftax',
-                  include: [{ model: taxcode, as: 'taxcode' }]
+                  model: taxcode,
+                  as: 'taxcode'
                 }
-              ]
+              ],
+              group: ['no_transaksi']
             })
             if (result.length > 0) {
               for (let j = 0; j < result.length; j++) {
@@ -2692,11 +2751,11 @@ module.exports = {
               as: 'kliring'
             },
             {
-              model: veriftax,
-              as: 'veriftax',
-              include: [{ model: taxcode, as: 'taxcode' }]
+              model: taxcode,
+              as: 'taxcode'
             }
-          ]
+          ],
+          group: ['no_transaksi']
         })
         if (findIkk) {
           return response(res, 'success get data ikk', { result: findIkk })
@@ -2906,9 +2965,8 @@ module.exports = {
             as: 'kliring'
           },
           {
-            model: veriftax,
-            as: 'veriftax',
-            include: [{ model: taxcode, as: 'taxcode' }]
+            model: taxcode,
+            as: 'taxcode'
           }
         ]
       })
@@ -3021,9 +3079,8 @@ module.exports = {
             as: 'kliring'
           },
           {
-            model: veriftax,
-            as: 'veriftax',
-            include: [{ model: taxcode, as: 'taxcode' }]
+            model: taxcode,
+            as: 'taxcode'
           }
         ]
       })

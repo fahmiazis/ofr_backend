@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'finance'
       })
+      ops.hasOne(models.finance, {
+        foreignKey: 'rek_spending',
+        sourceKey: 'norek_ajuan',
+        as: 'spending'
+      })
       ops.hasOne(models.kliring, {
         foreignKey: 'nama_singkat',
         sourceKey: 'bank_tujuan',
@@ -39,6 +44,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'gl_account',
         sourceKey: 'no_coa',
         as: 'veriftax'
+      })
+      ops.hasOne(models.taxcode, {
+        foreignKey: 'tax_code',
+        sourceKey: 'tax_code',
+        as: 'taxcode'
       })
     }
   }
@@ -108,7 +118,9 @@ module.exports = (sequelize, DataTypes) => {
     people_reject: DataTypes.STRING,
     nilai_po: DataTypes.STRING,
     nilai_pr: DataTypes.STRING,
-    stat_kasbon: DataTypes.STRING
+    stat_kasbon: DataTypes.STRING,
+    tax_type: DataTypes.STRING,
+    tax_code: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'ops'
