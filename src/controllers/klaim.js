@@ -338,11 +338,17 @@ module.exports = {
   },
   submitKlaim: async (req, res) => {
     try {
+      const timeV1 = moment().startOf('month')
+      const timeV2 = moment().endOf('month').add(1, 'd')
       const kode = req.user.kode
       const findNo = await reservoir.findAll({
         where: {
           transaksi: 'klaim',
-          tipe: 'area'
+          tipe: 'area',
+          createdAt: {
+            [Op.gte]: timeV1,
+            [Op.lt]: timeV2
+          }
         },
         order: [['id', 'DESC']],
         limit: 50
@@ -666,7 +672,8 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.name
       const role = req.user.role
-      const { status, reject, menu, type, category, data, time1, time2 } = req.query
+      const { status, reject, menu, type, category, data, time1, time2, search } = req.query
+      const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
@@ -693,6 +700,23 @@ module.exports = {
                   },
               { [Op.not]: { status_transaksi: null } },
               { [Op.not]: { status_transaksi: 1 } }
+            ],
+            [Op.or]: [
+              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+              { no_ktp: { [Op.like]: `%${searchValue}%` } },
+              { no_npwp: { [Op.like]: `%${searchValue}%` } },
+              { no_surkom: { [Op.like]: `%${searchValue}%` } },
+              { nama_program: { [Op.like]: `%${searchValue}%` } },
+              { area: { [Op.like]: `%${searchValue}%` } },
+              { cost_center: { [Op.like]: `%${searchValue}%` } },
+              { no_coa: { [Op.like]: `%${searchValue}%` } },
+              { sub_coa: { [Op.like]: `%${searchValue}%` } },
+              { nama_coa: { [Op.like]: `%${searchValue}%` } },
+              { keterangan: { [Op.like]: `%${searchValue}%` } },
+              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
             ],
             [Op.not]: [
               { status_transaksi: 1 }
@@ -766,6 +790,24 @@ module.exports = {
                           [Op.lt]: timeV2
                         }
                       }
+                ],
+                [Op.or]: [
+                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                  { nama_program: { [Op.like]: `%${searchValue}%` } },
+                  { area: { [Op.like]: `%${searchValue}%` } },
+                  { cost_center: { [Op.like]: `%${searchValue}%` } },
+                  { no_coa: { [Op.like]: `%${searchValue}%` } },
+                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                  { keterangan: { [Op.like]: `%${searchValue}%` } },
+                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
                 ]
               },
               order: [
@@ -833,6 +875,24 @@ module.exports = {
                       [Op.lt]: timeV2
                     }
                   }
+            ],
+            [Op.or]: [
+              { kode_plant: { [Op.like]: `%${searchValue}%` } },
+              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+              { no_ktp: { [Op.like]: `%${searchValue}%` } },
+              { no_npwp: { [Op.like]: `%${searchValue}%` } },
+              { no_surkom: { [Op.like]: `%${searchValue}%` } },
+              { nama_program: { [Op.like]: `%${searchValue}%` } },
+              { area: { [Op.like]: `%${searchValue}%` } },
+              { cost_center: { [Op.like]: `%${searchValue}%` } },
+              { no_coa: { [Op.like]: `%${searchValue}%` } },
+              { sub_coa: { [Op.like]: `%${searchValue}%` } },
+              { nama_coa: { [Op.like]: `%${searchValue}%` } },
+              { keterangan: { [Op.like]: `%${searchValue}%` } },
+              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
             ]
           },
           order: [
@@ -1030,7 +1090,10 @@ module.exports = {
           if (findDepo) {
             const findApp = await approve.findAll({
               where: {
-                nama_approve: 'Pengajuan Klaim'
+                [Op.and]: [
+                  { kode_plant: findKlaim.kode_plant },
+                  { nama_approve: 'Pengajuan Klaim' }
+                ]
               }
             })
             if (findApp.length > 0) {
@@ -1080,7 +1143,63 @@ module.exports = {
                 return response(res, 'failed get approval2', {}, 404, false)
               }
             } else {
-              return response(res, 'failed get approval3', {}, 404, false)
+              const findApp = await approve.findAll({
+                where: {
+                  [Op.and]: [
+                    { kode_plant: 'all' },
+                    { nama_approve: 'Pengajuan Klaim' }
+                  ]
+                }
+              })
+              if (findApp.length > 0) {
+                const temp = []
+                for (let i = 0; i < findApp.length; i++) {
+                  const data = {
+                    jabatan: findApp[i].jabatan,
+                    nama: findApp[i].jabatan === 'aos' ? findDepo.aos : null,
+                    status: findApp[i].jabatan === 'aos' ? 1 : null,
+                    no_transaksi: no,
+                    sebagai: findApp[i].sebagai,
+                    jenis: findApp[i].jenis,
+                    kategori: findApp[i].kategori
+                  }
+                  const send = await ttd.create(data)
+                  if (send) {
+                    temp.push(send)
+                  }
+                }
+                if (temp.length > 0) {
+                  const findTtd = await ttd.findAll({
+                    where: {
+                      no_transaksi: no
+                    }
+                  })
+                  if (findTtd.length > 0) {
+                    const penyetuju = []
+                    const pembuat = []
+                    const pemeriksa = []
+                    const mengetahui = []
+                    for (let i = 0; i < findTtd.length; i++) {
+                      if (findTtd[i].sebagai === 'pembuat') {
+                        pembuat.push(findTtd[i])
+                      } else if (findTtd[i].sebagai === 'pemeriksa') {
+                        pemeriksa.push(findTtd[i])
+                      } else if (findTtd[i].sebagai === 'penyetuju') {
+                        penyetuju.push(findTtd[i])
+                      } else if (findTtd[i].sebagai === 'mengetahui') {
+                        mengetahui.push(findTtd[i])
+                      }
+                    }
+                    return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+                  } else {
+                    return response(res, 'failed get approval1', {}, 404, false)
+                  }
+                } else {
+                  return response(res, 'failed get approval2', {}, 404, false)
+                }
+              } else {
+                return response(res, 'failed get approval3', {}, 404, false)
+              }
             }
           } else {
             return response(res, 'failed get approval4', {}, 404, false)
@@ -1985,7 +2104,8 @@ module.exports = {
       const level = req.user.level
       const kode = req.user.kode
       const name = req.user.name
-      const { status, reject, menu, time1, time2, type } = req.query
+      const { status, reject, menu, time1, time2, type, search } = req.query
+      const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 8 : status
       const statRej = reject === 'undefined' ? null : reject
       const statMenu = menu === 'undefined' ? null : menu
@@ -2013,6 +2133,24 @@ module.exports = {
                   },
               { [Op.not]: { status_transaksi: null } },
               { [Op.not]: { status_transaksi: 1 } }
+            ],
+            [Op.or]: [
+              { kode_plant: { [Op.like]: `%${searchValue}%` } },
+              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+              { no_ktp: { [Op.like]: `%${searchValue}%` } },
+              { no_npwp: { [Op.like]: `%${searchValue}%` } },
+              { no_surkom: { [Op.like]: `%${searchValue}%` } },
+              { nama_program: { [Op.like]: `%${searchValue}%` } },
+              { area: { [Op.like]: `%${searchValue}%` } },
+              { cost_center: { [Op.like]: `%${searchValue}%` } },
+              { no_coa: { [Op.like]: `%${searchValue}%` } },
+              { sub_coa: { [Op.like]: `%${searchValue}%` } },
+              { nama_coa: { [Op.like]: `%${searchValue}%` } },
+              { keterangan: { [Op.like]: `%${searchValue}%` } },
+              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
             ],
             [Op.not]: [
               { status_transaksi: 1 }
@@ -2071,11 +2209,29 @@ module.exports = {
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
                     : {
-                        start_klaim: {
+                        tanggal_transfer: {
                           [Op.gte]: timeV1,
                           [Op.lt]: timeV2
                         }
                       }
+                ],
+                [Op.or]: [
+                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                  { nama_program: { [Op.like]: `%${searchValue}%` } },
+                  { area: { [Op.like]: `%${searchValue}%` } },
+                  { cost_center: { [Op.like]: `%${searchValue}%` } },
+                  { no_coa: { [Op.like]: `%${searchValue}%` } },
+                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                  { keterangan: { [Op.like]: `%${searchValue}%` } },
+                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
                 ]
               },
               order: [
@@ -2133,6 +2289,24 @@ module.exports = {
                       [Op.lt]: timeV2
                     }
                   }
+            ],
+            [Op.or]: [
+              { kode_plant: { [Op.like]: `%${searchValue}%` } },
+              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+              { no_ktp: { [Op.like]: `%${searchValue}%` } },
+              { no_npwp: { [Op.like]: `%${searchValue}%` } },
+              { no_surkom: { [Op.like]: `%${searchValue}%` } },
+              { nama_program: { [Op.like]: `%${searchValue}%` } },
+              { area: { [Op.like]: `%${searchValue}%` } },
+              { cost_center: { [Op.like]: `%${searchValue}%` } },
+              { no_coa: { [Op.like]: `%${searchValue}%` } },
+              { sub_coa: { [Op.like]: `%${searchValue}%` } },
+              { nama_coa: { [Op.like]: `%${searchValue}%` } },
+              { keterangan: { [Op.like]: `%${searchValue}%` } },
+              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
             ]
           },
           order: [
@@ -2262,7 +2436,7 @@ module.exports = {
           const findData = await klaim.findByPk(findKlaim[i].id)
           if (findData) {
             const data = {
-              end_klaim: moment(),
+              tgl_submitbukti: moment(),
               status_transaksi: 8,
               status_reject: null,
               isreject: null,
@@ -2279,6 +2453,86 @@ module.exports = {
         }
       } else {
         return response(res, 'failed submit bukti bayar', {}, 400, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  updateNilaiVerif: async (req, res) => {
+    try {
+      const { no, type, id, nilai } = req.body
+      const name = req.user.name
+      const dataDate = {
+        end_klaim: moment()
+      }
+      const findKlaim = await klaim.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      if (findKlaim.length > 0) {
+        const temp = []
+        for (let i = 0; i < findKlaim.length; i++) {
+          if (type === 'all') {
+            const findData = await klaim.findByPk(findKlaim[i].id)
+            if (findData) {
+              const data = {
+                type_nilaiverif: type,
+                nilai_verif: nilai,
+                status_reject: null,
+                isreject: null,
+                end_klaim: moment(),
+                history: `${findKlaim[i].history}, input nilai yang diterima by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+              }
+              await findData.update(data)
+              temp.push(findData)
+            }
+          } else {
+            const findData = await klaim.findByPk(id)
+            if (findData) {
+              const data = {
+                type_nilaiverif: type,
+                nilai_verif: nilai,
+                status_reject: null,
+                isreject: null,
+                history: `${findKlaim[i].history}, input nilai yang diterima by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+              }
+              await findData.update(data)
+              temp.push(findData)
+            }
+          }
+        }
+        if (type === 'all') {
+          return response(res, 'success update nilai bayar')
+        } else {
+          const cekKlaim = await klaim.findAll({
+            where: {
+              no_transaksi: no,
+              [Op.not]: [
+                { nilai_verif: null }
+              ]
+            }
+          })
+          if (cekKlaim.length === findKlaim.length) {
+            const cekData = []
+            for (let i = 0; i < cekKlaim.length; i++) {
+              const findData = await klaim.findByPk(cekKlaim[i].id)
+              if (findData) {
+                await findData.update(dataDate)
+                cekData.push(findData)
+              }
+            }
+            if (cekData.length > 0) {
+              return response(res, 'success update nilai bayar')
+            } else {
+              return response(res, 'success update nilai bayar')
+            }
+          } else {
+            return response(res, 'success update nilai bayar')
+          }
+        }
+      } else {
+        return response(res, 'failed update nilai bayar', {}, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

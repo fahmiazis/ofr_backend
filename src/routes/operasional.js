@@ -31,5 +31,6 @@ route.patch('/sublistbayar', ops.submitBuktiBayar)
 route.patch('/getdocbayar', ops.getDocBayar)
 route.patch('/revkasbon', ops.revisiKasbon)
 route.get('/report', ops.getReport)
+route.patch('/upniverif', ops.updateNilaiVerif)
 
 module.exports = route

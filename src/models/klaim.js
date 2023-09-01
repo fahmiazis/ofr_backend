@@ -87,7 +87,10 @@ module.exports = (sequelize, DataTypes) => {
     nama_program: DataTypes.STRING,
     dn_area: DataTypes.STRING,
     kode_vendor: DataTypes.STRING,
-    people_reject: DataTypes.STRING
+    people_reject: DataTypes.STRING,
+    nilai_verif: DataTypes.STRING,
+    type_nilaiverif: DataTypes.STRING,
+    tgl_submitbukti: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'klaim'

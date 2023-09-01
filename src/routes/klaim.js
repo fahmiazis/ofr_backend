@@ -28,5 +28,6 @@ route.post('/uplist', klaim.uploadBukti)
 route.patch('/sublistbayar', klaim.submitBuktiBayar)
 route.patch('/detailid/:id', klaim.getDetailId)
 route.patch('/getdocbayar', klaim.getDocBayar)
+route.patch('/upniverif', klaim.updateNilaiVerif)
 
 module.exports = route

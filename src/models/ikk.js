@@ -132,7 +132,10 @@ module.exports = (sequelize, DataTypes) => {
     people_reject: DataTypes.STRING,
     flag_redpine: DataTypes.INTEGER,
     tax_type: DataTypes.STRING,
-    tax_code: DataTypes.STRING
+    tax_code: DataTypes.STRING,
+    nilai_verif: DataTypes.STRING,
+    type_nilaiverif: DataTypes.STRING,
+    tgl_submitbukti: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'ikk'

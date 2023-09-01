@@ -120,7 +120,10 @@ module.exports = (sequelize, DataTypes) => {
     nilai_pr: DataTypes.STRING,
     stat_kasbon: DataTypes.STRING,
     tax_type: DataTypes.STRING,
-    tax_code: DataTypes.STRING
+    tax_code: DataTypes.STRING,
+    nilai_verif: DataTypes.STRING,
+    type_nilaiverif: DataTypes.STRING,
+    tgl_submitbukti: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'ops'
