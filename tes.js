@@ -1,8 +1,13 @@
-const moment = require('moment')
+const cekUn = (mtk, indo) => {
+  const total = mtk + indo
+  const avr = total / 2
+  let grade = ''
+  if (avr >= 90 && avr <= 100) {
+    grade = 'A'
+  } else if (avr >= 80 && avr < 90) {
+    grade = 'B'
+  }
+  console.log(total, avr, grade)
+}
 
-const date1 = new Date(moment().startOf('month'))
-const date2 = new Date()
-const diffTime = Math.abs(date2 - date1)
-const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
-console.log(diffDays)
+cekUn(80, 85)

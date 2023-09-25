@@ -826,7 +826,8 @@ module.exports = {
                     }
                   },
               { [Op.not]: { status_transaksi: null } },
-              { [Op.not]: { status_transaksi: 1 } }
+              { [Op.not]: { status_transaksi: 1 } },
+              category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
             ],
             [Op.or]: [
               { kode_plant: { [Op.like]: `%${searchValue}%` } },
@@ -1581,12 +1582,14 @@ module.exports = {
         alasan: joi.string().required(),
         menu: joi.string().required(),
         list: joi.array(),
-        type: joi.string()
+        type: joi.string(),
+        type_reject: joi.string()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
+        const typeReject = results.type_reject
         const no = results.no
         const findIkk = await ikk.findAll({
           where: {
@@ -1596,16 +1599,19 @@ module.exports = {
         if (findIkk.length > 0) {
           if (results.type === 'verif') {
             const temp = []
+            const histRev = `reject perbaikan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+            const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
             for (let i = 0; i < findIkk.length; i++) {
               const listId = results.list
               if (listId.find(e => e === findIkk[i].id)) {
                 const send = {
+                  status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
                   status_reject: 1,
                   isreject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
                   people_reject: level,
-                  history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                  history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
                 }
                 const findRes = await ikk.findByPk(findIkk[i].id)
                 if (findRes) {
@@ -1614,11 +1620,12 @@ module.exports = {
                 }
               } else {
                 const send = {
+                  status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
                   status_reject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
                   people_reject: level,
-                  history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                  history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
                 }
                 const findRes = await ikk.findByPk(findIkk[i].id)
                 if (findRes) {
@@ -1684,16 +1691,19 @@ module.exports = {
                             })
                             if (findFull) {
                               const temp = []
+                              const histRev = `reject perbaikan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                              const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                               for (let i = 0; i < findIkk.length; i++) {
                                 const listId = results.list
                                 if (listId.find(e => e === findIkk[i].id)) {
                                   const send = {
+                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
                                     status_reject: 1,
                                     isreject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
                                     people_reject: level,
-                                    history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                    history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
                                   }
                                   const findRes = await ikk.findByPk(findIkk[i].id)
                                   if (findRes) {
@@ -1702,11 +1712,12 @@ module.exports = {
                                   }
                                 } else {
                                   const send = {
+                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
                                     status_reject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
                                     people_reject: level,
-                                    history: `${findIkk[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                    history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
                                   }
                                   const findRes = await ikk.findByPk(findIkk[i].id)
                                   if (findRes) {
@@ -3329,7 +3340,7 @@ module.exports = {
   },
   updateNilaiVerif: async (req, res) => {
     try {
-      const { no, type, id, nilai } = req.body
+      const { no, type, id, nilai, tglGetDana } = req.body
       const name = req.user.name
       const dataDate = {
         end_ikk: moment()
@@ -3351,6 +3362,7 @@ module.exports = {
                 status_reject: null,
                 isreject: null,
                 end_ikk: moment(),
+                tgl_getdana: tglGetDana,
                 history: `${findIkk[i].history}, input nilai yang diterima by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findData.update(data)
@@ -3364,6 +3376,7 @@ module.exports = {
                 nilai_verif: nilai,
                 status_reject: null,
                 isreject: null,
+                tgl_getdana: tglGetDana,
                 history: `${findIkk[i].history}, input nilai yang diterima by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findData.update(data)

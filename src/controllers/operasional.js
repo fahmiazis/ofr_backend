@@ -1153,7 +1153,8 @@ module.exports = {
                     }
                   },
               { [Op.not]: { status_transaksi: null } },
-              { [Op.not]: { status_transaksi: 1 } }
+              { [Op.not]: { status_transaksi: 1 } },
+              category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
             ],
             [Op.or]: [
               { no_coa: { [Op.like]: `%${searchValue}%` } },
@@ -2058,12 +2059,14 @@ module.exports = {
         alasan: joi.string().required(),
         menu: joi.string().required(),
         list: joi.array(),
-        type: joi.string()
+        type: joi.string(),
+        type_reject: joi.string()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
+        const typeReject = results.type_reject
         const no = results.no
         const findOps = await ops.findAll({
           where: {
@@ -2073,16 +2076,19 @@ module.exports = {
         if (findOps.length > 0) {
           if (results.type === 'verif') {
             const temp = []
+            const histRev = `reject perbaikan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+            const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
             for (let i = 0; i < findOps.length; i++) {
               const listId = results.list
               if (listId.find(e => e === findOps[i].id)) {
                 const send = {
+                  status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
                   status_reject: 1,
                   isreject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
                   people_reject: level,
-                  history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                  history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                 }
                 const findRes = await ops.findByPk(findOps[i].id)
                 if (findRes) {
@@ -2091,11 +2097,12 @@ module.exports = {
                 }
               } else {
                 const send = {
+                  status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
                   status_reject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
                   people_reject: level,
-                  history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                  history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                 }
                 const findRes = await ops.findByPk(findOps[i].id)
                 if (findRes) {
@@ -2161,16 +2168,19 @@ module.exports = {
                             })
                             if (findFull) {
                               const temp = []
+                              const histRev = `reject perbaikan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                              const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                               for (let i = 0; i < findOps.length; i++) {
                                 const listId = results.list
                                 if (listId.find(e => e === findOps[i].id)) {
                                   const send = {
+                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
                                     status_reject: 1,
                                     isreject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
                                     people_reject: level,
-                                    history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                    history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                   }
                                   const findRes = await ops.findByPk(findOps[i].id)
                                   if (findRes) {
@@ -2179,11 +2189,12 @@ module.exports = {
                                   }
                                 } else {
                                   const send = {
+                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
                                     status_reject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
                                     people_reject: level,
-                                    history: `${findOps[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                    history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                   }
                                   const findRes = await ops.findByPk(findOps[i].id)
                                   if (findRes) {
@@ -3177,7 +3188,7 @@ module.exports = {
   },
   updateNilaiVerif: async (req, res) => {
     try {
-      const { no, type, id, nilai } = req.body
+      const { no, type, id, nilai, tglGetDana } = req.body
       const name = req.user.name
       const dataDate = {
         end_ops: moment()
@@ -3198,6 +3209,7 @@ module.exports = {
                 nilai_verif: nilai,
                 status_reject: null,
                 isreject: null,
+                tgl_getdana: tglGetDana,
                 end_ops: moment(),
                 history: `${findOps[i].history}, input nilai yang diterima by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
@@ -3212,6 +3224,7 @@ module.exports = {
                 nilai_verif: nilai,
                 status_reject: null,
                 isreject: null,
+                tgl_getdana: tglGetDana,
                 history: `${findOps[i].history}, input nilai yang diterima by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findData.update(data)

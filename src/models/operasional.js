@@ -123,7 +123,8 @@ module.exports = (sequelize, DataTypes) => {
     tax_code: DataTypes.STRING,
     nilai_verif: DataTypes.STRING,
     type_nilaiverif: DataTypes.STRING,
-    tgl_submitbukti: DataTypes.DATE
+    tgl_submitbukti: DataTypes.DATE,
+    tgl_getdana: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'ops'

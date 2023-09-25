@@ -699,7 +699,8 @@ module.exports = {
                     }
                   },
               { [Op.not]: { status_transaksi: null } },
-              { [Op.not]: { status_transaksi: 1 } }
+              { [Op.not]: { status_transaksi: 1 } },
+              category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
             ],
             [Op.or]: [
               { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
@@ -1576,13 +1577,15 @@ module.exports = {
         alasan: joi.string().required(),
         menu: joi.string().required(),
         list: joi.array(),
-        type: joi.string()
+        type: joi.string(),
+        type_reject: joi.string()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
         const no = results.no
+        const typeReject = results.type_reject
         const findKlaim = await klaim.findAll({
           where: {
             no_transaksi: no
@@ -1591,16 +1594,19 @@ module.exports = {
         if (findKlaim.length > 0) {
           if (results.type === 'verif') {
             const temp = []
+            const histRev = `reject perbaikan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+            const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
             for (let i = 0; i < findKlaim.length; i++) {
               const listId = results.list
               if (listId.find(e => e === findKlaim[i].id)) {
                 const send = {
+                  status_transaksi: typeReject === 'pembatalan' ? 0 : findKlaim[i].status_transaksi,
                   status_reject: 1,
                   isreject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
                   people_reject: level,
-                  history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                  history: `${findKlaim[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                 }
                 const findRes = await klaim.findByPk(findKlaim[i].id)
                 if (findRes) {
@@ -1609,11 +1615,12 @@ module.exports = {
                 }
               } else {
                 const send = {
+                  status_transaksi: typeReject === 'pembatalan' ? 0 : findKlaim[i].status_transaksi,
                   status_reject: 1,
                   reason: results.alasan,
                   menu_rev: results.menu,
                   people_reject: level,
-                  history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                  history: `${findKlaim[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                 }
                 const findRes = await klaim.findByPk(findKlaim[i].id)
                 if (findRes) {
@@ -1679,16 +1686,19 @@ module.exports = {
                             })
                             if (findFull) {
                               const temp = []
+                              const histRev = `reject perbaikan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                              const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                               for (let i = 0; i < findKlaim.length; i++) {
                                 const listId = results.list
                                 if (listId.find(e => e === findKlaim[i].id)) {
                                   const send = {
+                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findKlaim[i].status_transaksi,
                                     status_reject: 1,
                                     isreject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
                                     people_reject: level,
-                                    history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                    history: `${findKlaim[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                   }
                                   const findRes = await klaim.findByPk(findKlaim[i].id)
                                   if (findRes) {
@@ -1697,11 +1707,12 @@ module.exports = {
                                   }
                                 } else {
                                   const send = {
+                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findKlaim[i].status_transaksi,
                                     status_reject: 1,
                                     reason: results.alasan,
                                     menu_rev: results.menu,
                                     people_reject: level,
-                                    history: `${findKlaim[i].history}, reject by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                                    history: `${findKlaim[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                   }
                                   const findRes = await klaim.findByPk(findKlaim[i].id)
                                   if (findRes) {
@@ -2460,7 +2471,7 @@ module.exports = {
   },
   updateNilaiVerif: async (req, res) => {
     try {
-      const { no, type, id, nilai } = req.body
+      const { no, type, id, nilai, tglGetDana } = req.body
       const name = req.user.name
       const dataDate = {
         end_klaim: moment()
@@ -2482,6 +2493,7 @@ module.exports = {
                 status_reject: null,
                 isreject: null,
                 end_klaim: moment(),
+                tgl_getdana: tglGetDana,
                 history: `${findKlaim[i].history}, input nilai yang diterima by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findData.update(data)
@@ -2495,6 +2507,7 @@ module.exports = {
                 nilai_verif: nilai,
                 status_reject: null,
                 isreject: null,
+                tgl_getdana: tglGetDana,
                 history: `${findKlaim[i].history}, input nilai yang diterima by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
               await findData.update(data)

@@ -154,7 +154,7 @@ module.exports = {
     try {
       const name = req.user.name
       const level = req.user.level
-      const { no, kode, tipe, menu, jenis } = req.body
+      const { no, kode, tipe, menu, jenis, typeReject } = req.body
       const transaksi = jenis === 'ikk' ? ikk : jenis === 'klaim' ? klaim : ops
       const statVerif = (jenis === 'ikk' || jenis === 'ops') && level === 2 ? 4 : jenis === 'klaim' && level === 2 ? 3 : 2
       const findRole = await role.findOne({
@@ -665,7 +665,11 @@ module.exports = {
                   }
                   if (toMail !== null) {
                     if (findDraft) {
-                      return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
+                      const dataRes = {
+                        ...findDraft.dataValues,
+                        message: 'Transaksi berikut telah dibatalkan'
+                      }
+                      return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: typeReject === 'pembatalan' ? dataRes : findDraft })
                     } else {
                       return response(res, 'failed get email 2', { toMail }, 404, false)
                     }

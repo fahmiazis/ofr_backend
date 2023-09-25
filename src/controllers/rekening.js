@@ -1,4 +1,4 @@
-const { rekening } = require('../models')
+const { rekening, depo } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -193,15 +193,34 @@ module.exports = {
   getAllRek: async (req, res) => {
     try {
       const kode = req.user.kode
-      const findRek = await rekening.findAll({
-        where: {
-          kode_plant: { [Op.like]: `%${kode}%` }
+      const { tipe } = req.query
+      if (tipe === 'all') {
+        const findRek = await rekening.findAll({
+          include: [{
+            model: depo,
+            as: 'depo'
+          }]
+        })
+        if (findRek.length > 0) {
+          return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
+        } else {
+          return response(res, 'failed get rekening', {}, 404, false)
         }
-      })
-      if (findRek.length > 0) {
-        return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
       } else {
-        return response(res, 'failed get rekening', {}, 404, false)
+        const findRek = await rekening.findAll({
+          where: {
+            kode_plant: { [Op.like]: `%${kode}%` }
+          },
+          include: [{
+            model: depo,
+            as: 'depo'
+          }]
+        })
+        if (findRek.length > 0) {
+          return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
+        } else {
+          return response(res, 'failed get rekening', {}, 404, false)
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

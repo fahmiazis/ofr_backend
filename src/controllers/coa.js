@@ -217,7 +217,10 @@ module.exports = {
         if (findDepo) {
           const findTarif = await veriftax.findAll({
             where: {
-              system: { [Op.like]: `%${findDepo.status_area}` }
+              [Op.and]: [
+                { system: { [Op.like]: `%${findDepo.status_area}` } },
+                { grouping: { [Op.like]: '%NON KASBON' } }
+              ]
             },
             group: ['gl_account']
           })
@@ -266,6 +269,36 @@ module.exports = {
           return response(res, 'succes get tarif', { result: data, length: dataAll, listGl, listPma })
         } else {
           return response(res, 'failed get tarif3', {}, 404, false)
+        }
+      } else if (tipe === 'ops') {
+        const findDepo = await depo.findOne({
+          where: {
+            kode_plant: { [Op.like]: `%${kode}` }
+          }
+        })
+        if (findDepo) {
+          const findTarif = await veriftax.findAll({
+            where: {
+              system: { [Op.like]: `%${findDepo.status_area}` }
+            },
+            group: ['gl_account']
+          })
+          if (findTarif.length > 0) {
+            const findAllTarif = await veriftax.findAll({
+              where: {
+                system: { [Op.like]: `%${findDepo.status_area}` }
+              }
+            })
+            if (findAllTarif.length > 0) {
+              return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, listGl, listPma })
+            } else {
+              return response(res, 'failed get tarif3', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed get tarif2', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed get tarif1', {}, 404, false)
         }
       } else {
         const findCoa = await coa.findAll({

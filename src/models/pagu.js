@@ -17,7 +17,9 @@ module.exports = (sequelize, DataTypes) => {
     profit_center: DataTypes.STRING,
     area: DataTypes.STRING,
     pagu: DataTypes.STRING,
-    history: DataTypes.STRING
+    history: DataTypes.STRING,
+    saldo: DataTypes.STRING,
+    tgl_saldo: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'pagu'

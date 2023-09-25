@@ -21,6 +21,7 @@ module.exports = {
         jenis_transaksi: joi.string().required(),
         type_transaksi: joi.string().required(),
         jenis_pph: joi.string().required(),
+        grouping: joi.string().required(),
         status_npwp: joi.string().required(),
         status_ident: joi.string().required(),
         tarif_pph: joi.string().required(),
@@ -66,6 +67,7 @@ module.exports = {
         jenis_transaksi: joi.string().required(),
         type_transaksi: joi.string().required(),
         jenis_pph: joi.string().required(),
+        grouping: joi.string().required(),
         status_npwp: joi.string().required(),
         status_ident: joi.string().required(),
         tarif_pph: joi.string().required(),
@@ -126,7 +128,7 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
-        const cek = ['SAP/REDPINE', 'GL Account', 'GL Name', 'Jenis Transaksi', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'WHT Tax Type', 'WHT Tax Code', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
+        const cek = ['SAP/REDPINE', 'GL Account', 'GL Name', 'Jenis Transaksi', 'Grouping', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'WHT Tax Type', 'WHT Tax Code', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
           if (valid[i] === cek[i]) {
@@ -166,23 +168,24 @@ module.exports = {
                 where: {
                   gl_account: { [Op.like]: `%${dataTarif[1]}` },
                   jenis_transaksi: { [Op.like]: `%${dataTarif[3]}` },
-                  type_transaksi: { [Op.like]: `%${dataTarif[4]}` },
-                  status_npwp: { [Op.like]: `%${dataTarif[6]}` }
+                  type_transaksi: { [Op.like]: `%${dataTarif[5]}` },
+                  status_npwp: { [Op.like]: `%${dataTarif[7]}` }
                 }
               })
               const data = {
-                system: dataTarif[0],
+                system: dataTarif[0] === 'SCYLLA' ? 'REDPINE' : dataTarif[0],
                 gl_account: dataTarif[1],
                 gl_name: dataTarif[2],
                 jenis_transaksi: dataTarif[3],
-                type_transaksi: dataTarif[4],
-                jenis_pph: dataTarif[5],
-                status_npwp: dataTarif[6],
-                tax_type: dataTarif[7],
-                tax_code: dataTarif[8],
-                tarif_pph: parseFloat(dataTarif[9]) + '%',
-                dpp_nongrossup: parseFloat(dataTarif[10]) + '%',
-                dpp_grossup: parseFloat(dataTarif[11]) + '%'
+                grouping: dataTarif[4],
+                type_transaksi: dataTarif[5],
+                jenis_pph: dataTarif[6],
+                status_npwp: dataTarif[7],
+                tax_type: dataTarif[8],
+                tax_code: dataTarif[9],
+                tarif_pph: parseFloat(dataTarif[10]) + '%',
+                dpp_nongrossup: parseFloat(dataTarif[11]) + '%',
+                dpp_grossup: parseFloat(dataTarif[12]) + '%'
               }
               if (select) {
                 const upverif = await select.update(data)
@@ -343,8 +346,8 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['SAP/REDPINE', 'GL Account', 'GL Name', 'Jenis Transaksi', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'WHT Tax Type', 'WHT Tax Code', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
-        const key = ['system', 'gl_account', 'gl_name', 'jenis_transaksi', 'type_transaksi', 'jenis_pph', 'status_npwp', 'tax_type', 'tax_code', 'tarif_pph', 'dpp_nongrossup', 'dpp_grossup']
+        const header = ['SAP/REDPINE', 'GL Account', 'GL Name', 'Jenis Transaksi', 'Grouping', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'WHT Tax Type', 'WHT Tax Code', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
+        const key = ['system', 'gl_account', 'gl_name', 'jenis_transaksi', 'grouping', 'type_transaksi', 'jenis_pph', 'status_npwp', 'tax_type', 'tax_code', 'tarif_pph', 'dpp_nongrossup', 'dpp_grossup']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
@@ -374,12 +377,12 @@ module.exports = {
   },
   deleteAll: async (req, res) => {
     try {
-      // const findTarif = await veriftax.findAll({
-      //   where: {
-      //     [Op.not]: { tax_type: null }
-      //   }
-      // })
-      const findTarif = await veriftax.findAll()
+      const findTarif = await veriftax.findAll({
+        where: {
+          [Op.not]: { grouping: null }
+        }
+      })
+      // const findTarif = await veriftax.findAll()
       if (findTarif) {
         const temp = []
         for (let i = 0; i < findTarif.length; i++) {

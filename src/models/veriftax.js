@@ -30,7 +30,8 @@ module.exports = (sequelize, DataTypes) => {
     dpp_grossup: DataTypes.STRING,
     status_ident: DataTypes.STRING,
     tax_type: DataTypes.STRING,
-    tax_code: DataTypes.STRING
+    tax_code: DataTypes.STRING,
+    grouping: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'veriftax'
