@@ -1600,9 +1600,9 @@ module.exports = {
           }
           const sendEmail = await wrapMail.wrapedSendMail(mailOptions)
           if (sendEmail) {
-            return response(res, 'success approve', { sendEmail })
+            return response(res, 'success send email', { sendEmail })
           } else {
-            return response(res, 'berhasil approve, tidak berhasil kirim notif email 1', { sendEmail }, 404, false)
+            return response(res, 'gagal kirim email', { sendEmail }, 404, false)
           }
         } else {
           return response(res, 'failed send email', { findData }, 404, false)

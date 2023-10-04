@@ -40,6 +40,8 @@ const taxcodeRoute = require('./routes/taxcode')
 const klaimRoute = require('./routes/klaim')
 const opsRoute = require('./routes/operasional')
 const ikkRoute = require('./routes/ikk')
+// notif
+const notifRoute = require('./routes/notif')
 
 // redpine
 const redpineRoute = require('./routes/redpine')
@@ -78,6 +80,9 @@ app.use('/taxcode', authMiddleware, taxcodeRoute)
 app.use('/klaim', authMiddleware, klaimRoute)
 app.use('/ops', authMiddleware, opsRoute)
 app.use('/ikk', authMiddleware, ikkRoute)
+
+// notif
+app.use('/notif', authMiddleware, notifRoute)
 
 // redpine
 app.use('/redpine', redpineRoute)
