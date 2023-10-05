@@ -86,9 +86,13 @@ module.exports = {
   getAllNotif: async (req, res) => {
     try {
       const name = req.user.name
+      const { tipe } = req.query
       const findNotif = await notif.findAll({
         where: {
-          user: { [Op.like]: `%${name}%` }
+          [Op.and]: [
+            { user: { [Op.like]: `%${name}%` } },
+            tipe === 'read' ? { [Op.not]: { status: null } } : tipe === 'unread' ? { status: null } : { [Op.not]: { id: null } }
+          ]
         }
       })
       if (findNotif.length > 0) {
@@ -153,7 +157,7 @@ module.exports = {
       if (findNotif) {
         const desNotif = await findNotif.destroy()
         if (desNotif) {
-          return response(res, 'success delete notif', {}, 404, false)
+          return response(res, 'success delete notif', { findNotif })
         } else {
           return response(res, 'failed delete notif', {}, 404, false)
         }
@@ -182,7 +186,7 @@ module.exports = {
           }
         }
         if (temp.length > 0) {
-          return response(res, 'success delete all', {}, 404, false)
+          return response(res, 'success delete all', { findNotif })
         } else {
           return response(res, 'failed delete all', {}, 404, false)
         }
