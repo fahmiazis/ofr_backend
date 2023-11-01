@@ -202,7 +202,7 @@ module.exports = {
         limit: limit,
         offset: (page - 1) * limit
       })
-      const pageInfo = pagination('/dokumen/area/get', req.query, page, limit, result.count)
+      const pageInfo = pagination('/document/area/get', req.query, page, limit, result.count)
       if (result) {
         return response(res, 'list dokumen', { result, pageInfo })
       } else {
@@ -255,7 +255,7 @@ module.exports = {
         limit: limit,
         offset: (page - 1) * limit
       })
-      const pageInfo = pagination('/dokumen/get', req.query, page, limit, result.count)
+      const pageInfo = pagination('/document/get', req.query, page, limit, result.count)
       if (result) {
         return response(res, 'list dokumen', { result, pageInfo })
       } else {
