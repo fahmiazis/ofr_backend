@@ -483,20 +483,39 @@ module.exports = {
                     level: dataUser[4].split('-')[0],
                     password: dataUser[5]
                   }
-                  const findUser = await user.findOne({
-                    where: {
-                      username: dataUser[0]
-                    }
-                  })
-                  if (findUser) {
-                    const upUser = await findUser.update(data)
-                    if (upUser) {
-                      arr.push(upUser)
+                  if (parseInt(dataUser[4].split('-')[0]) === 5) {
+                    const findUser = await user.findOne({
+                      where: {
+                        kode_plant: dataUser[2]
+                      }
+                    })
+                    if (findUser) {
+                      const upUser = await findUser.update(data)
+                      if (upUser) {
+                        arr.push(upUser)
+                      }
+                    } else {
+                      const createUser = await user.create(data)
+                      if (createUser) {
+                        arr.push(createUser)
+                      }
                     }
                   } else {
-                    const createUser = await user.create(data)
-                    if (createUser) {
-                      arr.push(createUser)
+                    const findUser = await user.findOne({
+                      where: {
+                        username: dataUser[0]
+                      }
+                    })
+                    if (findUser) {
+                      const upUser = await findUser.update(data)
+                      if (upUser) {
+                        arr.push(upUser)
+                      }
+                    } else {
+                      const createUser = await user.create(data)
+                      if (createUser) {
+                        arr.push(createUser)
+                      }
                     }
                   }
                 }
