@@ -6,15 +6,20 @@ async function wrapedSendMail (mailOptions) {
       connectionTimeout: 60000,
       socketTimeout: 120000,
       greetingTimeout: 30000,
-      host: '117.78.188.203',
-      secure: false,
-      port: 587,
+      // host: 'mail.pinusmerahabadi.co.id',
+      // secure: false,
+      // port: 587,
+      // auth: {
+      //   user: 'acc@pinusmerahabadi.co.id',
+      //   pass: 'acc1801'
+      // },
+      // tls: {
+      //   rejectUnauthorized: false
+      // }
+      service: 'gmail',
       auth: {
-        user: 'acc@pinusmerahabadi.co.id',
-        pass: 'acc1801'
-      },
-      tls: {
-        rejectUnauthorized: false
+        user: 'insfopma@gmail.com',
+        pass: 'dwnf ykro lbml pbvn'
       }
     })
     let cek = []

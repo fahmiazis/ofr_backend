@@ -1,4 +1,4 @@
-const { klaim, coa, depo, docuser, approve, ttd, role, document, reservoir, finance, kliring } = require('../models')
+const { klaim, coa, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -6,13 +6,14 @@ const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
-const access = [10, 11, 12, 2, 7, 8, 9, 3, 13]
+const access = [10, 11, 12, 2, 7, 8, 9]
+const accKlaim = [3, 13, 23]
 
 module.exports = {
   addCart: async (req, res) => {
     try {
       const kode = req.user.kode
-      // const name = req.user.name
+      // const name = req.user.fullname
       // const level = req.user.level
       const schema = joi.object({
         no_coa: joi.string().required(),
@@ -39,7 +40,7 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findDepo = await depo.findAll({
+        const findDepo = await finance.findAll({
           where: {
             kode_plant: kode
           }
@@ -63,7 +64,7 @@ module.exports = {
             const send = {
               kode_plant: findDepo[0].kode_plant,
               area: findDepo[0].area,
-              cost_center: findDepo[0].cost_center,
+              cost_center: findDepo[0].profit_center,
               no_coa: results.no_coa,
               nama_coa: result.nama_coa,
               sub_coa: result.nama_subcoa,
@@ -156,7 +157,7 @@ module.exports = {
     try {
       const kode = req.user.kode
       const id = req.params.id
-      // const name = req.user.name
+      // const name = req.user.fullname
       // const level = req.user.level
       const schema = joi.object({
         no_coa: joi.string().required(),
@@ -183,7 +184,7 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findDepo = await depo.findAll({
+        const findDepo = await finance.findAll({
           where: {
             kode_plant: kode
           }
@@ -211,7 +212,7 @@ module.exports = {
             const send = {
               kode_plant: findDepo[0].kode_plant,
               area: findDepo[0].area,
-              cost_center: findDepo[0].cost_center,
+              cost_center: findDepo[0].profit_center,
               no_coa: results.no_coa,
               nama_coa: result.nama_coa,
               sub_coa: result.nama_subcoa,
@@ -557,7 +558,7 @@ module.exports = {
   uploadDocument: async (req, res) => {
     const { no, id } = req.query
     const level = req.user.level
-    const name = req.user.name
+    const name = req.user.fullname
     uploadHelper(req, res, async function (err) {
       try {
         if (err instanceof multer.MulterError) {
@@ -670,7 +671,7 @@ module.exports = {
     try {
       const level = req.user.level
       const kode = req.user.kode
-      const name = req.user.name
+      const name = req.user.fullname
       const role = req.user.role
       const { status, reject, menu, type, category, data, time1, time2, search } = req.query
       const searchValue = search || ''
@@ -733,8 +734,12 @@ module.exports = {
               as: 'appForm'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo'
+            },
+            {
+              model: picklaim,
+              as: 'picklaim'
             },
             {
               model: kliring,
@@ -757,18 +762,16 @@ module.exports = {
           return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [] })
         }
       } else if (access.find(item => item === level)) {
-        const findDepo = await depo.findAll({
+        const findDepo = await finance.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
-              { om: level === 11 ? name : 'undefined' },
+              { rom: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
               { pic_finance: level === 2 ? name : 'undefined' },
               { spv_finance: level === 7 ? name : 'undefined' },
               { asman_finance: level === 8 ? name : 'undefined' },
-              { manager_finance: level === 9 ? name : 'undefined' },
-              { pic_klaim: level === 3 ? name : 'undefined' },
-              { manager_klaim: level === 13 ? name : 'undefined' }
+              { manager_finance: level === 9 ? name : 'undefined' }
             ]
           }
         })
@@ -826,8 +829,12 @@ module.exports = {
                   as: 'appList'
                 },
                 {
-                  model: depo,
+                  model: finance,
                   as: 'depo'
+                },
+                {
+                  model: picklaim,
+                  as: 'picklaim'
                 },
                 {
                   model: kliring,
@@ -855,6 +862,142 @@ module.exports = {
             return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
           } else {
             const result = hasil
+            const noDis = []
+            return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+          }
+        } else {
+          return response(res, 'failed get klaim', {}, 400, false)
+        }
+      } else if (accKlaim.find(item => item === level)) {
+        const findPic = await spvklaim.findAll({
+          where: {
+            [Op.or]: [
+              { pic_klaim: level === 3 ? name : 'undefined' },
+              { spv_klaim: level === 23 ? name : 'undefined' },
+              { manager_klaim: level === 13 ? name : 'undefined' }
+            ]
+          }
+        })
+        if (findPic.length > 0) {
+          const tempDepo = []
+          for (let i = 0; i < findPic.length; i++) {
+            const findData = await picklaim.findAll({
+              where: {
+                [Op.or]: [
+                  { ksni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { nni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { nsi: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { mas: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { mcp: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { simba: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { lotte: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { mun: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { eiti: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { edot: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { meiji: { [Op.like]: `%${findPic[i].pic_klaim}%` } }
+                ]
+              }
+            })
+            if (findData.length > 0) {
+              for (let j = 0; j < findData.length; j++) {
+                tempDepo.push(findData[j])
+              }
+            }
+          }
+          const cekDepo = new Set(tempDepo)
+          const findDepo = [...cekDepo]
+          if (findDepo.length > 0) {
+            const hasil = []
+            for (let i = 0; i < findDepo.length; i++) {
+              const result = await klaim.findAll({
+                where: {
+                  kode_plant: findDepo[i].kode_plant,
+                  [Op.and]: [
+                    statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                    statRej === 'all' ? { [Op.not]: { start_klaim: null } } : { status_reject: statRej },
+                    statMenu === 'all' ? { [Op.not]: { start_klaim: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                    category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                    timeVal1 === 'all'
+                      ? { [Op.not]: { id: null } }
+                      : {
+                          start_klaim: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        }
+                  ],
+                  [Op.or]: [
+                    { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                    { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                    { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                    { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                    { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                    { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                    { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                    { nama_program: { [Op.like]: `%${searchValue}%` } },
+                    { area: { [Op.like]: `%${searchValue}%` } },
+                    { cost_center: { [Op.like]: `%${searchValue}%` } },
+                    { no_coa: { [Op.like]: `%${searchValue}%` } },
+                    { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                    { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                    { keterangan: { [Op.like]: `%${searchValue}%` } },
+                    { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                    { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                  ]
+                },
+                order: [
+                  ['start_klaim', 'DESC'],
+                  [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                  [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                ],
+                include: [
+                  {
+                    model: ttd,
+                    as: 'appForm'
+                  },
+                  {
+                    model: ttd,
+                    as: 'appList'
+                  },
+                  {
+                    model: finance,
+                    as: 'depo'
+                  },
+                  {
+                    model: picklaim,
+                    as: 'picklaim'
+                  },
+                  {
+                    model: kliring,
+                    as: 'kliring'
+                  }
+                ]
+              })
+              if (result.length > 0) {
+                for (let j = 0; j < result.length; j++) {
+                  hasil.push(result[j])
+                }
+              }
+            }
+            if (hasil.length > 0) {
+              const data = []
+              hasil.map(x => {
+                return (
+                  data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
+                )
+              })
+              const set = new Set(data)
+              const noDis = [...set]
+              const result = hasil
+              const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
+              return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
+            } else {
+              const result = hasil
+              const noDis = []
+              return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+            }
+          } else {
+            const result = []
             const noDis = []
             return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
           }
@@ -911,8 +1054,12 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo'
+            },
+            {
+              model: picklaim,
+              as: 'picklaim'
             },
             {
               model: kliring,
@@ -962,8 +1109,12 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo'
+            },
+            {
+              model: picklaim,
+              as: 'picklaim'
             },
             {
               model: kliring,
@@ -996,7 +1147,7 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo'
             }
           ]
@@ -1033,8 +1184,12 @@ module.exports = {
             as: 'appList'
           },
           {
-            model: depo,
+            model: finance,
             as: 'depo'
+          },
+          {
+            model: picklaim,
+            as: 'picklaim'
           },
           {
             model: kliring,
@@ -1083,7 +1238,7 @@ module.exports = {
           }
         })
         if (findKlaim) {
-          const findDepo = await depo.findOne({
+          const findDepo = await finance.findOne({
             where: {
               kode_plant: findKlaim.kode_plant
             }
@@ -1242,7 +1397,7 @@ module.exports = {
           }
         })
         if (findKlaim) {
-          const findDepo = await depo.findOne({
+          const findDepo = await finance.findOne({
             where: {
               kode_plant: findKlaim.kode_plant
             }
@@ -1313,7 +1468,7 @@ module.exports = {
   approveKlaim: async (req, res) => {
     try {
       const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const { no } = req.body
       const findKlaim = await klaim.findAll({
         where: {
@@ -1321,7 +1476,7 @@ module.exports = {
         }
       })
       if (findKlaim.length > 0) {
-        const findDepo = await depo.findOne({
+        const findDepo = await finance.findOne({
           where: {
             kode_plant: findKlaim[0].kode_plant
           }
@@ -1442,7 +1597,7 @@ module.exports = {
   approveListKlaim: async (req, res) => {
     try {
       const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const { no } = req.body
       const findKlaim = await klaim.findAll({
         where: {
@@ -1450,7 +1605,7 @@ module.exports = {
         }
       })
       if (findKlaim.length > 0) {
-        const findDepo = await depo.findOne({
+        const findDepo = await finance.findOne({
           where: {
             kode_plant: findKlaim[0].kode_plant
           }
@@ -1571,7 +1726,7 @@ module.exports = {
   rejectKlaim: async (req, res) => {
     try {
       const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const schema = joi.object({
         no: joi.string().required(),
         alasan: joi.string().required(),
@@ -1635,7 +1790,7 @@ module.exports = {
               return response(res, 'success reject klaim', {})
             }
           } else {
-            const findDepo = await depo.findOne({
+            const findDepo = await finance.findOne({
               where: {
                 kode_plant: findKlaim[0].kode_plant
               }
@@ -1763,7 +1918,7 @@ module.exports = {
   rejectListKlaim: async (req, res) => {
     try {
       const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const schema = joi.object({
         no: joi.string().required(),
         alasan: joi.string().required(),
@@ -1782,7 +1937,7 @@ module.exports = {
           }
         })
         if (findKlaim.length > 0) {
-          const findDepo = await depo.findOne({
+          const findDepo = await finance.findOne({
             where: {
               kode_plant: findKlaim[0].kode_plant
             }
@@ -1933,7 +2088,7 @@ module.exports = {
   },
   submitRevisi: async (req, res) => {
     try {
-      const name = req.user.name
+      const name = req.user.fullname
       const schema = joi.object({
         no: joi.string().required()
       })
@@ -2009,7 +2164,7 @@ module.exports = {
   },
   submitVerif: async (req, res) => {
     try {
-      const name = req.user.name
+      const name = req.user.fullname
       const level = req.user.level
       const schema = joi.object({
         no: joi.string().required()
@@ -2056,7 +2211,7 @@ module.exports = {
   submitAjuanBayar: async (req, res) => {
     try {
       // const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const schema = joi.object({
         no_transfer: joi.string().required(),
         tgl_transfer: joi.string().required(),
@@ -2114,7 +2269,7 @@ module.exports = {
     try {
       const level = req.user.level
       const kode = req.user.kode
-      const name = req.user.name
+      const name = req.user.fullname
       const { status, reject, menu, time1, time2, type, search } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 8 : status
@@ -2177,8 +2332,12 @@ module.exports = {
               as: 'appForm'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo'
+            },
+            {
+              model: picklaim,
+              as: 'picklaim'
             },
             {
               model: finance,
@@ -2192,11 +2351,11 @@ module.exports = {
           return response(res, 'success get data klaim', { result: findKlaim })
         }
       } else if (access.find(item => item === level)) {
-        const findDepo = await depo.findAll({
+        const findDepo = await finance.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
-              { om: level === 11 ? name : 'undefined' },
+              { rom: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
               { pic_finance: level === 2 ? name : 'undefined' },
               { spv_finance: level === 7 ? name : 'undefined' },
@@ -2260,8 +2419,12 @@ module.exports = {
                   as: 'appList'
                 },
                 {
-                  model: depo,
+                  model: finance,
                   as: 'depo'
+                },
+                {
+                  model: picklaim,
+                  as: 'picklaim'
                 },
                 {
                   model: finance,
@@ -2335,8 +2498,12 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo'
+            },
+            {
+              model: picklaim,
+              as: 'picklaim'
             },
             {
               model: finance,
@@ -2435,7 +2602,7 @@ module.exports = {
   submitBuktiBayar: async (req, res) => {
     try {
       const { no } = req.body
-      const name = req.user.name
+      const name = req.user.fullname
       const findKlaim = await klaim.findAll({
         where: {
           no_pembayaran: no
@@ -2472,7 +2639,7 @@ module.exports = {
   updateNilaiVerif: async (req, res) => {
     try {
       const { no, type, id, nilai, tglGetDana } = req.body
-      const name = req.user.name
+      const name = req.user.fullname
       const dataDate = {
         end_klaim: moment()
       }

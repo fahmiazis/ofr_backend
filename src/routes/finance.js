@@ -10,5 +10,6 @@ route.post('/master', finance.uploadMasterFinance)
 route.delete('/del/:id', finance.deleteFinance)
 route.delete('/delall', finance.deleteAll)
 route.get('/export', finance.exportSqlFinance)
+route.get('/rek', finance.getAllRek)
 
 module.exports = route

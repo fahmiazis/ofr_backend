@@ -1,4 +1,4 @@
-const { finance } = require('../models')
+const { finance, depo } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -19,13 +19,28 @@ module.exports = {
         profit_center: joi.string().required(),
         region: joi.string().required(),
         inisial: joi.string().required(),
-        pic_console: joi.string().required(),
         rek_spending: joi.string().required(),
         rek_zba: joi.string().required(),
         rek_bankcoll: joi.string().required(),
         rekening: joi.string().allow(''),
         type_live: joi.string().required(),
-        gl_kk: joi.string().required()
+        gl_kk: joi.string().required(),
+        area: joi.string().required(),
+        pagu: joi.string().required(),
+        pic_finance: joi.string().required(),
+        spv_finance: joi.string().required(),
+        spv2_finance: joi.string().required(),
+        asman_finance: joi.string().required(),
+        manager_finance: joi.string().required(),
+        pic_tax: joi.string().required(),
+        spv_tax: joi.string().required(),
+        asman_tax: joi.string().required(),
+        manager_tax: joi.string().required(),
+        aos: joi.string().required(),
+        rom: joi.string().required(),
+        bm: joi.string().required(),
+        nom: joi.string().required(),
+        rbm: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -59,13 +74,28 @@ module.exports = {
         profit_center: joi.string().required(),
         region: joi.string().required(),
         inisial: joi.string().required(),
-        pic_console: joi.string().required(),
         rek_spending: joi.string().required(),
         rek_zba: joi.string().required(),
         rek_bankcoll: joi.string().required(),
         rekening: joi.string().allow(''),
         type_live: joi.string().required(),
-        gl_kk: joi.string().required()
+        gl_kk: joi.string().required(),
+        area: joi.string().required(),
+        pagu: joi.string().required(),
+        pic_finance: joi.string().required(),
+        spv_finance: joi.string().required(),
+        spv2_finance: joi.string().required(),
+        asman_finance: joi.string().required(),
+        manager_finance: joi.string().required(),
+        pic_tax: joi.string().required(),
+        spv_tax: joi.string().required(),
+        asman_tax: joi.string().required(),
+        manager_tax: joi.string().required(),
+        aos: joi.string().required(),
+        rom: joi.string().required(),
+        bm: joi.string().required(),
+        nom: joi.string().required(),
+        rbm: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -116,9 +146,10 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
-        const cek = ['KODE PLANT', 'PC', 'REGION', 'INISIAL', 'PIC CONSOLE', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'LIVE/NON LIVE', 'GL KK LIVE/ NON LIVE']
+        const cek = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC FINANCE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM']
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
+          console.log(valid[i], cek[i])
           console.log(valid[i] === cek[i])
           if (valid[i] === cek[i]) {
             count.push(1)
@@ -164,14 +195,29 @@ module.exports = {
               const data = {
                 kode_plant: dataFinance[0],
                 profit_center: dataFinance[1],
-                region: dataFinance[2],
-                inisial: dataFinance[3],
-                pic_console: dataFinance[4],
+                area: dataFinance[2],
+                region: dataFinance[3],
+                inisial: dataFinance[4],
                 rek_spending: dataFinance[5],
                 rek_zba: dataFinance[6],
                 rek_bankcoll: dataFinance[7],
-                type_live: dataFinance[8],
-                gl_kk: dataFinance[9]
+                pagu: dataFinance[8],
+                type_live: dataFinance[9],
+                gl_kk: dataFinance[9] === 'LIVE SAP' ? '11010105' : '11010704',
+                pic_finance: dataFinance[10],
+                spv_finance: dataFinance[11],
+                spv2_finance: dataFinance[12],
+                asman_finance: dataFinance[13],
+                manager_finance: dataFinance[14],
+                pic_tax: dataFinance[15],
+                spv_tax: dataFinance[16],
+                asman_tax: dataFinance[17],
+                manager_tax: dataFinance[18],
+                aos: dataFinance[19],
+                rom: dataFinance[20],
+                bm: dataFinance[21],
+                nom: dataFinance[22],
+                rbm: dataFinance[23]
               }
               if (select) {
                 const upbank = await select.update(data)
@@ -213,6 +259,42 @@ module.exports = {
     // } else {
     //   return response(res, "You're not super administrator", {}, 404, false)
     // }
+  },
+  getAllRek: async (req, res) => {
+    try {
+      const kode = req.user.kode
+      const { tipe } = req.query
+      if (tipe === 'all') {
+        const findRek = await finance.findAll({
+          include: [{
+            model: depo,
+            as: 'depo'
+          }]
+        })
+        if (findRek.length > 0) {
+          return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
+        } else {
+          return response(res, 'failed get rekening', {}, 404, false)
+        }
+      } else {
+        const findRek = await finance.findAll({
+          where: {
+            kode_plant: { [Op.like]: `%${kode}%` }
+          },
+          include: [{
+            model: depo,
+            as: 'depo'
+          }]
+        })
+        if (findRek.length > 0) {
+          return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
+        } else {
+          return response(res, 'failed get rekening', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   },
   getFinance: async (req, res) => {
     try {
@@ -259,8 +341,28 @@ module.exports = {
             { profit_center: { [Op.like]: `%${searchValue}%` } },
             { region: { [Op.like]: `%${searchValue}%` } },
             { inisial: { [Op.like]: `%${searchValue}%` } },
-            { pic_console: { [Op.like]: `%${searchValue}%` } },
-            { rek_spending: { [Op.like]: `%${searchValue}%` } }
+            { rek_spending: { [Op.like]: `%${searchValue}%` } },
+            { rek_zba: { [Op.like]: `%${searchValue}%` } },
+            { rek_bankcoll: { [Op.like]: `%${searchValue}%` } },
+            { rekening: { [Op.like]: `%${searchValue}%` } },
+            { type_live: { [Op.like]: `%${searchValue}%` } },
+            { gl_kk: { [Op.like]: `%${searchValue}%` } },
+            { area: { [Op.like]: `%${searchValue}%` } },
+            { pagu: { [Op.like]: `%${searchValue}%` } },
+            { pic_finance: { [Op.like]: `%${searchValue}%` } },
+            { spv_finance: { [Op.like]: `%${searchValue}%` } },
+            { spv2_finance: { [Op.like]: `%${searchValue}%` } },
+            { asman_finance: { [Op.like]: `%${searchValue}%` } },
+            { manager_finance: { [Op.like]: `%${searchValue}%` } },
+            { pic_tax: { [Op.like]: `%${searchValue}%` } },
+            { spv_tax: { [Op.like]: `%${searchValue}%` } },
+            { asman_tax: { [Op.like]: `%${searchValue}%` } },
+            { manager_tax: { [Op.like]: `%${searchValue}%` } },
+            { aos: { [Op.like]: `%${searchValue}%` } },
+            { rom: { [Op.like]: `%${searchValue}%` } },
+            { bm: { [Op.like]: `%${searchValue}%` } },
+            { nom: { [Op.like]: `%${searchValue}%` } },
+            { rbm: { [Op.like]: `%${searchValue}%` } }
           ]
         },
         order: [[sortValue, 'ASC']],
@@ -315,8 +417,33 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['KODE PLANT', 'PC', 'REGION', 'INISIAL', 'PIC CONSOLE', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'LIVE/NON LIVE', 'GL KK LIVE/ NON LIVE']
-        const key = ['kode_plant', 'profit_center', 'region', 'inisial', 'pic_console', 'rek_spending', 'rek_zba', 'rek_bankcoll', 'type_live', 'gl_kk']
+        const header = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC FINANCE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM']
+        const key = [
+          'kode_plant',
+          'profit_center',
+          'area',
+          'region',
+          'inisial',
+          'rek_spending',
+          'rek_zba',
+          'rek_bankcoll',
+          'pagu',
+          'type_live',
+          'pic_finance',
+          'spv_finance',
+          'spv2_finance',
+          'asman_finance',
+          'manager_finance',
+          'pic_tax',
+          'spv_tax',
+          'asman_tax',
+          'manager_tax',
+          'aos',
+          'rom',
+          'bm',
+          'nom',
+          'rbm'
+        ]
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)

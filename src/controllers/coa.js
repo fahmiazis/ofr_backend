@@ -343,6 +343,7 @@ module.exports = {
       }
       const findCoa = await coa.findAndCountAll({
         where: {
+          tipe: 'KLAIM',
           [Op.or]: [
             { no_coa: { [Op.like]: `%${searchValue}%` } },
             { nama_coa: { [Op.like]: `%${searchValue}%` } },

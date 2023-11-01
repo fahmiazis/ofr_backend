@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
         as: 'appList',
         sourceKey: 'no_pembayaran'
       })
-      ops.hasOne(models.depo, {
+      ops.hasOne(models.finance, {
         foreignKey: 'kode_plant',
         sourceKey: 'kode_plant',
         as: 'depo'
@@ -124,7 +124,12 @@ module.exports = (sequelize, DataTypes) => {
     nilai_verif: DataTypes.STRING,
     type_nilaiverif: DataTypes.STRING,
     tgl_submitbukti: DataTypes.DATE,
-    tgl_getdana: DataTypes.DATE
+    tgl_getdana: DataTypes.DATE,
+    stat_skb: DataTypes.TEXT,
+    stat_skt: DataTypes.TEXT,
+    datef_skb: DataTypes.DATE,
+    datel_skb: DataTypes.DATE,
+    no_skb: DataTypes.TEXT
   }, {
     sequelize,
     modelName: 'ops'

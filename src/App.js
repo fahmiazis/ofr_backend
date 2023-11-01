@@ -34,12 +34,16 @@ const kliringRoute = require('./routes/kliring')
 const fakturRoute = require('./routes/faktur')
 const kppRoute = require('./routes/kpp')
 const financeRoute = require('./routes/finance')
+const picklaimRoute = require('./routes/picklaim')
+const spvklaimRoute = require('./routes/spvklaim')
 const reservoirRoute = require('./routes/reservoir')
 const taxcodeRoute = require('./routes/taxcode')
 // transaksi
 const klaimRoute = require('./routes/klaim')
 const opsRoute = require('./routes/operasional')
 const ikkRoute = require('./routes/ikk')
+const vervenRoute = require('./routes/verifVendor')
+
 // notif
 const notifRoute = require('./routes/notif')
 
@@ -54,6 +58,7 @@ const authMiddleware = require('./middlewares/auth')
 app.use('/uploads', express.static('assets/documents'))
 app.use('/masters', express.static('assets/masters'))
 app.use('/download', express.static('assets/exports'))
+app.use('/assets/documents', express.static('assets/documents'))
 
 app.use('/auth', authRoute)
 // masterdata
@@ -73,13 +78,18 @@ app.use('/vendor', authMiddleware, vendorRoute)
 app.use('/kliring', authMiddleware, kliringRoute)
 app.use('/faktur', authMiddleware, fakturRoute)
 app.use('/kpp', authMiddleware, kppRoute)
+
 app.use('/finance', authMiddleware, financeRoute)
+app.use('/picklaim', authMiddleware, picklaimRoute)
+app.use('/spvklaim', authMiddleware, spvklaimRoute)
+
 app.use('/reservoir', authMiddleware, reservoirRoute)
 app.use('/taxcode', authMiddleware, taxcodeRoute)
 // transaksi
 app.use('/klaim', authMiddleware, klaimRoute)
 app.use('/ops', authMiddleware, opsRoute)
 app.use('/ikk', authMiddleware, ikkRoute)
+app.use('/verven', authMiddleware, vervenRoute)
 
 // notif
 app.use('/notif', authMiddleware, notifRoute)
@@ -89,6 +99,9 @@ app.use('/redpine', redpineRoute)
 
 // show document
 app.use('/show', showRoute)
+
+// tes email
+app.use('/tesemail', emailRoute)
 
 // zarchive
 app.use('/zip', zarRoute)

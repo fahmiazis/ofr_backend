@@ -1,4 +1,4 @@
-const { ikk, depo, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir, kliring, kpp, taxcode } = require('../models')
+const { ikk, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir, kliring, kpp, taxcode } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -14,7 +14,7 @@ module.exports = {
     try {
       const kode = req.user.kode
       const idTrans = req.params.id
-      // const name = req.user.name
+      // const name = req.user.fullname
       // const level = req.user.level
       const schema = joi.object({
         no_coa: joi.string().required(),
@@ -49,13 +49,14 @@ module.exports = {
         user_jabatan: joi.string().allow(''),
         no_bpkk: joi.string().required(),
         tgl_faktur: joi.string().allow(''),
-        typeniknpwp: joi.string().allow('')
+        typeniknpwp: joi.string().allow(''),
+        stat_skb: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findDepo = await depo.findAll({
+        const findDepo = await finance.findAll({
           where: {
             kode_plant: kode
           }
@@ -77,7 +78,7 @@ module.exports = {
               user_jabatan: results.user_jabatan,
               kode_plant: findDepo[0].kode_plant,
               area: findDepo[0].area,
-              cost_center: findDepo[0].cost_center,
+              cost_center: findDepo[0].profit_center,
               no_coa: results.no_coa,
               sub_coa: result.jenis_transaksi,
               nama_coa: result.gl_name,
@@ -113,7 +114,8 @@ module.exports = {
               jenis_pph: results.jenis_pph,
               jenis_vendor: result.type_transaksi,
               tgl_faktur: results.tgl_faktur,
-              typeniknpwp: results.typeniknpwp
+              typeniknpwp: results.typeniknpwp,
+              stat_skb: results.stat_skb
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -274,7 +276,7 @@ module.exports = {
   getCartIkk: async (req, res) => {
     try {
       const kode = req.user.kode
-      const findDepo = await depo.findOne({
+      const findDepo = await finance.findOne({
         where: {
           kode_plant: kode
         }
@@ -485,7 +487,6 @@ module.exports = {
           }
         })
         if (findIkk.length > 0) {
-          const temp = []
           const change = noIkk.toString().split('')
           const notrans = change.length === 2 ? '00' + noIkk : change.length === 1 ? '000' + noIkk : change.length === 3 ? '0' + noIkk : noIkk
           const month = parseInt(moment().format('MM'))
@@ -527,6 +528,7 @@ module.exports = {
             status_transaksi: null,
             no_transaksi: null
           }
+          const temp = []
           for (let i = 0; i < findIkk.length; i++) {
             if (listId.find(e => e === findIkk[i].id)) {
               const findDraft = await ikk.findByPk(findIkk[i].id)
@@ -556,12 +558,12 @@ module.exports = {
               if (findDoc.length > 0) {
                 const tempDoc = []
                 for (let i = 0; i < findDoc.length; i++) {
-                  const data = {
-                    no_transaksi: noTrans
-                  }
+                  // const data = {
+                  //   no_transaksi: noTrans
+                  // }
                   const upDoc = await docuser.findByPk(findDoc[i].id)
                   if (upDoc) {
-                    await upDoc.update(data)
+                    await upDoc.destroy()
                     tempDoc.push(upDoc)
                   }
                 }
@@ -587,11 +589,15 @@ module.exports = {
                     status: 'delayed'
                   }
                   if (findReser && !findNewReser) {
-                    await findReser.update(upDataReser)
-                    await reservoir.create(creDataReser)
-                    return response(res, 'success submit cart', { noikk: noTrans })
+                    const updateReser = await findReser.update(upDataReser)
+                    if (updateReser) {
+                      const createReser = await reservoir.create(creDataReser)
+                      if (createReser) {
+                        return response(res, 'success submit cart2', { noikk: noTrans })
+                      }
+                    }
                   } else {
-                    return response(res, 'success submit cart', { noikk: noTrans })
+                    return response(res, 'success submit cart1', { noikk: noTrans })
                   }
                 } else {
                   return response(res, 'success submit cart', { noikk: noTrans })
@@ -684,7 +690,7 @@ module.exports = {
   uploadDocument: async (req, res) => {
     const { no, id } = req.query
     const level = req.user.level
-    const name = req.user.name
+    const name = req.user.fullname
     uploadHelper(req, res, async function (err) {
       try {
         if (err instanceof multer.MulterError) {
@@ -726,39 +732,157 @@ module.exports = {
         }
       })
       if (findDoc.length > 0) {
-        return response(res, 'success get dokumen', { result: findDoc })
-      } else {
-        const findMaster = await document.findAll({
+        const findReser = await reservoir.findOne({
           where: {
-            [Op.and]: [
-              { jenis: 'Ikk' },
-              { type: name }
-            ]
+            no_transaksi: no
           }
         })
-        if (findMaster.length > 0) {
-          const temp = []
-          for (let i = 0; i < findMaster.length; i++) {
-            const data = {
-              desc: findMaster[i].name,
-              jenis_form: findMaster[i].jenis,
-              no_transaksi: no,
-              tipe: findMaster[i].type,
-              stat_upload: findMaster[i].stat_upload
+        const findIkk = await ikk.findAll({
+          where: {
+            no_transaksi: no
+          }
+        })
+        if (findReser !== undefined && findReser.status === 'delayed' && findIkk.length > 0) {
+          const findMaster = await document.findAll({
+            where: {
+              [Op.and]: [
+                { jenis: 'Ikk' },
+                { type: name }
+              ]
             }
-            const creDoc = await docuser.create(data)
-            if (creDoc) {
-              temp.push(creDoc)
+          })
+          const cek = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+          const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
+          const cekDoc = []
+          for (let i = 0; i < resData.length; i++) {
+            if (cek === 'no') {
+              if (i === resData - 1) {
+                const data = {
+                  desc: 'Dokumen SKB',
+                  jenis_form: findMaster[0].jenis,
+                  no_transaksi: no,
+                  tipe: findMaster[0].type,
+                  stat_upload: 1
+                }
+                const creDoc = await docuser.create(data)
+                if (creDoc) {
+                  cekDoc.push(creDoc)
+                }
+              } else {
+                const data = {
+                  desc: findMaster[i].name,
+                  jenis_form: findMaster[i].jenis,
+                  no_transaksi: no,
+                  tipe: findMaster[i].type,
+                  stat_upload: findMaster[i].stat_upload
+                }
+                const creDoc = await docuser.create(data)
+                if (creDoc) {
+                  cekDoc.push(creDoc)
+                }
+              }
+            } else {
+              const data = {
+                desc: findMaster[i].name,
+                jenis_form: findMaster[i].jenis,
+                no_transaksi: no,
+                tipe: findMaster[i].type,
+                stat_upload: findMaster[i].stat_upload
+              }
+              const creDoc = await docuser.create(data)
+              if (creDoc) {
+                cekDoc.push(creDoc)
+              }
             }
           }
-          if (temp.length > 0) {
-            const findDocCre = await docuser.findAll({
+          if (cekDoc.length > 0) {
+            const findFinDoc = await docuser.findAll({
               where: {
                 no_transaksi: no
               }
             })
-            if (findDocCre.length > 0) {
-              return response(res, 'success get dokumen', { result: findDocCre })
+            if (findFinDoc.length > 0) {
+              return response(res, 'success get dokumen flowles', { result: findFinDoc })
+            } else {
+              return response(res, 'success get dokumen gagl', { result: findDoc })
+            }
+          } else {
+            return response(res, 'success get dokumen ggl', { result: findDoc })
+          }
+        } else {
+          return response(res, 'success get dokumen gtl', { result: findDoc })
+        }
+      } else {
+        const findIkk = await ikk.findAll({
+          where: {
+            no_transaksi: no
+          }
+        })
+        if (findIkk.length > 0) {
+          const findMaster = await document.findAll({
+            where: {
+              [Op.and]: [
+                { jenis: 'Ikk' },
+                { type: name }
+              ]
+            }
+          })
+          if (findMaster.length > 0) {
+            const temp = []
+            const cek = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+            const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
+            for (let i = 0; i < resData; i++) {
+              if (cek === 'no') {
+                if (i === resData - 1) {
+                  const data = {
+                    desc: 'Dokumen SKB',
+                    jenis_form: findMaster[0].jenis,
+                    no_transaksi: no,
+                    tipe: findMaster[0].type,
+                    stat_upload: 1
+                  }
+                  const creDoc = await docuser.create(data)
+                  if (creDoc) {
+                    temp.push(creDoc)
+                  }
+                } else {
+                  const data = {
+                    desc: findMaster[i].name,
+                    jenis_form: findMaster[i].jenis,
+                    no_transaksi: no,
+                    tipe: findMaster[i].type,
+                    stat_upload: findMaster[i].stat_upload
+                  }
+                  const creDoc = await docuser.create(data)
+                  if (creDoc) {
+                    temp.push(creDoc)
+                  }
+                }
+              } else {
+                const data = {
+                  desc: findMaster[i].name,
+                  jenis_form: findMaster[i].jenis,
+                  no_transaksi: no,
+                  tipe: findMaster[i].type,
+                  stat_upload: findMaster[i].stat_upload
+                }
+                const creDoc = await docuser.create(data)
+                if (creDoc) {
+                  temp.push(creDoc)
+                }
+              }
+            }
+            if (temp.length > 0) {
+              const findDocCre = await docuser.findAll({
+                where: {
+                  no_transaksi: no
+                }
+              })
+              if (findDocCre.length > 0) {
+                return response(res, 'success get dokumen', { result: findDocCre })
+              } else {
+                return response(res, 'failed get dokumen', { result: [] })
+              }
             } else {
               return response(res, 'failed get dokumen', { result: [] })
             }
@@ -797,7 +921,7 @@ module.exports = {
     try {
       const level = req.user.level
       const kode = req.user.kode
-      const name = req.user.name
+      const name = req.user.fullname
       const role = req.user.role
       const { status, reject, menu, type, category, data, time1, time2, search } = req.query
       const searchValue = search || ''
@@ -862,7 +986,7 @@ module.exports = {
               as: 'appForm'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
             },
@@ -891,11 +1015,11 @@ module.exports = {
           return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk: [] })
         }
       } else if (access.find(item => item === level) !== undefined) {
-        const findDepo = await depo.findAll({
+        const findDepo = await finance.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
-              { om: level === 11 ? name : 'undefined' },
+              { rom: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
               { pic_finance: level === 2 ? name : 'undefined' },
               { spv_finance: level === 7 ? name : 'undefined' },
@@ -964,7 +1088,7 @@ module.exports = {
                   as: 'appList'
                 },
                 {
-                  model: depo,
+                  model: finance,
                   as: 'depo',
                   include: [{ model: kpp, as: 'kpp' }]
                 },
@@ -1058,7 +1182,7 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
             },
@@ -1114,7 +1238,7 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
             },
@@ -1153,7 +1277,7 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
             },
@@ -1199,7 +1323,7 @@ module.exports = {
             as: 'appList'
           },
           {
-            model: depo,
+            model: finance,
             as: 'depo',
             include: [{ model: kpp, as: 'kpp' }]
           },
@@ -1246,7 +1370,7 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
             },
@@ -1315,7 +1439,7 @@ module.exports = {
           }
         })
         if (findIkk) {
-          const findDepo = await depo.findOne({
+          const findDepo = await finance.findOne({
             where: {
               kode_plant: findIkk.kode_plant
             }
@@ -1448,7 +1572,7 @@ module.exports = {
   approveIkk: async (req, res) => {
     try {
       const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const { no } = req.body
       const findIkk = await ikk.findAll({
         where: {
@@ -1456,7 +1580,7 @@ module.exports = {
         }
       })
       if (findIkk.length > 0) {
-        const findDepo = await depo.findOne({
+        const findDepo = await finance.findOne({
           where: {
             kode_plant: findIkk[0].kode_plant
           }
@@ -1505,9 +1629,11 @@ module.exports = {
                         })
                         if (findTtd.length === findFull.length) {
                           const temp = []
+                          const cekData = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+                          const resData = cekData === 'ya' ? 3 : 4
                           for (let i = 0; i < findIkk.length; i++) {
                             const send = {
-                              status_transaksi: 3,
+                              status_transaksi: resData,
                               status_reject: null,
                               isreject: null,
                               tgl_fullarea: moment(),
@@ -1576,7 +1702,7 @@ module.exports = {
   rejectIkk: async (req, res) => {
     try {
       const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const schema = joi.object({
         no: joi.string().required(),
         alasan: joi.string().required(),
@@ -1640,7 +1766,7 @@ module.exports = {
               return response(res, 'success reject ikk', {})
             }
           } else {
-            const findDepo = await depo.findOne({
+            const findDepo = await finance.findOne({
               where: {
                 kode_plant: findIkk[0].kode_plant
               }
@@ -1799,7 +1925,7 @@ module.exports = {
       const kode = req.user.kode
       const idTrans = req.params.idtrans
       const id = req.params.id
-      // const name = req.user.name
+      // const name = req.user.fullname
       // const level = req.user.level
       const schema = joi.object({
         no_coa: joi.string().required(),
@@ -1834,13 +1960,14 @@ module.exports = {
         user_jabatan: joi.string().allow(''),
         no_bpkk: joi.string().required(),
         tgl_faktur: joi.string().allow(''),
-        typeniknpwp: joi.string().allow('')
+        typeniknpwp: joi.string().allow(''),
+        stat_skb: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findDepo = await depo.findAll({
+        const findDepo = await finance.findAll({
           where: {
             kode_plant: kode
           }
@@ -1863,7 +1990,7 @@ module.exports = {
               user_jabatan: results.user_jabatan,
               kode_plant: findDepo[0].kode_plant,
               area: findDepo[0].area,
-              cost_center: findDepo[0].cost_center,
+              cost_center: findDepo[0].profit_center,
               no_coa: results.no_coa,
               sub_coa: result.jenis_transaksi,
               nama_coa: result.gl_name,
@@ -1899,7 +2026,8 @@ module.exports = {
               jenis_pph: results.jenis_pph,
               jenis_vendor: result.type_transaksi,
               tgl_faktur: results.tgl_faktur,
-              typeniknpwp: results.typeniknpwp
+              typeniknpwp: results.typeniknpwp,
+              stat_skb: results.stat_skb
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -2095,7 +2223,7 @@ module.exports = {
   },
   submitRevisi: async (req, res) => {
     try {
-      const name = req.user.name
+      const name = req.user.fullname
       const schema = joi.object({
         no: joi.string().required()
       })
@@ -2138,9 +2266,13 @@ module.exports = {
     try {
       const id = req.params.id
       const schema = joi.object({
-        dpp: joi.string().allow(''),
-        ppn: joi.string().required(),
-        nilai_utang: joi.string().required()
+        nilai_utang: joi.string().required(),
+        nilai_bayar: joi.string().required(),
+        nilai_buku: joi.string().required(),
+        no_skb: joi.string().required(),
+        jenis_pph: joi.string().required(),
+        datef_skb: joi.date().required(),
+        datel_skb: joi.date().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -2148,12 +2280,7 @@ module.exports = {
       } else {
         const findIkk = await ikk.findByPk(id)
         if (findIkk) {
-          const data = {
-            dpp: results.dpp,
-            ppn: results.ppn,
-            nilai_utang: results.nilai_utang
-          }
-          const updateIkk = await findIkk.update(data)
+          const updateIkk = await findIkk.update(results)
           if (updateIkk) {
             return response(res, 'success edit verif ikk', { updateIkk })
           } else {
@@ -2169,7 +2296,7 @@ module.exports = {
   },
   submitVerif: async (req, res) => {
     try {
-      const name = req.user.name
+      const name = req.user.fullname
       const level = req.user.level
       const schema = joi.object({
         no: joi.string().required(),
@@ -2189,8 +2316,9 @@ module.exports = {
               }
             })
             if (findIkk.length > 0) {
-              const cekData = findIkk.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+              const cekData = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
               const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              // const resData = 5
               for (let h = 0; h < findIkk.length; h++) {
                 const findRes = await ikk.findByPk(findIkk[h].id)
                 if (findRes) {
@@ -2221,8 +2349,9 @@ module.exports = {
           })
           if (findIkk.length > 0) {
             const temp = []
-            const cekData = findIkk.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+            const cekData = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
             const resData = level === 2 && cekData === 'ya' ? 5 : 4
+            // const resData = 5
             for (let i = 0; i < findIkk.length; i++) {
               const findRes = await ikk.findByPk(findIkk[i].id)
               if (findRes) {
@@ -2255,7 +2384,7 @@ module.exports = {
   submitAjuanBayar: async (req, res) => {
     try {
       // const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const schema = joi.object({
         no_transfer: joi.string().required(),
         tgl_transfer: joi.string().required(),
@@ -2338,7 +2467,7 @@ module.exports = {
           }
         })
         if (findIkk) {
-          const findDepo = await depo.findOne({
+          const findDepo = await finance.findOne({
             where: {
               kode_plant: findIkk.kode_plant
             }
@@ -2409,7 +2538,7 @@ module.exports = {
   approveListIkk: async (req, res) => {
     try {
       const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const { no } = req.body
       const findIkk = await ikk.findAll({
         where: {
@@ -2417,7 +2546,7 @@ module.exports = {
         }
       })
       if (findIkk.length > 0) {
-        const findDepo = await depo.findOne({
+        const findDepo = await finance.findOne({
           where: {
             kode_plant: findIkk[0].kode_plant
           }
@@ -2538,7 +2667,7 @@ module.exports = {
   rejectListIkk: async (req, res) => {
     try {
       const level = req.user.level
-      const name = req.user.name
+      const name = req.user.fullname
       const schema = joi.object({
         no: joi.string().required(),
         alasan: joi.string().required(),
@@ -2557,7 +2686,7 @@ module.exports = {
           }
         })
         if (findIkk.length > 0) {
-          const findDepo = await depo.findOne({
+          const findDepo = await finance.findOne({
             where: {
               kode_plant: findIkk[0].kode_plant
             }
@@ -2681,7 +2810,7 @@ module.exports = {
     try {
       const level = req.user.level
       const kode = req.user.kode
-      const name = req.user.name
+      const name = req.user.fullname
       const { status, reject, menu, type, time1, time2, search } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 8 : status
@@ -2746,7 +2875,7 @@ module.exports = {
               as: 'appForm'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
             },
@@ -2775,11 +2904,11 @@ module.exports = {
           return response(res, 'success get data ikk', { result: findIkk })
         }
       } else if (access.find(item => item === level) !== undefined) {
-        const findDepo = await depo.findAll({
+        const findDepo = await finance.findAll({
           where: {
             [Op.or]: [
               { bm: level === 10 ? name : 'undefined' },
-              { om: level === 11 ? name : 'undefined' },
+              { rom: level === 11 ? name : 'undefined' },
               { nom: level === 12 ? name : 'undefined' },
               { pic_finance: level === 2 ? name : 'undefined' },
               { spv_finance: level === 7 ? name : 'undefined' },
@@ -2849,7 +2978,7 @@ module.exports = {
                   as: 'appList'
                 },
                 {
-                  model: depo,
+                  model: finance,
                   as: 'depo',
                   include: [{ model: kpp, as: 'kpp' }]
                 },
@@ -2944,7 +3073,7 @@ module.exports = {
               as: 'appList'
             },
             {
-              model: depo,
+              model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
             },
@@ -3091,7 +3220,7 @@ module.exports = {
   submitBuktiBayar: async (req, res) => {
     try {
       const { no } = req.body
-      const name = req.user.name
+      const name = req.user.fullname
       const findIkk = await ikk.findAll({
         where: {
           no_pembayaran: no
@@ -3166,7 +3295,7 @@ module.exports = {
             as: 'appList'
           },
           {
-            model: depo,
+            model: finance,
             as: 'depo',
             include: [{ model: kpp, as: 'kpp' }]
           },
@@ -3280,7 +3409,7 @@ module.exports = {
             as: 'appList'
           },
           {
-            model: depo,
+            model: finance,
             as: 'depo',
             include: [{ model: kpp, as: 'kpp' }]
           },
@@ -3341,7 +3470,7 @@ module.exports = {
   updateNilaiVerif: async (req, res) => {
     try {
       const { no, type, id, nilai, tglGetDana } = req.body
-      const name = req.user.name
+      const name = req.user.fullname
       const dataDate = {
         end_ikk: moment()
       }

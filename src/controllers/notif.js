@@ -1,4 +1,4 @@
-const { notif, ikk, klaim, ops, role } = require('../models')
+const { notif, ikk, klaim, ops, role, vervendor } = require('../models')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
 const { pagination } = require('../helpers/pagination')
@@ -14,7 +14,7 @@ module.exports = {
         }
       })
       if (findRole) {
-        const transaksi = tipe === 'ikk' ? ikk : tipe === 'klaim' ? klaim : ops
+        const transaksi = tipe === 'ikk' ? ikk : tipe === 'klaim' ? klaim : tipe === 'vendor' ? vervendor : ops
         const findData = await transaksi.findAll({
           where: {
             [Op.and]: [

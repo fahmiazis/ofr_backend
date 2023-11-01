@@ -11,5 +11,7 @@ route.delete('/delall', email.deleteAll)
 route.patch('/draft', email.draftEmail)
 route.patch('/drajuan', email.draftEmailAjuan)
 route.patch('/send', email.sendEmail)
+route.patch('/resmail', email.getResmail)
+route.patch('/go', email.tesEmail)
 
 module.exports = route

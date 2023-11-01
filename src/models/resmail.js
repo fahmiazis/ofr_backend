@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize')
 module.exports = (sequelize, DataTypes) => {
-  class vendor extends Model {
+  class resmail extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,18 +13,22 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  vendor.init({
-    nama: DataTypes.STRING,
-    no_npwp: DataTypes.STRING,
-    no_ktp: DataTypes.STRING,
-    alamat: DataTypes.STRING,
+  resmail.init({
+    type: DataTypes.STRING,
+    menu: DataTypes.STRING,
+    subject: DataTypes.STRING,
+    message: DataTypes.STRING,
+    from: DataTypes.STRING,
+    to: DataTypes.TEXT,
+    cc: DataTypes.TEXT,
+    status: DataTypes.STRING,
+    history: DataTypes.TEXT,
     kode_plant: DataTypes.STRING,
-    datef_skb: DataTypes.DATE,
-    datel_skb: DataTypes.DATE,
-    no_skb: DataTypes.TEXT
+    no_transaksi: DataTypes.STRING,
+    type_trans: DataTypes.STRING
   }, {
     sequelize,
-    modelName: 'vendor'
+    modelName: 'resmail'
   })
-  return vendor
+  return resmail
 }

@@ -20,10 +20,15 @@ module.exports = (sequelize, DataTypes) => {
         as: 'appList',
         sourceKey: 'no_pembayaran'
       })
-      klaim.hasOne(models.depo, {
+      klaim.hasOne(models.finance, {
         foreignKey: 'kode_plant',
         sourceKey: 'kode_plant',
         as: 'depo'
+      })
+      klaim.hasOne(models.picklaim, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'picklaim'
       })
       klaim.hasOne(models.finance, {
         foreignKey: 'kode_plant',

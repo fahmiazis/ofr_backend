@@ -1,4 +1,4 @@
-const { email, ttd, role, depo, user, ops, klaim, ikk } = require('../models')
+const { resmail, email, ttd, role, finance, user, ops, klaim, ikk, vervendor } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -155,14 +155,19 @@ module.exports = {
       const name = req.user.name
       const level = req.user.level
       const { no, kode, tipe, menu, jenis, typeReject } = req.body
-      const transaksi = jenis === 'ikk' ? ikk : jenis === 'klaim' ? klaim : ops
-      const statVerif = (jenis === 'ikk' || jenis === 'ops') && level === 2 ? 4 : jenis === 'klaim' && level === 2 ? 3 : 2
+      const transaksi = jenis === 'ikk' ? ikk : jenis === 'klaim' ? klaim : jenis === 'vendor' ? vervendor : ops
+      const statVerif = (jenis === 'ikk' || jenis === 'ops') && level === 2
+        ? 4
+        : jenis === 'klaim' && level === 2
+          ? 3
+          : jenis === 'vendor' && level === 5 ? 4 : jenis === 'vendor' && level !== 5 ? 5 : 2
+
       const findRole = await role.findOne({
         where: {
           level: level
         }
       })
-      const findDepo = await depo.findOne({
+      const findDepo = await finance.findOne({
         where: {
           kode_plant: kode
         }
@@ -172,7 +177,12 @@ module.exports = {
           no_transaksi: no
         }
       })
-      if (findRole && findDepo && findTrans) {
+      const findAllTrans = await transaksi.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      if (findRole && findDepo && findTrans && findAllTrans.length > 0) {
         const listName = Object.values(findDepo.dataValues)
         if (tipe === 'approve') {
           const findApp = await ttd.findAll({
@@ -216,7 +226,7 @@ module.exports = {
                   })
                   if (findDraftUser) {
                     for (let i = 0; i < findDraftUser.length; i++) {
-                      const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                      const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                       if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                         temp.push(findDraftUser[i])
                       }
@@ -270,7 +280,7 @@ module.exports = {
                   if (findUser.length > 0) {
                     let toMail = null
                     for (let i = 0; i < findUser.length; i++) {
-                      const findName = findUser[i].username === null ? '' : findUser[i].username
+                      const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                       if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                         toMail = findUser[i]
                       }
@@ -350,7 +360,7 @@ module.exports = {
                 })
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
-                    const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                    const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
@@ -375,8 +385,10 @@ module.exports = {
             }
             if (temp.length > 0) {
               let noLevel = null
-              const tempStat = findTrans.status_transaksi
-              const tipeStat = tempStat === 2 ? 2 : 5
+              // const tempStat = findTrans.status_transaksi
+              const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+              // const tipeStat = tempStat === 2 ? 2 : 5
+              const tipeStat = cekData === 'ya' ? 2 : 4
               for (let i = 0; i < 1; i++) {
                 const findLevel = await role.findOne({
                   where: {
@@ -402,7 +414,7 @@ module.exports = {
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
-                    const findName = findUser[i].username === null ? '' : findUser[i].username
+                    const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       toMail = findUser[i]
                     }
@@ -479,7 +491,7 @@ module.exports = {
                 })
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
-                    const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                    const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
@@ -504,7 +516,13 @@ module.exports = {
             }
             if (temp.length > 0) {
               let noLevel = null
-              const tipeStat = statVerif
+              let tipeStat = null
+              if (statVerif === 4) {
+                const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+                tipeStat = cekData === 'ya' ? 2 : 4
+              } else {
+                tipeStat = statVerif
+              }
               for (let i = 0; i < 1; i++) {
                 const findLevel = await role.findOne({
                   where: {
@@ -530,7 +548,7 @@ module.exports = {
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
-                    const findName = findUser[i].username === null ? '' : findUser[i].username
+                    const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       toMail = findUser[i]
                     }
@@ -607,7 +625,7 @@ module.exports = {
                 })
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
-                    const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                    const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
@@ -658,7 +676,7 @@ module.exports = {
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
-                    const findName = findUser[i].username === null ? '' : findUser[i].username
+                    const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       toMail = findUser[i]
                     }
@@ -739,7 +757,7 @@ module.exports = {
                 })
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
-                    const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                    const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
@@ -790,7 +808,7 @@ module.exports = {
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
-                    const findName = findUser[i].username === null ? '' : findUser[i].username
+                    const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       toMail = findUser[i]
                     }
@@ -850,7 +868,7 @@ module.exports = {
         level: level
       }
     })
-    const findDepo = await depo.findOne({
+    const findDepo = await finance.findOne({
       where: {
         kode_plant: kode
       }
@@ -907,7 +925,7 @@ module.exports = {
                 })
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
-                    const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                    const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
@@ -961,7 +979,7 @@ module.exports = {
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
-                    const findName = findUser[i].username === null ? '' : findUser[i].username
+                    const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       toMail = findUser[i]
                     }
@@ -1041,7 +1059,7 @@ module.exports = {
               })
               if (findDraftUser) {
                 for (let i = 0; i < findDraftUser.length; i++) {
-                  const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                  const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                   if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                     temp.push(findDraftUser[i])
                   }
@@ -1126,7 +1144,7 @@ module.exports = {
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
-                    const findName = findUser[i].username === null ? '' : findUser[i].username
+                    const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                     if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                       toMail = findUser[i]
                     }
@@ -1204,7 +1222,7 @@ module.exports = {
               })
               if (findDraftUser) {
                 for (let i = 0; i < findDraftUser.length; i++) {
-                  const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                  const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                   if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                     temp.push(findDraftUser[i])
                   }
@@ -1255,7 +1273,7 @@ module.exports = {
               if (findUser.length > 0) {
                 let toMail = null
                 for (let i = 0; i < findUser.length; i++) {
-                  const findName = findUser[i].username === null ? '' : findUser[i].username
+                  const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                   if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                     toMail = findUser[i]
                   }
@@ -1332,7 +1350,7 @@ module.exports = {
               })
               if (findDraftUser) {
                 for (let i = 0; i < findDraftUser.length; i++) {
-                  const findName = findDraftUser[i].username === null ? '' : findDraftUser[i].username
+                  const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
                   if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                     temp.push(findDraftUser[i])
                   }
@@ -1436,14 +1454,14 @@ module.exports = {
     try {
       const name = req.user.name
       const level = req.user.level
-      const { nameTo, to, cc, message, no, tipe, subject, jenis } = req.body
+      const { nameTo, to, cc, message, no, tipe, subject, jenis, draft } = req.body
       const findRole = await role.findOne({
         where: {
           level: level
         }
       })
       if (findRole) {
-        const transaksi = tipe === 'ikk' ? ikk : tipe === 'klaim' ? klaim : ops
+        const transaksi = tipe === 'ikk' ? ikk : tipe === 'klaim' ? klaim : tipe === 'vendor' ? vervendor : ops
         // const title = tipe === 'ikk' ? 'IKK' : tipe === 'klaim' ? 'Klaim' : 'Operasional'
         const findData = await transaksi.findAll({
           where: {
@@ -1452,157 +1470,216 @@ module.exports = {
             ]
           }
         })
-        if (findData) {
-          let tableTd = ''
-          const dataTo = nameTo === undefined ? '' : nameTo
-          for (let i = 0; i < findData.length; i++) {
-            const data = findData[i]
-            const dateData = tipe === 'ikk' ? data.start_ikk : tipe === 'klaim' ? data.start_klaim : data.start_ops
-            const element = `
-                  <tr>
-                    <th>${i + 1}</th>
-                    <th>${findData[i].no_transaksi}</th>
-                    <th>${findData[i].cost_center}</th>
-                    <th>${findData[i].area}</th>
-                    <th>${findData[i].no_coa}</th>
-                    <th>${findData[i].sub_coa}</th>
-                    <th>${findData[i].keterangan || findData[i].uraian}</th>
-                    <th>${moment(dateData || moment()).format('DD MMMM YYYY')}</th>
-                  </tr>`
-            tableTd = tableTd + element
-          }
-          const mailOptions = {
-            from: 'noreply_ofr@pinusmerahabadi.co.id',
-            replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
-            to: `${to}`,
-            cc: cc.split(','),
-            subject: `${subject}`,
-            html: `
-                <head>
-                <style type="text/css">
-                body {
-                    display: flexbox;
-                    flex-direction: column;
-                }
-                .tittle {
-                    font-size: 15px;
-                }
-                .mar {
-                    margin-bottom: 20px;
-                }
-                .mar1 {
-                    margin-bottom: 10px;
-                }
-                .foot {
-                    margin-top: 20px;
-                    margin-bottom: 10px;
-                }
-                .foot1 {
-                    margin-bottom: 50px;
-                }
-                .position {
-                    display: flexbox;
-                    flex-direction: row;
-                    justify-content: left;
-                    margin-top: 10px;
-                }
-                table {
-                    font-family: "Lucida Sans Unicode", "Lucida Grande", "Segoe Ui";
-                    font-size: 12px;
-                }
-                .demo-table {
-                    border-collapse: collapse;
-                    font-size: 13px;
-                }
-                .demo-table th, 
-                .demo-table td {
-                    border-bottom: 1px solid #e1edff;
-                    border-left: 1px solid #e1edff;
-                    padding: 7px 17px;
-                }
-                .demo-table th, 
-                .demo-table td:last-child {
-                    border-right: 1px solid #e1edff;
-                }
-                .demo-table td:first-child {
-                    border-top: 1px solid #e1edff;
-                }
-                .demo-table td:last-child{
-                    border-bottom: 0;
-                }
-                caption {
-                    caption-side: top;
-                    margin-bottom: 10px;
-                }
-                
-                /* Table Header */
-                .demo-table thead th {
-                    background-color: #508abb;
-                    color: #FFFFFF;
-                    border-color: #6ea1cc !important;
-                    text-transform: uppercase;
-                }
-                
-                /* Table Body */
-                .demo-table tbody td {
-                    color: #353535;
-                }
-                
-                .demo-table tbody tr:nth-child(odd) td {
-                    background-color: #f4fbff;
-                }
-                .demo-table tbody tr:hover th,
-                .demo-table tbody tr:hover td {
-                    background-color: #ffffa2;
-                    border-color: #ffff0f;
-                    transition: all .2s;
-                }
-            </style>
-                </head>
-                <body>
-                    <div class="tittle mar">
-                        Dear Bapak/Ibu ${dataTo},
-                    </div>
-                    <div class="tittle mar1">
-                        <div>${message}</div>
-                    </div>
-                    <div class="position">
-                        <table class="demo-table">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>NO.AJUAN</th>
-                                    <th>COST CENTRE</th>
-                                    <th>AREA</th>
-                                    <th>NO.COA</th>
-                                    <th>JENIS TRANSAKSI</th>
-                                    <th>KETERANGAN TAMBAHAN</th>
-                                    <th>TANGGAL AJUAN</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            ${tableTd}
-                            </tbody>
-                        </table>
-                    </div>
-                    <a href="http://ofr.pinusmerahabadi.co.id/">Klik link berikut untuk akses web ofr</a>
-                    <div class="tittle foot">
-                        Terima kasih,
-                    </div>
-                    <div class="tittle foot1">
-                        Regards,
-                    </div>
-                    <div class="tittle">
-                        ${name}
-                    </div>
-                </body>
-                `
-          }
-          const sendEmail = await wrapMail.wrapedSendMail(mailOptions)
-          if (sendEmail) {
-            return response(res, 'success send email', { sendEmail })
+        if (findData.length > 0) {
+          const cekResmail = []
+          const dataDraft = draft.result
+          const findResmail = await resmail.findOne({
+            where: {
+              from: name,
+              no_transaksi: no,
+              [Op.and]: [
+                { type: { [Op.like]: `%${dataDraft.type}` } },
+                { menu: { [Op.like]: `%${dataDraft.menu}` } }
+              ]
+            }
+          })
+          const tostr = JSON.stringify(draft.to)
+          const ccstr = JSON.stringify(draft.cc)
+          if (findResmail) {
+            const dataUpdate = {
+              from: name,
+              to: tostr,
+              cc: ccstr,
+              no_transaksi: no,
+              type: dataDraft.type,
+              menu: dataDraft.menu,
+              kode_plant: findData[0].kode_plant,
+              type_trans: tipe,
+              subject: subject,
+              message: message,
+              status: parseInt(findResmail.status) + 1,
+              history: `${findResmail.history}, send email by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+            }
+            const updateRes = await findResmail.update(dataUpdate)
+            if (updateRes) {
+              cekResmail.push(1)
+            }
           } else {
-            return response(res, 'gagal kirim email', { sendEmail }, 404, false)
+            const dataCreate = {
+              from: name,
+              to: tostr,
+              cc: ccstr,
+              no_transaksi: no,
+              type: dataDraft.type,
+              menu: dataDraft.menu,
+              kode_plant: findData[0].kode_plant,
+              type_trans: tipe,
+              subject: subject,
+              message: message,
+              status: 1,
+              history: `send email by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+            }
+            const createRes = await resmail.create(dataCreate)
+            if (createRes) {
+              cekResmail.push(1)
+            }
+          }
+          if (cekResmail.length > 0) {
+            let tableTd = ''
+            const dataTo = nameTo === undefined ? '' : nameTo
+            for (let i = 0; i < findData.length; i++) {
+              const data = findData[i]
+              const dateData = tipe === 'ikk' ? data.start_ikk : tipe === 'klaim' ? data.start_klaim : data.start_ops
+              const element = `
+                    <tr>
+                      <th>${i + 1}</th>
+                      <th>${findData[i].no_transaksi}</th>
+                      <th>${findData[i].cost_center}</th>
+                      <th>${findData[i].area}</th>
+                      <th>${findData[i].no_coa}</th>
+                      <th>${findData[i].sub_coa}</th>
+                      <th>${findData[i].keterangan || findData[i].uraian}</th>
+                      <th>${moment(dateData || moment()).format('DD MMMM YYYY')}</th>
+                    </tr>`
+              tableTd = tableTd + element
+            }
+            const mailOptions = {
+              from: 'noreply_ofr@pinusmerahabadi.co.id',
+              replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
+              // to: `${to}`,
+              // cc: cc.split(','),
+              to: 'fahmiazis797@gmail.com',
+              cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
+              subject: `${subject}`,
+              html: `
+                  <head>
+                  <style type="text/css">
+                  body {
+                      display: flexbox;
+                      flex-direction: column;
+                  }
+                  .tittle {
+                      font-size: 15px;
+                  }
+                  .mar {
+                      margin-bottom: 20px;
+                  }
+                  .mar1 {
+                      margin-bottom: 10px;
+                  }
+                  .foot {
+                      margin-top: 20px;
+                      margin-bottom: 10px;
+                  }
+                  .foot1 {
+                      margin-bottom: 50px;
+                  }
+                  .position {
+                      display: flexbox;
+                      flex-direction: row;
+                      justify-content: left;
+                      margin-top: 10px;
+                  }
+                  table {
+                      font-family: "Lucida Sans Unicode", "Lucida Grande", "Segoe Ui";
+                      font-size: 12px;
+                  }
+                  .demo-table {
+                      border-collapse: collapse;
+                      font-size: 13px;
+                  }
+                  .demo-table th, 
+                  .demo-table td {
+                      border-bottom: 1px solid #e1edff;
+                      border-left: 1px solid #e1edff;
+                      padding: 7px 17px;
+                  }
+                  .demo-table th, 
+                  .demo-table td:last-child {
+                      border-right: 1px solid #e1edff;
+                  }
+                  .demo-table td:first-child {
+                      border-top: 1px solid #e1edff;
+                  }
+                  .demo-table td:last-child{
+                      border-bottom: 0;
+                  }
+                  caption {
+                      caption-side: top;
+                      margin-bottom: 10px;
+                  }
+                  
+                  /* Table Header */
+                  .demo-table thead th {
+                      background-color: #508abb;
+                      color: #FFFFFF;
+                      border-color: #6ea1cc !important;
+                      text-transform: uppercase;
+                  }
+                  
+                  /* Table Body */
+                  .demo-table tbody td {
+                      color: #353535;
+                  }
+                  
+                  .demo-table tbody tr:nth-child(odd) td {
+                      background-color: #f4fbff;
+                  }
+                  .demo-table tbody tr:hover th,
+                  .demo-table tbody tr:hover td {
+                      background-color: #ffffa2;
+                      border-color: #ffff0f;
+                      transition: all .2s;
+                  }
+              </style>
+                  </head>
+                  <body>
+                      <div class="tittle mar">
+                          Dear Bapak/Ibu ${dataTo},
+                      </div>
+                      <div class="tittle mar1">
+                          <div>${message}</div>
+                      </div>
+                      <div class="position">
+                          <table class="demo-table">
+                              <thead>
+                                  <tr>
+                                      <th>No</th>
+                                      <th>NO.AJUAN</th>
+                                      <th>COST CENTRE</th>
+                                      <th>AREA</th>
+                                      <th>NO.COA</th>
+                                      <th>JENIS TRANSAKSI</th>
+                                      <th>KETERANGAN TAMBAHAN</th>
+                                      <th>TANGGAL AJUAN</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                              ${tableTd}
+                              </tbody>
+                          </table>
+                      </div>
+                      <a href="http://ofr.pinusmerahabadi.co.id/">Klik link berikut untuk akses web ofr</a>
+                      <div class="tittle foot">
+                          Terima kasih,
+                      </div>
+                      <div class="tittle foot1">
+                          Regards,
+                      </div>
+                      <div class="tittle">
+                          ${name}
+                      </div>
+                  </body>
+                  `
+            }
+            const sendEmail = await wrapMail.wrapedSendMail(mailOptions)
+            if (sendEmail) {
+              return response(res, 'success send email', { sendEmail })
+            } else {
+              return response(res, 'gagal kirim email', { sendEmail })
+            }
+          } else {
+            return response(res, 'failed send email', { findData }, 404, false)
           }
         } else {
           return response(res, 'failed send email', { findData }, 404, false)
@@ -1664,6 +1741,171 @@ module.exports = {
         }
       } else {
         return response(res, 'failed delete all', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  tesEmail: async (req, res) => {
+    try {
+      const mailOptions = {
+        from: 'fahmiazis797@gmail.com',
+        replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
+        to: 'fahmiazis797@gmail.com',
+        cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
+        subject: 'TES EMAIL WEB OFR',
+        html: `
+            <head>
+            <style type="text/css">
+            body {
+                display: flexbox;
+                flex-direction: column;
+            }
+            .tittle {
+                font-size: 15px;
+            }
+            .mar {
+                margin-bottom: 20px;
+            }
+            .mar1 {
+                margin-bottom: 10px;
+            }
+            .foot {
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+            .foot1 {
+                margin-bottom: 50px;
+            }
+            .position {
+                display: flexbox;
+                flex-direction: row;
+                justify-content: left;
+                margin-top: 10px;
+            }
+            table {
+                font-family: "Lucida Sans Unicode", "Lucida Grande", "Segoe Ui";
+                font-size: 12px;
+            }
+            .demo-table {
+                border-collapse: collapse;
+                font-size: 13px;
+            }
+            .demo-table th, 
+            .demo-table td {
+                border-bottom: 1px solid #e1edff;
+                border-left: 1px solid #e1edff;
+                padding: 7px 17px;
+            }
+            .demo-table th, 
+            .demo-table td:last-child {
+                border-right: 1px solid #e1edff;
+            }
+            .demo-table td:first-child {
+                border-top: 1px solid #e1edff;
+            }
+            .demo-table td:last-child{
+                border-bottom: 0;
+            }
+            caption {
+                caption-side: top;
+                margin-bottom: 10px;
+            }
+            
+            /* Table Header */
+            .demo-table thead th {
+                background-color: #508abb;
+                color: #FFFFFF;
+                border-color: #6ea1cc !important;
+                text-transform: uppercase;
+            }
+            
+            /* Table Body */
+            .demo-table tbody td {
+                color: #353535;
+            }
+            
+            .demo-table tbody tr:nth-child(odd) td {
+                background-color: #f4fbff;
+            }
+            .demo-table tbody tr:hover th,
+            .demo-table tbody tr:hover td {
+                background-color: #ffffa2;
+                border-color: #ffff0f;
+                transition: all .2s;
+            }
+        </style>
+            </head>
+            <body>
+                <div class="tittle mar">
+                    TES EMAIL,
+                </div>
+                <div class="tittle mar1">
+                    <div>TES EMAIL WEB OFR</div>
+                </div>
+                <div class="position">
+                    <table class="demo-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>NO.AJUAN</th>
+                                <th>COST CENTRE</th>
+                                <th>AREA</th>
+                                <th>NO.COA</th>
+                                <th>JENIS TRANSAKSI</th>
+                                <th>KETERANGAN TAMBAHAN</th>
+                                <th>TANGGAL AJUAN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <a href="http://ofr.pinusmerahabadi.co.id/">Klik link berikut untuk akses web ofr</a>
+                <div class="tittle foot">
+                    Terima kasih,
+                </div>
+                <div class="tittle foot1">
+                    Regards,
+                </div>
+                <div class="tittle">
+                    Admin
+                </div>
+            </body>
+            `
+      }
+      const sendEmail = await wrapMail.wrapedSendMail(mailOptions)
+      if (sendEmail) {
+        return response(res, 'success send email', { sendEmail })
+      } else {
+        return response(res, 'gagal kirim email', { sendEmail }, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getResmail: async (req, res) => {
+    try {
+      const name = req.user.name
+      const {
+        no,
+        draft
+      } = req.body
+      const dataDraft = draft.result
+      const findResmail = await resmail.findOne({
+        where: {
+          from: name,
+          no_transaksi: no,
+          [Op.and]: [
+            { type: { [Op.like]: `%${dataDraft.type}` } },
+            { menu: { [Op.like]: `%${dataDraft.menu}` } }
+          ]
+        }
+      })
+      if (findResmail) {
+        return response(res, 'success get resmail', { result: findResmail })
+      } else {
+        return response(res, 'failed get resmail', { result: findResmail })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

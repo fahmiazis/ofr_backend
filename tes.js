@@ -1,13 +1,14 @@
-const cekUn = (mtk, indo) => {
-  const total = mtk + indo
-  const avr = total / 2
-  let grade = ''
-  if (avr >= 90 && avr <= 100) {
-    grade = 'A'
-  } else if (avr >= 80 && avr < 90) {
-    grade = 'B'
-  }
-  console.log(total, avr, grade)
+const obj1 = {
+  a: 'somestring',
+  b: 42,
 }
+const obj2 = {  
+  a: 'somegood',
+  b: 43,
+};
+const comp = 'A'
+const str = 'somegood'
 
-cekUn(80, 85)
+const cek = Object.entries(obj1).map(item => {return item})
+
+console.log(cek)
