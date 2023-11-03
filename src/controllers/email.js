@@ -1530,7 +1530,18 @@ module.exports = {
             for (let i = 0; i < findData.length; i++) {
               const data = findData[i]
               const dateData = tipe === 'ikk' ? data.start_ikk : tipe === 'klaim' ? data.start_klaim : data.start_ops
-              const element = `
+              const element = tipe === 'vendor'
+                ? `
+                    <tr>
+                      <th>${i + 1}</th>
+                      <th>${findData[i].no_transaksi}</th>
+                      <th>${findData[i].kode_plant}</th>
+                      <th>${findData[i].nama}</th>
+                      <th>${findData[i].nik}</th>
+                      <th>${findData[i].npwp}</th>
+                      <th>${moment(dateData || moment()).format('DD MMMM YYYY')}</th>
+                    </tr>`
+                : `
                     <tr>
                       <th>${i + 1}</th>
                       <th>${findData[i].no_transaksi}</th>
@@ -1543,6 +1554,28 @@ module.exports = {
                     </tr>`
               tableTd = tableTd + element
             }
+            const tabletr = tipe === 'vendor'
+              ? `
+                <tr>
+                  <th>No</th>
+                  <th>NO.AJUAN</th>
+                  <th>KODE PLANT</th>
+                  <th>NAMA VENDOR</th>
+                  <th>NIK</th>
+                  <th>NO NPWP</th>
+                  <th>TANGGAL AJUAN</th>
+              </tr>`
+              : `
+                <tr>
+                  <th>No</th>
+                  <th>NO.AJUAN</th>
+                  <th>COST CENTRE</th>
+                  <th>AREA</th>
+                  <th>NO.COA</th>
+                  <th>JENIS TRANSAKSI</th>
+                  <th>KETERANGAN TAMBAHAN</th>
+                  <th>TANGGAL AJUAN</th>
+              </tr>`
             const mailOptions = {
               from: 'noreply_ofr@pinusmerahabadi.co.id',
               replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
@@ -1643,19 +1676,10 @@ module.exports = {
                       <div class="position">
                           <table class="demo-table">
                               <thead>
-                                  <tr>
-                                      <th>No</th>
-                                      <th>NO.AJUAN</th>
-                                      <th>COST CENTRE</th>
-                                      <th>AREA</th>
-                                      <th>NO.COA</th>
-                                      <th>JENIS TRANSAKSI</th>
-                                      <th>KETERANGAN TAMBAHAN</th>
-                                      <th>TANGGAL AJUAN</th>
-                                  </tr>
+                                  ${tabletr}
                               </thead>
                               <tbody>
-                              ${tableTd}
+                                ${tableTd}
                               </tbody>
                           </table>
                       </div>

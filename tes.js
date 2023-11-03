@@ -1,14 +1,11 @@
-const obj1 = {
-  a: 'somestring',
-  b: 42,
-}
-const obj2 = {  
-  a: 'somegood',
-  b: 43,
-};
-const comp = 'A'
-const str = 'somegood'
+const ppu = '6123456789'
+const pa = '0123456789012345'
+const vendor = 'V100100100'
 
-const cek = Object.entries(obj1).map(item => {return item})
+// PPU :  (10 digit number)
+// PA :  (16 digit number)
+// No Vendor :  (10 digit komibanasi number dan text)
 
-console.log(cek)
+console.log(ppu.length)
+console.log(pa.length)
+console.log(vendor.length)

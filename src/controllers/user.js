@@ -1,6 +1,6 @@
 const joi = require('joi')
 const response = require('../helpers/response')
-const { user, role, depo } = require('../models')
+const { user, role, depo, ttd, approve } = require('../models')
 const bcrypt = require('bcryptjs')
 const { Op } = require('sequelize')
 const { pagination } = require('../helpers/pagination')
@@ -659,6 +659,7 @@ module.exports = {
       const level = req.user.level
       const schema = joi.object({
         name: joi.string().required(),
+        fullname: joi.string().required(),
         level: joi.string().required(),
         type: joi.string().required()
       })
@@ -705,13 +706,26 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
+  getDetailRole: async (req, res) => {
+    try {
+      const id = req.params.id
+      const result = await role.findByPk(id)
+      if (result) {
+        return response(res, `Profile of role with id ${id}`, { result })
+      } else {
+        return response(res, 'fail to get role', {}, 400, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
   updateRole: async (req, res) => {
     try {
       const level = req.user.level
       const id = req.params.id
       const schema = joi.object({
         name: joi.string().required(),
-        level: joi.string().required(),
+        fullname: joi.string().required(),
         type: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
@@ -721,10 +735,7 @@ module.exports = {
         if (level === 1) {
           const result = await role.findAll({
             where: {
-              [Op.or]: [
-                { name: results.name },
-                { level: results.level }
-              ],
+              name: results.name,
               [Op.not]: { id: id }
             }
           })
@@ -732,10 +743,51 @@ module.exports = {
             return response(res, 'role or level already exist', {}, 404, false)
           } else {
             const findRole = await role.findByPk(id)
+            const findRoleUp = await role.findByPk(id)
             if (findRole) {
-              const result = await findRole.update(results)
+              const result = await findRoleUp.update(results)
               if (result) {
-                return response(res, 'Add Role succesfully', { result })
+                const findTtd = await ttd.findAll({
+                  where: {
+                    jabatan: findRole.name
+                  }
+                })
+                const findApp = await approve.findAll({
+                  where: {
+                    jabatan: findRole.name
+                  }
+                })
+                if (findTtd.length > 0 || findApp.length > 0) {
+                  const temp = []
+                  const hasil = []
+                  for (let i = 0; i < findTtd.length; i++) {
+                    const findData = await ttd.findByPk(findTtd[i].id)
+                    const upData = {
+                      jabatan: results.name
+                    }
+                    if (findData) {
+                      await findData.update(upData)
+                      temp.push(1)
+                    }
+                  }
+                  for (let i = 0; i < findApp.length; i++) {
+                    const findData = await approve.findByPk(findApp[i].id)
+                    const upData = {
+                      jabatan: results.name
+                    }
+                    if (findData) {
+                      await findData.update(upData)
+                      hasil.push(1)
+                    }
+                  }
+                  if (temp.length || hasil.length) {
+                    return response(res, 'update Role succesfully good', { result, findTtd, findApp, findRole })
+                  } else {
+                    return response(res, 'update Role succesfully wut', { result, findTtd, findApp, findRole })
+                  }
+                } else {
+                  return response(res, 'update Role succesfully bad', { result, findTtd, findApp, findRole })
+                }
               } else {
                 return response(res, 'Fail to create role', {}, 400, false)
               }

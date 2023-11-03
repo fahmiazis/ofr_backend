@@ -1,4 +1,4 @@
-const { coa, veriftax, depo } = require('../models')
+const { coa, veriftax, finance } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -209,16 +209,17 @@ module.exports = {
       const listPma = [52010402, 524112, 55050009, 548519, 63050009, 52010401, 524111]
       const listKasbon = [54010201, 55010102, 55030001, 55030002, 55010302]
       if (tipe === 'ikk') {
-        const findDepo = await depo.findOne({
+        const findDepo = await finance.findOne({
           where: {
             kode_plant: { [Op.like]: `%${kode}` }
           }
         })
         if (findDepo) {
+          const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
           const findTarif = await veriftax.findAll({
             where: {
               [Op.and]: [
-                { system: { [Op.like]: `%${findDepo.status_area}` } },
+                { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: { [Op.like]: '%NON KASBON' } }
               ]
             },
@@ -227,7 +228,7 @@ module.exports = {
           if (findTarif.length > 0) {
             const findAllTarif = await veriftax.findAll({
               where: {
-                system: { [Op.like]: `%${findDepo.status_area}` }
+                system: { [Op.like]: `%${cekLive}` }
               }
             })
             if (findAllTarif.length > 0) {
@@ -271,22 +272,23 @@ module.exports = {
           return response(res, 'failed get tarif3', {}, 404, false)
         }
       } else if (tipe === 'ops') {
-        const findDepo = await depo.findOne({
+        const findDepo = await finance.findOne({
           where: {
             kode_plant: { [Op.like]: `%${kode}` }
           }
         })
         if (findDepo) {
+          const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
           const findTarif = await veriftax.findAll({
             where: {
-              system: { [Op.like]: `%${findDepo.status_area}` }
+              system: { [Op.like]: `%${cekLive}` }
             },
             group: ['gl_account']
           })
           if (findTarif.length > 0) {
             const findAllTarif = await veriftax.findAll({
               where: {
-                system: { [Op.like]: `%${findDepo.status_area}` }
+                system: { [Op.like]: `%${cekLive}` }
               }
             })
             if (findAllTarif.length > 0) {

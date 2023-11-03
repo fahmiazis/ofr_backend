@@ -991,6 +991,10 @@ module.exports = {
               include: [{ model: kpp, as: 'kpp' }]
             },
             {
+              model: veriftax,
+              as: 'veriftax'
+            },
+            {
               model: kliring,
               as: 'kliring'
             },
@@ -1093,6 +1097,10 @@ module.exports = {
                   include: [{ model: kpp, as: 'kpp' }]
                 },
                 {
+                  model: veriftax,
+                  as: 'veriftax'
+                },
+                {
                   model: kliring,
                   as: 'kliring'
                 },
@@ -1187,6 +1195,10 @@ module.exports = {
               include: [{ model: kpp, as: 'kpp' }]
             },
             {
+              model: veriftax,
+              as: 'veriftax'
+            },
+            {
               model: kliring,
               as: 'kliring'
             },
@@ -1243,6 +1255,10 @@ module.exports = {
               include: [{ model: kpp, as: 'kpp' }]
             },
             {
+              model: veriftax,
+              as: 'veriftax'
+            },
+            {
               model: kliring,
               as: 'kliring'
             },
@@ -1280,6 +1296,10 @@ module.exports = {
               model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
+            },
+            {
+              model: veriftax,
+              as: 'veriftax'
             },
             {
               model: kliring,
@@ -1328,6 +1348,10 @@ module.exports = {
             include: [{ model: kpp, as: 'kpp' }]
           },
           {
+            model: veriftax,
+            as: 'veriftax'
+          },
+          {
             model: kliring,
             as: 'kliring'
           },
@@ -1373,6 +1397,10 @@ module.exports = {
               model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
+            },
+            {
+              model: veriftax,
+              as: 'veriftax'
             },
             {
               model: finance,
@@ -2880,6 +2908,10 @@ module.exports = {
               include: [{ model: kpp, as: 'kpp' }]
             },
             {
+              model: veriftax,
+              as: 'veriftax'
+            },
+            {
               model: finance,
               as: 'finance'
             },
@@ -2983,6 +3015,10 @@ module.exports = {
                   include: [{ model: kpp, as: 'kpp' }]
                 },
                 {
+                  model: veriftax,
+                  as: 'veriftax'
+                },
+                {
                   model: finance,
                   as: 'finance'
                 },
@@ -3076,6 +3112,10 @@ module.exports = {
               model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }]
+            },
+            {
+              model: veriftax,
+              as: 'veriftax'
             },
             {
               model: finance,
@@ -3300,6 +3340,10 @@ module.exports = {
             include: [{ model: kpp, as: 'kpp' }]
           },
           {
+            model: veriftax,
+            as: 'veriftax'
+          },
+          {
             model: kliring,
             as: 'kliring'
           },
@@ -3412,6 +3456,10 @@ module.exports = {
             model: finance,
             as: 'depo',
             include: [{ model: kpp, as: 'kpp' }]
+          },
+          {
+            model: veriftax,
+            as: 'veriftax'
           },
           {
             model: kliring,
