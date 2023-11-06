@@ -4,8 +4,11 @@ const { Op } = require('sequelize')
 const response = require('../helpers/response')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
+const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
+const uploadMaster = require('../helpers/uploadMaster')
+const fs = require('fs')
 const access = [10, 11, 12, 2, 7, 8, 9]
 const accKlaim = [3, 13, 23]
 
@@ -2717,5 +2720,138 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  uploadDataKlaim: async (req, res) => {
+    // const level = req.user.level
+    uploadMaster(req, res, async function (err) {
+      try {
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length === 0) {
+            console.log(err.code === 'LIMIT_UNEXPECTED_FILE' && req.files.length > 0)
+            return response(res, 'fieldname doesnt match', {}, 500, false)
+          }
+          return response(res, err.message, {}, 500, false)
+        } else if (err) {
+          return response(res, err.message, {}, 401, false)
+        }
+        const dokumen = `assets/masters/${req.files[0].filename}`
+        const rows = await readXlsxFile(dokumen)
+        const count = []
+        const cek = [
+          'NO AJUAN',
+          'PPU',
+          'PA',
+          'KODE VENDOR',
+          'NOMINAL VERIFIKASI',
+          'NO COA',
+          'NAMA COA',
+          'TGL AJUAN',
+          'NILAI YANG DIAJUKAN',
+          'DN AREA'
+        ]
+        const valid = rows[0]
+        for (let i = 0; i < cek.length; i++) {
+          if (valid[i] === cek[i]) {
+            count.push(1)
+          }
+        }
+        if (count.length === cek.length) {
+          const plant = []
+          const userName = []
+          const cekData = []
+          for (let i = 1; i < rows.length; i++) {
+            const a = rows[i]
+            cekData.push(`${a[0]}`)
+          }
+          const object = {}
+          const result = []
+          const obj = {}
+
+          userName.forEach(item => {
+            if (!obj[item]) { obj[item] = 0 }
+            obj[item] += 1
+          })
+
+          for (const prop in obj) {
+            if (obj[prop] >= 2) {
+              result.push(prop)
+            }
+          }
+
+          plant.forEach(item => {
+            if (!object[item]) { object[item] = 0 }
+            object[item] += 1
+          })
+
+          for (const prop in object) {
+            if (object[prop] >= 2) {
+              result.push(prop)
+            }
+          }
+          if (result.length > 0) {
+            return response(res, 'there is duplication in your file master', { result }, 404, false)
+          } else {
+            rows.shift()
+            const create = []
+            for (let i = 0; i < rows.length; i++) {
+              const noun = []
+              const process = rows[i]
+              for (let j = 0; j < process.length + 1; j++) {
+                noun.push(process[j])
+              }
+              create.push(noun)
+            }
+            if (create.length > 0) {
+              const arr = []
+              for (let i = 0; i < create.length; i++) {
+                const dataKlaim = create[i]
+                const data = {
+                  ppu: dataKlaim[1],
+                  pa: dataKlaim[2],
+                  kode_vendor: dataKlaim[3],
+                  nominal: dataKlaim[4]
+                }
+                const findKlaim = await klaim.findOne({
+                  where: {
+                    no_transaksi: dataKlaim[0]
+                  }
+                })
+                if (findKlaim.status_transaksi === 4) {
+                  const upUser = await findKlaim.update(data)
+                  if (upUser) {
+                    arr.push(upUser)
+                  }
+                } else {
+                  arr.push(findKlaim)
+                }
+              }
+              if (arr.length) {
+                fs.unlink(dokumen, function (err) {
+                  if (err) throw err
+                  console.log('success delete file')
+                })
+                return response(res, 'successfully upload file master')
+              } else {
+                fs.unlink(dokumen, function (err) {
+                  if (err) throw err
+                  console.log('success delete file')
+                })
+                return response(res, 'failed to upload file', {}, 404, false)
+              }
+            } else {
+              return response(res, 'failed to upload file', {}, 404, false)
+            }
+          }
+        } else {
+          fs.unlink(dokumen, function (err) {
+            if (err) throw err
+            console.log('success delete file')
+          })
+          return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
+        }
+      } catch (error) {
+        return response(res, error.message, {}, 500, false)
+      }
+    })
   }
 }

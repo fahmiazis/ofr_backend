@@ -1,4 +1,4 @@
-const { pagu, depo } = require('../models')
+const { pagu, finance } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -197,22 +197,13 @@ module.exports = {
   getPagu: async (req, res) => {
     try {
       const kode = req.user.kode
-      const findDepo = await depo.findOne({
+      const findDepo = await finance.findOne({
         where: {
           kode_plant: { [Op.like]: `%${kode}` }
         }
       })
       if (findDepo) {
-        const findPagu = await pagu.findOne({
-          where: {
-            profit_center: { [Op.like]: `%${findDepo.profit_center}` }
-          }
-        })
-        if (findPagu) {
-          return response(res, 'succes get tarif', { result: findPagu })
-        } else {
-          return response(res, 'failed get tarif', {}, 404, false)
-        }
+        return response(res, 'succes get tarif', { result: findDepo })
       } else {
         return response(res, 'failed get tarif', {}, 404, false)
       }
