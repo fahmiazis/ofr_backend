@@ -277,19 +277,16 @@ module.exports = {
           return response(res, 'failed get rekening', {}, 404, false)
         }
       } else {
+        console.log(kode)
         const findRek = await finance.findAll({
           where: {
-            kode_plant: { [Op.like]: `%${kode}%` }
-          },
-          include: [{
-            model: depo,
-            as: 'depo'
-          }]
+            kode_plant: kode
+          }
         })
         if (findRek.length > 0) {
           return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
         } else {
-          return response(res, 'failed get rekening', {}, 404, false)
+          return response(res, 'failed get rekeningsss', {}, 404, false)
         }
       }
     } catch (error) {
@@ -386,7 +383,7 @@ module.exports = {
       const kode = req.user.kode
       const cost = req.user.name
       if (level === 5 || level === 9) {
-        const result = await depo.findOne({ where: { kode_plant: level === 5 ? kode : cost } })
+        const result = await finance.findOne({ where: { kode_plant: level === 5 ? kode : cost } })
         if (result) {
           return response(res, 'succes get detail depo', { result })
         } else {

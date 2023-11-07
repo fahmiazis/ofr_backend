@@ -534,9 +534,11 @@ module.exports = {
                     const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
                     tipeStat = cekData === 'ya' ? 2 : 4
                   }
-                } else {
+                } else if (jenis === 'ikk') {
                   const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
                   tipeStat = cekData === 'ya' ? 2 : 4
+                } else {
+                  tipeStat = statVerif
                 }
               } else {
                 tipeStat = statVerif
