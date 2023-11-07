@@ -2363,9 +2363,7 @@ module.exports = {
               { pic_finance: level === 2 ? name : 'undefined' },
               { spv_finance: level === 7 ? name : 'undefined' },
               { asman_finance: level === 8 ? name : 'undefined' },
-              { manager_finance: level === 9 ? name : 'undefined' },
-              { pic_klaim: level === 3 ? name : 'undefined' },
-              { manager_klaim: level === 13 ? name : 'undefined' }
+              { manager_finance: level === 9 ? name : 'undefined' }
             ]
           }
         })
@@ -2447,6 +2445,131 @@ module.exports = {
           } else {
             const result = hasil
             return response(res, 'success get klaim', { result })
+          }
+        } else {
+          return response(res, 'failed get klaim', {}, 400, false)
+        }
+      } else if (accKlaim.find(item => item === level)) {
+        const findPic = await spvklaim.findAll({
+          where: {
+            [Op.or]: [
+              { pic_klaim: level === 3 ? name : 'undefined' },
+              { spv_klaim: level === 23 ? name : 'undefined' },
+              { manager_klaim: level === 13 ? name : 'undefined' }
+            ]
+          }
+        })
+        if (findPic.length > 0) {
+          const tempDepo = []
+          for (let i = 0; i < findPic.length; i++) {
+            const findData = await picklaim.findAll({
+              where: {
+                [Op.or]: [
+                  { ksni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { nni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { nsi: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { mas: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { mcp: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { simba: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { lotte: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { mun: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { eiti: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { edot: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                  { meiji: { [Op.like]: `%${findPic[i].pic_klaim}%` } }
+                ]
+              }
+            })
+            if (findData.length > 0) {
+              for (let j = 0; j < findData.length; j++) {
+                tempDepo.push(findData[j].kode_plant)
+              }
+            }
+          }
+          const cekDepo = new Set(tempDepo)
+          const findDepo = [...cekDepo]
+          if (findDepo.length > 0) {
+            const hasil = []
+            for (let i = 0; i < findDepo.length; i++) {
+              const result = await klaim.findAll({
+                where: {
+                  kode_plant: findDepo[i],
+                  [Op.and]: [
+                    statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                    statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                    statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                    timeVal1 === 'all'
+                      ? { [Op.not]: { id: null } }
+                      : {
+                          tanggal_transfer: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        }
+                  ],
+                  [Op.or]: [
+                    { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                    { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                    { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                    { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                    { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                    { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                    { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                    { nama_program: { [Op.like]: `%${searchValue}%` } },
+                    { area: { [Op.like]: `%${searchValue}%` } },
+                    { cost_center: { [Op.like]: `%${searchValue}%` } },
+                    { no_coa: { [Op.like]: `%${searchValue}%` } },
+                    { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                    { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                    { keterangan: { [Op.like]: `%${searchValue}%` } },
+                    { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                    { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                  ]
+                },
+                order: [
+                  ['start_klaim', 'DESC'],
+                  [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                  [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                ],
+                include: [
+                  {
+                    model: ttd,
+                    as: 'appForm'
+                  },
+                  {
+                    model: ttd,
+                    as: 'appList'
+                  },
+                  {
+                    model: finance,
+                    as: 'depo'
+                  },
+                  {
+                    model: picklaim,
+                    as: 'picklaim'
+                  },
+                  {
+                    model: finance,
+                    as: 'finance'
+                  }
+                ]
+              })
+              if (result.length > 0) {
+                for (let j = 0; j < result.length; j++) {
+                  hasil.push(result[j])
+                }
+              }
+            }
+            // const cekHasil = new Set(hasil)
+            // const findHasil = [...cekHasil]
+            if (hasil.length > 0) {
+              const result = hasil
+              return response(res, 'success get klaim', { result, findDepo })
+            } else {
+              const result = hasil
+              return response(res, 'success get klaim', { result, findDepo })
+            }
+          } else {
+            return response(res, 'success get klaim', { result: [] })
           }
         } else {
           return response(res, 'failed get klaim', {}, 400, false)
@@ -2802,41 +2925,72 @@ module.exports = {
               create.push(noun)
             }
             if (create.length > 0) {
-              const arr = []
+              const cekData = []
+              const mesData = []
               for (let i = 0; i < create.length; i++) {
                 const dataKlaim = create[i]
-                const data = {
-                  ppu: dataKlaim[1],
-                  pa: dataKlaim[2],
-                  kode_vendor: dataKlaim[3],
-                  nominal: dataKlaim[4]
-                }
-                const findKlaim = await klaim.findOne({
-                  where: {
-                    no_transaksi: dataKlaim[0]
-                  }
-                })
-                if (findKlaim.status_transaksi === 4) {
-                  const upUser = await findKlaim.update(data)
-                  if (upUser) {
-                    arr.push(upUser)
-                  }
-                } else {
-                  arr.push(findKlaim)
+                const ppu = dataKlaim[1]
+                const pa = dataKlaim[2]
+                const kodeVendor = dataKlaim[3]
+                const nominal = dataKlaim[4]
+
+                const dataPpu = ppu.toString().length !== 10 || typeof parseInt(ppu) !== 'number' ? { no_transaksi: dataKlaim[0], mess: 'Pastikan PPU Diisi dengan Sesuai' } : null
+                const dataPa = pa.toString().length !== 16 || typeof parseInt(pa) !== 'number' ? { no_transaksi: dataKlaim[0], mess: 'Pastikan  PA Diisi dengan Sesuai' } : null
+                const dataVendor = kodeVendor.toString().length !== 10 ? { no_transaksi: dataKlaim[0], mess: 'Pastikan Kode Vendor Diisi dengan Sesuai' } : null
+                const dataNominal = typeof parseInt(nominal) !== 'number' ? { no_transaksi: dataKlaim[0], mess: 'Pastikan Nominal Diisi dengan Sesuai' } : null
+                if (dataPpu !== null || dataPa !== null || dataVendor !== null || dataNominal !== null) {
+                  const mesTemp = [dataPpu, dataPa, dataVendor, dataNominal]
+                  mesData.push(mesTemp)
+                  cekData.push(dataKlaim)
                 }
               }
-              if (arr.length) {
+              if (cekData.length > 0) {
                 fs.unlink(dokumen, function (err) {
                   if (err) throw err
                   console.log('success delete file')
                 })
-                return response(res, 'successfully upload file master')
+                return response(res, 'failed upload file master', { result: cekData, message: mesData })
               } else {
-                fs.unlink(dokumen, function (err) {
-                  if (err) throw err
-                  console.log('success delete file')
-                })
-                return response(res, 'failed to upload file', {}, 404, false)
+                const arr = []
+                for (let i = 0; i < create.length; i++) {
+                  const dataKlaim = create[i]
+                  const ppu = dataKlaim[1]
+                  const pa = dataKlaim[2]
+                  const kodeVendor = dataKlaim[3]
+                  const nominal = dataKlaim[4]
+                  const data = {
+                    ppu: ppu,
+                    pa: pa,
+                    kode_vendor: kodeVendor,
+                    nominal: nominal
+                  }
+                  const findKlaim = await klaim.findOne({
+                    where: {
+                      no_transaksi: dataKlaim[0]
+                    }
+                  })
+                  if (findKlaim.status_transaksi === 4) {
+                    const upUser = await findKlaim.update(data)
+                    if (upUser) {
+                      arr.push(upUser)
+                    }
+                  } else {
+                    arr.push(findKlaim)
+                  }
+                }
+                if (arr.length) {
+                  fs.unlink(dokumen, function (err) {
+                    if (err) throw err
+                    console.log('success delete file')
+                  })
+                  return response(res, 'successfully upload file master', { result: arr, message: mesData })
+                } else {
+                  fs.unlink(dokumen, function (err) {
+                    if (err) throw err
+                    console.log('success delete file')
+                  })
+                  return response(res, 'failed to upload file', {}, 404, false)
+                }
               }
             } else {
               return response(res, 'failed to upload file', {}, 404, false)

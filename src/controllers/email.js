@@ -1,4 +1,4 @@
-const { resmail, email, ttd, role, finance, user, ops, klaim, ikk, vervendor } = require('../models')
+const { resmail, picklaim, email, ttd, role, finance, user, ops, klaim, ikk, vervendor } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -154,6 +154,7 @@ module.exports = {
     try {
       const name = req.user.name
       const level = req.user.level
+      const accKlaim = [3, 13, 23]
       const { no, kode, tipe, menu, jenis, typeReject } = req.body
       const transaksi = jenis === 'ikk' ? ikk : jenis === 'klaim' ? klaim : jenis === 'vendor' ? vervendor : ops
       const statVerif = (jenis === 'ikk' || jenis === 'ops') && level === 2
@@ -172,6 +173,11 @@ module.exports = {
           kode_plant: kode
         }
       })
+      const findPic = await picklaim.findOne({
+        where: {
+          kode_plant: kode
+        }
+      })
       const findTrans = await transaksi.findOne({
         where: {
           no_transaksi: no
@@ -182,7 +188,7 @@ module.exports = {
           no_transaksi: no
         }
       })
-      if (findRole && findDepo && findTrans && findAllTrans.length > 0) {
+      if (findRole && findDepo && findPic && findTrans && findAllTrans.length > 0) {
         const listName = Object.values(findDepo.dataValues)
         if (tipe === 'approve') {
           const findApp = await ttd.findAll({
@@ -518,8 +524,20 @@ module.exports = {
               let noLevel = null
               let tipeStat = null
               if (statVerif === 4) {
-                const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                tipeStat = cekData === 'ya' ? 2 : 4
+                if (jenis === 'ops') {
+                  const cekKasbon = findAllTrans.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
+                  if (cekKasbon !== undefined) {
+                    const cekPph = findAllTrans.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+                    const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+                    tipeStat = (cekData === 'ya' && cekPph === 'ya') ? 2 : 4
+                  } else {
+                    const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+                    tipeStat = cekData === 'ya' ? 2 : 4
+                  }
+                } else {
+                  const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+                  tipeStat = cekData === 'ya' ? 2 : 4
+                }
               } else {
                 tipeStat = statVerif
               }
@@ -548,9 +566,19 @@ module.exports = {
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
-                    const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
-                      toMail = findUser[i]
+                    if (accKlaim.find(item => item === noLevel.level)) {
+                      const namePic = findUser[i].fullname
+                      const dataPic = findPic.dataValues
+                      const agr1 = dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()
+                      const agr2 = namePic.toLowerCase()
+                      if (agr1 === agr2) {
+                        toMail = findUser[i]
+                      }
+                    } else {
+                      const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
+                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                        toMail = findUser[i]
+                      }
                     }
                   }
                   if (toMail !== null) {
@@ -560,7 +588,7 @@ module.exports = {
                       return response(res, 'failed get email 2', { toMail }, 404, false)
                     }
                   } else {
-                    return response(res, 'failed get email 1 king', { toMail, findUser, listName }, 404, false)
+                    return response(res, 'failed get email 11 king', { toMail, findUser, listName }, 404, false)
                   }
                 } else {
                   return response(res, 'failed get email 0', { findUser }, 404, false)
@@ -692,7 +720,7 @@ module.exports = {
                       return response(res, 'failed get email 2', { toMail }, 404, false)
                     }
                   } else {
-                    return response(res, 'failed get email 1 king', { toMail, findUser, listName }, 404, false)
+                    return response(res, 'failed get email 12 king', { toMail, findUser, listName }, 404, false)
                   }
                 } else {
                   return response(res, 'failed get email 0', { findUser }, 404, false)
@@ -820,7 +848,7 @@ module.exports = {
                       return response(res, 'failed get email 2', { toMail }, 404, false)
                     }
                   } else {
-                    return response(res, 'failed get email 1 king', { toMail, findUser, listName }, 404, false)
+                    return response(res, 'failed get email 13 king', { toMail, findUser, listName }, 404, false)
                   }
                 } else {
                   return response(res, 'failed get email 0', { findUser }, 404, false)
@@ -1156,7 +1184,7 @@ module.exports = {
                       return response(res, 'failed get email 2', { toMail }, 404, false)
                     }
                   } else {
-                    return response(res, 'failed get email 1 king', { toMail, findUser, listName }, 404, false)
+                    return response(res, 'failed get email 14 king', { toMail, findUser, listName }, 404, false)
                   }
                 } else {
                   return response(res, 'failed get email 0', { findUser }, 404, false)
@@ -1285,7 +1313,7 @@ module.exports = {
                     return response(res, 'failed get email 2', { toMail }, 404, false)
                   }
                 } else {
-                  return response(res, 'failed get email 1 king', { toMail, findUser, listName }, 404, false)
+                  return response(res, 'failed get email 15 king', { toMail, findUser, listName }, 404, false)
                 }
               } else {
                 return response(res, 'failed get email 0', { findUser }, 404, false)

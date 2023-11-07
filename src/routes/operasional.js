@@ -19,7 +19,9 @@ route.patch('/apprev', ops.appRevisi)
 route.patch('/update/:id/:idtrans', ops.editOps)
 route.patch('/subrev', ops.submitRevisi)
 route.patch('/verif', ops.submitVerif)
+
 route.patch('/realisasi', ops.submitRealisasi)
+
 route.patch('/editvrf/:id', ops.updateDataVerif)
 route.patch('/confident/:id', ops.confirmNewIdent)
 route.patch('/subbayar', ops.submitAjuanBayar)

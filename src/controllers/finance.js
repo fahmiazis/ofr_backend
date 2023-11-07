@@ -382,11 +382,23 @@ module.exports = {
   getDetailFinance: async (req, res) => {
     try {
       const id = req.params.id
-      const findFinance = await finance.findByPk(id)
-      if (findFinance) {
-        return response(res, 'succes get detail finance', { result: findFinance })
+      const level = req.user.level
+      const kode = req.user.kode
+      const cost = req.user.name
+      if (level === 5 || level === 9) {
+        const result = await depo.findOne({ where: { kode_plant: level === 5 ? kode : cost } })
+        if (result) {
+          return response(res, 'succes get detail depo', { result })
+        } else {
+          return response(res, 'failed get detail depo', {}, 404, false)
+        }
       } else {
-        return response(res, 'failed get finance', {}, 404, false)
+        const findFinance = await finance.findByPk(id)
+        if (findFinance) {
+          return response(res, 'succes get detail finance', { result: findFinance })
+        } else {
+          return response(res, 'failed get finance', {}, 404, false)
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

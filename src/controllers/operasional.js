@@ -2693,23 +2693,45 @@ module.exports = {
               }
             })
             if (findOps.length > 0) {
-              const temp = []
-              const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-              const resData = level === 2 && cekData === 'ya' ? 5 : 4
-              // const resData = 5
-              for (let j = 0; j < findOps.length; j++) {
-                const findRes = await ops.findByPk(findOps[j].id)
-                if (findRes) {
-                  const data = {
-                    status_transaksi: level === 2 ? resData : 5,
-                    status_reject: null,
-                    isreject: null,
-                    tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
-                    tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
-                    history: `${findOps[j].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} pengajuan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+              const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
+              if (cekKasbon !== undefined) {
+                const cekPph = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+                const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+                const resData = level === 2 && (cekData === 'ya' && cekPph === 'ya') ? 5 : 4
+                // const resData = 5
+                for (let j = 0; j < findOps.length; j++) {
+                  const findRes = await ops.findByPk(findOps[j].id)
+                  if (findRes) {
+                    const data = {
+                      status_transaksi: level === 2 ? resData : 5,
+                      status_reject: null,
+                      isreject: null,
+                      tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                      tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
+                      history: `${findOps[j].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} pengajuan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                    }
+                    await findRes.update(data)
+                    temp.push(findRes)
                   }
-                  await findRes.update(data)
-                  temp.push(findRes)
+                }
+              } else {
+                const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+                const resData = level === 2 && cekData === 'ya' ? 5 : 4
+                // const resData = 5
+                for (let j = 0; j < findOps.length; j++) {
+                  const findRes = await ops.findByPk(findOps[j].id)
+                  if (findRes) {
+                    const data = {
+                      status_transaksi: level === 2 ? resData : 5,
+                      status_reject: null,
+                      isreject: null,
+                      tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                      tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
+                      history: `${findOps[j].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} pengajuan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                    }
+                    await findRes.update(data)
+                    temp.push(findRes)
+                  }
                 }
               }
             }
@@ -2726,28 +2748,56 @@ module.exports = {
             }
           })
           if (findOps.length > 0) {
-            const temp = []
-            const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-            const resData = level === 2 && cekData === 'ya' ? 5 : 4
-            for (let i = 0; i < findOps.length; i++) {
-              const findRes = await ops.findByPk(findOps[i].id)
-              if (findRes) {
-                const data = {
-                  status_transaksi: level === 2 ? resData : 5,
-                  status_reject: null,
-                  isreject: null,
-                  tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
-                  tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
-                  history: `${findOps[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} pengajuan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+            const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
+            if (cekKasbon !== undefined) {
+              const temp = []
+              const cekPph = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
+              const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+              const resData = level === 2 && (cekData === 'ya' && cekPph === 'ya') ? 5 : 4
+              for (let i = 0; i < findOps.length; i++) {
+                const findRes = await ops.findByPk(findOps[i].id)
+                if (findRes) {
+                  const data = {
+                    status_transaksi: level === 2 ? resData : 5,
+                    status_reject: null,
+                    isreject: null,
+                    tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                    tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
+                    history: `${findOps[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} pengajuan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                  }
+                  await findRes.update(data)
+                  temp.push(findRes)
                 }
-                await findRes.update(data)
-                temp.push(findRes)
               }
-            }
-            if (temp.length > 0) {
-              return response(res, 'success verifikasi ops', { cekData, resData })
+              if (temp.length > 0) {
+                return response(res, 'success verifikasi ops', { cekData, resData })
+              } else {
+                return response(res, 'success verifikasi ops', { cekData, resData })
+              }
             } else {
-              return response(res, 'success verifikasi ops', { cekData, resData })
+              const temp = []
+              const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+              const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              for (let i = 0; i < findOps.length; i++) {
+                const findRes = await ops.findByPk(findOps[i].id)
+                if (findRes) {
+                  const data = {
+                    status_transaksi: level === 2 ? resData : 5,
+                    status_reject: null,
+                    isreject: null,
+                    tgl_veriffin: level === 2 ? moment() : findRes.tgl_veriffin,
+                    tgl_veriftax: level !== 2 ? moment() : findRes.tgl_veriftax,
+                    history: `${findOps[i].history}, verifikasi ${level === 2 ? 'finance' : 'tax'} pengajuan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                  }
+                  await findRes.update(data)
+                  temp.push(findRes)
+                }
+              }
+              if (temp.length > 0) {
+                return response(res, 'success verifikasi ops', { cekData, resData })
+              } else {
+                return response(res, 'success verifikasi ops', { cekData, resData })
+              }
             }
           } else {
             return response(res, 'failed submit verifikasi ops', {}, 404, false)
