@@ -245,29 +245,41 @@ module.exports = {
       } else if (tipe === 'kasbon') {
         const dataAll = []
         const data = []
-        for (let i = 0; i < listKasbon.length; i++) {
-          const findTarif = await veriftax.findAll({
-            where: {
-              gl_account: { [Op.like]: `%${listKasbon[i]}` }
-            },
-            group: ['gl_account']
-          })
-          if (findTarif.length > 0) {
-            const findAllTarif = await veriftax.findAll({
+        const findDepo = await finance.findOne({
+          where: {
+            kode_plant: { [Op.like]: `%${kode}` }
+          }
+        })
+        if (findDepo) {
+          const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
+          for (let i = 0; i < listKasbon.length; i++) {
+            const findTarif = await veriftax.findAll({
               where: {
-                gl_account: { [Op.like]: `%${listKasbon[i]}` }
-              }
+                gl_account: { [Op.like]: `%${listKasbon[i]}` },
+                system: { [Op.like]: `%${cekLive}` }
+              },
+              group: ['gl_account']
             })
-            if (findAllTarif.length > 0) {
-              data.push(findTarif[0])
-              for (let j = 0; j < findAllTarif.length; j++) {
-                dataAll.push(findAllTarif[j])
+            if (findTarif.length > 0) {
+              const findAllTarif = await veriftax.findAll({
+                where: {
+                  gl_account: { [Op.like]: `%${listKasbon[i]}` },
+                  system: { [Op.like]: `%${cekLive}` }
+                }
+              })
+              if (findAllTarif.length > 0) {
+                data.push(findTarif[0])
+                for (let j = 0; j < findAllTarif.length; j++) {
+                  dataAll.push(findAllTarif[j])
+                }
               }
             }
           }
-        }
-        if (dataAll.length > 0) {
-          return response(res, 'succes get tarif', { result: data, length: dataAll, listGl, listPma })
+          if (dataAll.length > 0) {
+            return response(res, 'succes get tarif', { result: data, length: dataAll, listGl, listPma })
+          } else {
+            return response(res, 'failed get tarif3', {}, 404, false)
+          }
         } else {
           return response(res, 'failed get tarif3', {}, 404, false)
         }

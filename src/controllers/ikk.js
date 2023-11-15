@@ -1,4 +1,4 @@
-const { ikk, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir, kliring, kpp, taxcode } = require('../models')
+const { ikk, glikk, docuser, approve, ttd, role, document, veriftax, faktur, finance, reservoir, kliring, kpp, taxcode } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -7,7 +7,6 @@ const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
 const access = [10, 11, 12, 2, 7, 8, 9, 4, 14]
-const axios = require('axios')
 
 module.exports = {
   addCart: async (req, res) => {
@@ -988,7 +987,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1094,7 +1093,7 @@ module.exports = {
                 {
                   model: finance,
                   as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }]
+                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
                 },
                 {
                   model: veriftax,
@@ -1192,7 +1191,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1252,7 +1251,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1295,7 +1294,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1345,7 +1344,7 @@ module.exports = {
           {
             model: finance,
             as: 'depo',
-            include: [{ model: kpp, as: 'kpp' }]
+            include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
           },
           {
             model: veriftax,
@@ -1396,7 +1395,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1757,34 +1756,113 @@ module.exports = {
             const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
             for (let i = 0; i < findIkk.length; i++) {
               const listId = results.list
-              if (listId.find(e => e === findIkk[i].id)) {
-                const send = {
-                  status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
-                  status_reject: 1,
-                  isreject: 1,
-                  reason: results.alasan,
-                  menu_rev: results.menu,
-                  people_reject: level,
-                  history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
-                }
-                const findRes = await ikk.findByPk(findIkk[i].id)
-                if (findRes) {
-                  await findRes.update(send)
-                  temp.push(1)
+              if (typeReject === 'pembatalan') {
+                const findFaktur = await faktur.findOne({
+                  where: {
+                    no_faktur: findIkk[i].no_faktur
+                  }
+                })
+                if (findFaktur) {
+                  const dataEdit = {
+                    status: null
+                  }
+                  const editFaktur = await findFaktur.update(dataEdit)
+                  if (editFaktur) {
+                    if (listId.find(e => e === findIkk[i].id)) {
+                      const send = {
+                        status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                        status_reject: 1,
+                        isreject: 1,
+                        reason: results.alasan,
+                        menu_rev: results.menu,
+                        people_reject: level,
+                        history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                      }
+                      const findRes = await ikk.findByPk(findIkk[i].id)
+                      if (findRes) {
+                        await findRes.update(send)
+                        temp.push(1)
+                      }
+                    } else {
+                      const send = {
+                        status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                        status_reject: 1,
+                        reason: results.alasan,
+                        menu_rev: results.menu,
+                        people_reject: level,
+                        history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                      }
+                      const findRes = await ikk.findByPk(findIkk[i].id)
+                      if (findRes) {
+                        await findRes.update(send)
+                        temp.push(1)
+                      }
+                    }
+                  } else {
+                    return response(res, 'failed reject batal cause edit faktur', {}, 400, false)
+                  }
+                } else {
+                  if (listId.find(e => e === findIkk[i].id)) {
+                    const send = {
+                      status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                      status_reject: 1,
+                      isreject: 1,
+                      reason: results.alasan,
+                      menu_rev: results.menu,
+                      people_reject: level,
+                      history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                    }
+                    const findRes = await ikk.findByPk(findIkk[i].id)
+                    if (findRes) {
+                      await findRes.update(send)
+                      temp.push(1)
+                    }
+                  } else {
+                    const send = {
+                      status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                      status_reject: 1,
+                      reason: results.alasan,
+                      menu_rev: results.menu,
+                      people_reject: level,
+                      history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                    }
+                    const findRes = await ikk.findByPk(findIkk[i].id)
+                    if (findRes) {
+                      await findRes.update(send)
+                      temp.push(1)
+                    }
+                  }
                 }
               } else {
-                const send = {
-                  status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
-                  status_reject: 1,
-                  reason: results.alasan,
-                  menu_rev: results.menu,
-                  people_reject: level,
-                  history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
-                }
-                const findRes = await ikk.findByPk(findIkk[i].id)
-                if (findRes) {
-                  await findRes.update(send)
-                  temp.push(1)
+                if (listId.find(e => e === findIkk[i].id)) {
+                  const send = {
+                    status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                    status_reject: 1,
+                    isreject: 1,
+                    reason: results.alasan,
+                    menu_rev: results.menu,
+                    people_reject: level,
+                    history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                  }
+                  const findRes = await ikk.findByPk(findIkk[i].id)
+                  if (findRes) {
+                    await findRes.update(send)
+                    temp.push(1)
+                  }
+                } else {
+                  const send = {
+                    status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                    status_reject: 1,
+                    reason: results.alasan,
+                    menu_rev: results.menu,
+                    people_reject: level,
+                    history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                  }
+                  const findRes = await ikk.findByPk(findIkk[i].id)
+                  if (findRes) {
+                    await findRes.update(send)
+                    temp.push(1)
+                  }
                 }
               }
             }
@@ -1849,34 +1927,113 @@ module.exports = {
                               const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                               for (let i = 0; i < findIkk.length; i++) {
                                 const listId = results.list
-                                if (listId.find(e => e === findIkk[i].id)) {
-                                  const send = {
-                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
-                                    status_reject: 1,
-                                    isreject: 1,
-                                    reason: results.alasan,
-                                    menu_rev: results.menu,
-                                    people_reject: level,
-                                    history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
-                                  }
-                                  const findRes = await ikk.findByPk(findIkk[i].id)
-                                  if (findRes) {
-                                    await findRes.update(send)
-                                    temp.push(1)
+                                if (typeReject === 'pembatalan') {
+                                  const findFaktur = await faktur.findOne({
+                                    where: {
+                                      no_faktur: findIkk[i].no_faktur
+                                    }
+                                  })
+                                  if (findFaktur) {
+                                    const dataEdit = {
+                                      status: null
+                                    }
+                                    const editFaktur = await findFaktur.update(dataEdit)
+                                    if (editFaktur) {
+                                      if (listId.find(e => e === findIkk[i].id)) {
+                                        const send = {
+                                          status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                                          status_reject: 1,
+                                          isreject: 1,
+                                          reason: results.alasan,
+                                          menu_rev: results.menu,
+                                          people_reject: level,
+                                          history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                                        }
+                                        const findRes = await ikk.findByPk(findIkk[i].id)
+                                        if (findRes) {
+                                          await findRes.update(send)
+                                          temp.push(1)
+                                        }
+                                      } else {
+                                        const send = {
+                                          status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                                          status_reject: 1,
+                                          reason: results.alasan,
+                                          menu_rev: results.menu,
+                                          people_reject: level,
+                                          history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                                        }
+                                        const findRes = await ikk.findByPk(findIkk[i].id)
+                                        if (findRes) {
+                                          await findRes.update(send)
+                                          temp.push(1)
+                                        }
+                                      }
+                                    } else {
+                                      return response(res, 'failed reject batal cause edit faktur', {}, 400, false)
+                                    }
+                                  } else {
+                                    if (listId.find(e => e === findIkk[i].id)) {
+                                      const send = {
+                                        status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                                        status_reject: 1,
+                                        isreject: 1,
+                                        reason: results.alasan,
+                                        menu_rev: results.menu,
+                                        people_reject: level,
+                                        history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                                      }
+                                      const findRes = await ikk.findByPk(findIkk[i].id)
+                                      if (findRes) {
+                                        await findRes.update(send)
+                                        temp.push(1)
+                                      }
+                                    } else {
+                                      const send = {
+                                        status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                                        status_reject: 1,
+                                        reason: results.alasan,
+                                        menu_rev: results.menu,
+                                        people_reject: level,
+                                        history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                                      }
+                                      const findRes = await ikk.findByPk(findIkk[i].id)
+                                      if (findRes) {
+                                        await findRes.update(send)
+                                        temp.push(1)
+                                      }
+                                    }
                                   }
                                 } else {
-                                  const send = {
-                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
-                                    status_reject: 1,
-                                    reason: results.alasan,
-                                    menu_rev: results.menu,
-                                    people_reject: level,
-                                    history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
-                                  }
-                                  const findRes = await ikk.findByPk(findIkk[i].id)
-                                  if (findRes) {
-                                    await findRes.update(send)
-                                    temp.push(1)
+                                  if (listId.find(e => e === findIkk[i].id)) {
+                                    const send = {
+                                      status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                                      status_reject: 1,
+                                      isreject: 1,
+                                      reason: results.alasan,
+                                      menu_rev: results.menu,
+                                      people_reject: level,
+                                      history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                                    }
+                                    const findRes = await ikk.findByPk(findIkk[i].id)
+                                    if (findRes) {
+                                      await findRes.update(send)
+                                      temp.push(1)
+                                    }
+                                  } else {
+                                    const send = {
+                                      status_transaksi: typeReject === 'pembatalan' ? 0 : findIkk[i].status_transaksi, // eslint-disable-line
+                                      status_reject: 1,
+                                      reason: results.alasan,
+                                      menu_rev: results.menu,
+                                      people_reject: level,
+                                      history: `${findIkk[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}` // eslint-disable-line
+                                    }
+                                    const findRes = await ikk.findByPk(findIkk[i].id)
+                                    if (findRes) {
+                                      await findRes.update(send)
+                                      temp.push(1)
+                                    }
                                   }
                                 }
                               }
@@ -2905,7 +3062,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -3012,7 +3169,7 @@ module.exports = {
                 {
                   model: finance,
                   as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }]
+                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
                 },
                 {
                   model: veriftax,
@@ -3111,7 +3268,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -3289,227 +3446,6 @@ module.exports = {
         }
       } else {
         return response(res, 'failed submit bukti bayar', {}, 400, false)
-      }
-    } catch (error) {
-      return response(res, error.message, {}, 500, false)
-    }
-  },
-  getRedpine: async (req, res) => {
-    try {
-      const { kode, noikk, time1, time2 } = req.query
-      const statTrans = 8
-      const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' ? 'all' : kode
-      const statNo = noikk === 'undefined' || noikk === undefined || noikk === null || noikk === '' ? 'all' : noikk
-      const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' ? 'all' : time1
-      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' ? 'all' : time2
-      const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd'))
-      const findIkk = await ikk.findAll({
-        where: {
-          status_transaksi: statTrans,
-          [Op.and]: [
-            statKode === 'all' ? { [Op.not]: { id: null } } : { kode_plant: statKode },
-            statNo === 'all' ? { [Op.not]: { id: null } } : { no_transaksi: { [Op.like]: `%${statNo}%` } },
-            timeVal1 === 'all'
-              ? { [Op.not]: { id: null } }
-              : {
-                  start_ikk: {
-                    [Op.gte]: timeV1,
-                    [Op.lt]: timeV2
-                  }
-                }
-          ]
-        },
-        order: [
-          ['id', 'ASC'],
-          [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-          [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-        ],
-        include: [
-          {
-            model: ttd,
-            as: 'appForm'
-          },
-          {
-            model: ttd,
-            as: 'appList'
-          },
-          {
-            model: finance,
-            as: 'depo',
-            include: [{ model: kpp, as: 'kpp' }]
-          },
-          {
-            model: veriftax,
-            as: 'veriftax'
-          },
-          {
-            model: kliring,
-            as: 'kliring'
-          },
-          {
-            model: taxcode,
-            as: 'taxcode'
-          }
-        ]
-      })
-      const data = []
-      findIkk.map(x => {
-        return (
-          data.push(x.no_transaksi)
-        )
-      })
-      const set = new Set(data)
-      const noDis = [...set]
-      if (findIkk.length > 0) {
-        const dataJurnal = []
-        for (let i = 0; i < noDis.length; i++) {
-          const data = {
-            no_ofr: noDis[i],
-            item: []
-          }
-          for (let j = 0; j < findIkk.length; j++) {
-            const jenisPph = findIkk[j].jenis_pph
-            const tipeTrans = findIkk[j].type_transaksi
-            if (findIkk[j].no_transaksi === noDis[i]) {
-              if ((jenisPph === 'Non PPh' || jenisPph === null) && tipeTrans !== 'Ya') {
-                data.item = [[
-                  { name: findIkk[j].nama_coa, pph: null, dr: findIkk[j].nilai_ajuan, cr: null },
-                  { name: 'Kas Kecil', pph: null, dr: null, cr: findIkk[j].nilai_ajuan }
-                ]]
-              } else if (jenisPph !== 'Non PPh' && tipeTrans !== 'Ya') {
-                data.item = [[
-                  { name: findIkk[j].nama_coa, pph: jenisPph, dr: findIkk[j].nilai_ajuan, cr: null },
-                  { name: `Utang ${jenisPph}`, pph: jenisPph, dr: null, cr: findIkk[j].nilai_utang },
-                  { name: 'Kas Kecil', pph: jenisPph, dr: null, cr: findIkk[j].nilai_bayar }
-                ]]
-              } else if (jenisPph !== 'Non PPh' && tipeTrans === 'Ya') {
-                data.item = [[
-                  { name: findIkk[j].nama_coa, pph: jenisPph, dr: findIkk[j].dpp, cr: null },
-                  { name: 'PPN Masukan Non Dagang', pph: jenisPph, dr: findIkk[j].ppn, cr: null },
-                  { name: `Utang ${jenisPph}`, pph: jenisPph, dr: null, cr: findIkk[j].nilai_utang },
-                  { name: 'Kas Kecil', pph: jenisPph, dr: null, cr: findIkk[j].nilai_bayar }
-                ]]
-              }
-            }
-          }
-          dataJurnal.push(data)
-        }
-        if (dataJurnal.length > 0) {
-          const temp = []
-          for (let i = 0; i < findIkk.length; i++) {
-            const findData = await ikk.findByPk(findIkk[i].id)
-            if (findData) {
-              const data = {
-                flag_redpine: findData.flag_redpine + 1
-              }
-              const updateData = await findData.update(data)
-              if (updateData) {
-                temp.push(updateData)
-              }
-            }
-          }
-          if (temp.length > 0) {
-            return response(res, 'success get jurnal ikk', { result: dataJurnal, no_ofr: noDis })
-          } else {
-            return response(res, 'success get jurnal ikkg', { result: dataJurnal, no_ofr: noDis })
-          }
-        } else {
-          return response(res, 'success get jurnal ikkt', { result: findIkk, no_ofr: noDis })
-        }
-      } else {
-        return response(res, 'success get jurnal ikks', { result: findIkk, no_ofr: noDis })
-      }
-    } catch (error) {
-      return response(res, error.message, {}, 500, false)
-    }
-  },
-  postRedpine: async (req, res) => {
-    try {
-      const { kode, noikk } = req.body
-      const statTrans = 8
-      const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' ? 'all' : kode
-      const statNo = noikk === 'undefined' || noikk === undefined || noikk === null || noikk === '' ? 'all' : noikk
-      const findIkk = await ikk.findAll({
-        where: {
-          [Op.and]: [
-            { status_transaksi: statTrans },
-            statKode === 'all' ? { [Op.not]: { id: null } } : { kode_plant: statKode },
-            statNo === 'all' ? { [Op.not]: { id: null } } : { no_transaksi: { [Op.like]: `%${statNo}%` } }
-          ]
-        },
-        order: [
-          ['id', 'ASC'],
-          [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-          [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-        ],
-        include: [
-          {
-            model: ttd,
-            as: 'appForm'
-          },
-          {
-            model: ttd,
-            as: 'appList'
-          },
-          {
-            model: finance,
-            as: 'depo',
-            include: [{ model: kpp, as: 'kpp' }]
-          },
-          {
-            model: veriftax,
-            as: 'veriftax'
-          },
-          {
-            model: kliring,
-            as: 'kliring'
-          },
-          {
-            model: taxcode,
-            as: 'taxcode'
-          }
-        ]
-      })
-      const data = []
-      findIkk.map(x => {
-        return (
-          data.push(x.no_transaksi)
-        )
-      })
-      const set = new Set(data)
-      const noDis = [...set]
-      if (findIkk) {
-        const send = await axios({
-          method: 'post',
-          url: 'https://redpine.pinusmerahabadi.co.id/api/jurnal',
-          data: { data: findIkk },
-          headers: { Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.c_G5Y7CbEKR4UncCqxLmGHtkcZDtibjh2XP_M7fTbAE' }
-        }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
-        if (send.status === 200) {
-          const temp = []
-          for (let i = 0; i < findIkk.length; i++) {
-            const findData = await ikk.findByPk(findIkk[i].id)
-            if (findData) {
-              const data = {
-                flag_redpine: findData.flag_redpine + 1
-              }
-              const updateData = await findData.update(data)
-              if (updateData) {
-                temp.push(updateData)
-              }
-            }
-          }
-          if (temp.length > 0) {
-            return response(res, send.message, { result: send.data })
-          } else {
-            return response(res, send.message, { result: send.data })
-          }
-        } else {
-          return response(res, 'gagal kirim ke redpine', { send }, 400, false)
-        }
-      } else {
-        return response(res, 'success get jurnal ikk', { result: findIkk, noDis })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

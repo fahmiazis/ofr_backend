@@ -1,7 +1,7 @@
 const route = require('express').Router()
-const ikk = require('../controllers/ikk')
+const redpine = require('../controllers/redpine')
 
-route.get('/getikk', ikk.getRedpine)
-route.get('/postikk', ikk.postRedpine)
+route.get('/ofrjurnal', redpine.getRedpine)
+route.get('/post/ofrjurnal', redpine.postRedpine)
 
 module.exports = route

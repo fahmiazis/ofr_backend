@@ -31,8 +31,5 @@ route.patch('/upniverif', ikk.updateNilaiVerif)
 route.patch('/getdocbayar', ikk.getDocBayar)
 route.patch('/confident/:id', ikk.confirmNewIdent)
 route.patch('/detrep', ikk.getDetailReport)
-// API jurnal
-route.get('/getredpine', ikk.getRedpine)
-route.get('/postredpine', ikk.postRedpine)
 
 module.exports = route

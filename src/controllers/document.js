@@ -1,5 +1,5 @@
 const { pagination } = require('../helpers/pagination')
-const { document, sequelize, depo, docuser } = require('../models')
+const { document, sequelize, depo, docuser, namedocs } = require('../models')
 const { Op, QueryTypes } = require('sequelize')
 const response = require('../helpers/response')
 const joi = require('joi')
@@ -42,7 +42,8 @@ module.exports = {
         // divisi: joi.string().required(),
         // type_dokumen: joi.string().allow(''),
         type: joi.string().required(),
-        stat_upload: joi.number().required()
+        stat_upload: joi.number().required(),
+        namedocs: joi.string().required()
         // route: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
@@ -70,6 +71,43 @@ module.exports = {
           }
         } else {
           return response(res, "you're not super administrator", {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  createNameDocument: async (req, res) => {
+    try {
+      const level = req.user.level
+      const schema = joi.object({
+        name: joi.string().required(),
+        tipe: joi.string().allow(''),
+        kode_plant: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 401, false)
+      } else {
+        if (level === 1) {
+          const findPlant = await namedocs.findAll({
+            where: {
+              [Op.and]: [
+                { kode_plant: results.kode_plant },
+                { name: results.name }
+              ]
+            }
+          })
+          if (findPlant.length > 0) {
+            return response(res, 'Telah terdaftar', {}, 404, false)
+          } else {
+            const result = await namedocs.create(results)
+            if (result) {
+              return response(res, 'succesfully create approve', { result })
+            } else {
+              return response(res, 'failed to create approve', {}, 404, false)
+            }
+          }
         }
       }
     } catch (error) {

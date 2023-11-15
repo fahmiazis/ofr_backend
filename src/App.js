@@ -33,6 +33,7 @@ const vendorRoute = require('./routes/vendor')
 const kliringRoute = require('./routes/kliring')
 const fakturRoute = require('./routes/faktur')
 const kppRoute = require('./routes/kpp')
+const glikkRoute = require('./routes/glikk')
 const financeRoute = require('./routes/finance')
 const picklaimRoute = require('./routes/picklaim')
 const spvklaimRoute = require('./routes/spvklaim')
@@ -61,6 +62,7 @@ app.use('/download', express.static('assets/exports'))
 app.use('/assets/documents', express.static('assets/documents'))
 
 app.use('/auth', authRoute)
+
 // masterdata
 app.use('/user', authMiddleware, userRoute)
 app.use('/depo', authMiddleware, depoRoute)
@@ -78,13 +80,13 @@ app.use('/vendor', authMiddleware, vendorRoute)
 app.use('/kliring', authMiddleware, kliringRoute)
 app.use('/faktur', authMiddleware, fakturRoute)
 app.use('/kpp', authMiddleware, kppRoute)
-
+app.use('/glikk', authMiddleware, glikkRoute)
 app.use('/finance', authMiddleware, financeRoute)
 app.use('/picklaim', authMiddleware, picklaimRoute)
 app.use('/spvklaim', authMiddleware, spvklaimRoute)
-
 app.use('/reservoir', authMiddleware, reservoirRoute)
 app.use('/taxcode', authMiddleware, taxcodeRoute)
+
 // transaksi
 app.use('/klaim', authMiddleware, klaimRoute)
 app.use('/ops', authMiddleware, opsRoute)

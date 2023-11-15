@@ -1,4 +1,4 @@
-const { ops, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, taxcode } = require('../models')
+const { ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, taxcode } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -1311,7 +1311,8 @@ module.exports = {
             },
             {
               model: finance,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1423,7 +1424,7 @@ module.exports = {
                 {
                   model: finance,
                   as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }]
+                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
                 },
                 {
                   model: veriftax,
@@ -1524,7 +1525,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1583,7 +1584,8 @@ module.exports = {
             },
             {
               model: finance,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1621,7 +1623,8 @@ module.exports = {
             },
             {
               model: finance,
-              as: 'depo'
+              as: 'depo',
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -1662,7 +1665,8 @@ module.exports = {
           },
           {
             model: finance,
-            as: 'depo'
+            as: 'depo',
+            include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
           },
           {
             model: veriftax,
@@ -2232,34 +2236,113 @@ module.exports = {
             const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
             for (let i = 0; i < findOps.length; i++) {
               const listId = results.list
-              if (listId.find(e => e === findOps[i].id)) {
-                const send = {
-                  status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
-                  status_reject: 1,
-                  isreject: 1,
-                  reason: results.alasan,
-                  menu_rev: results.menu,
-                  people_reject: level,
-                  history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
-                }
-                const findRes = await ops.findByPk(findOps[i].id)
-                if (findRes) {
-                  await findRes.update(send)
-                  temp.push(1)
+              if (typeReject === 'pembatalan') {
+                const findFaktur = await faktur.findOne({
+                  where: {
+                    no_faktur: findOps[i].no_faktur
+                  }
+                })
+                if (findFaktur) {
+                  const dataEdit = {
+                    status: null
+                  }
+                  const editFaktur = await findFaktur.update(dataEdit)
+                  if (editFaktur) {
+                    if (listId.find(e => e === findOps[i].id)) {
+                      const send = {
+                        status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                        status_reject: 1,
+                        isreject: 1,
+                        reason: results.alasan,
+                        menu_rev: results.menu,
+                        people_reject: level,
+                        history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                      }
+                      const findRes = await ops.findByPk(findOps[i].id)
+                      if (findRes) {
+                        await findRes.update(send)
+                        temp.push(1)
+                      }
+                    } else {
+                      const send = {
+                        status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                        status_reject: 1,
+                        reason: results.alasan,
+                        menu_rev: results.menu,
+                        people_reject: level,
+                        history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                      }
+                      const findRes = await ops.findByPk(findOps[i].id)
+                      if (findRes) {
+                        await findRes.update(send)
+                        temp.push(1)
+                      }
+                    }
+                  } else {
+                    return response(res, 'failed reject batal cause edit faktur', {}, 400, false)
+                  }
+                } else {
+                  if (listId.find(e => e === findOps[i].id)) {
+                    const send = {
+                      status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                      status_reject: 1,
+                      isreject: 1,
+                      reason: results.alasan,
+                      menu_rev: results.menu,
+                      people_reject: level,
+                      history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                    }
+                    const findRes = await ops.findByPk(findOps[i].id)
+                    if (findRes) {
+                      await findRes.update(send)
+                      temp.push(1)
+                    }
+                  } else {
+                    const send = {
+                      status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                      status_reject: 1,
+                      reason: results.alasan,
+                      menu_rev: results.menu,
+                      people_reject: level,
+                      history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                    }
+                    const findRes = await ops.findByPk(findOps[i].id)
+                    if (findRes) {
+                      await findRes.update(send)
+                      temp.push(1)
+                    }
+                  }
                 }
               } else {
-                const send = {
-                  status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
-                  status_reject: 1,
-                  reason: results.alasan,
-                  menu_rev: results.menu,
-                  people_reject: level,
-                  history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
-                }
-                const findRes = await ops.findByPk(findOps[i].id)
-                if (findRes) {
-                  await findRes.update(send)
-                  temp.push(1)
+                if (listId.find(e => e === findOps[i].id)) {
+                  const send = {
+                    status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                    status_reject: 1,
+                    isreject: 1,
+                    reason: results.alasan,
+                    menu_rev: results.menu,
+                    people_reject: level,
+                    history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                  }
+                  const findRes = await ops.findByPk(findOps[i].id)
+                  if (findRes) {
+                    await findRes.update(send)
+                    temp.push(1)
+                  }
+                } else {
+                  const send = {
+                    status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                    status_reject: 1,
+                    reason: results.alasan,
+                    menu_rev: results.menu,
+                    people_reject: level,
+                    history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                  }
+                  const findRes = await ops.findByPk(findOps[i].id)
+                  if (findRes) {
+                    await findRes.update(send)
+                    temp.push(1)
+                  }
                 }
               }
             }
@@ -2324,34 +2407,113 @@ module.exports = {
                               const histBatal = `reject pembatalan by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                               for (let i = 0; i < findOps.length; i++) {
                                 const listId = results.list
-                                if (listId.find(e => e === findOps[i].id)) {
-                                  const send = {
-                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
-                                    status_reject: 1,
-                                    isreject: 1,
-                                    reason: results.alasan,
-                                    menu_rev: results.menu,
-                                    people_reject: level,
-                                    history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
-                                  }
-                                  const findRes = await ops.findByPk(findOps[i].id)
-                                  if (findRes) {
-                                    await findRes.update(send)
-                                    temp.push(1)
+                                if (typeReject === 'pembatalan') {
+                                  const findFaktur = await faktur.findOne({
+                                    where: {
+                                      no_faktur: findOps[i].no_faktur
+                                    }
+                                  })
+                                  if (findFaktur) {
+                                    const dataEdit = {
+                                      status: null
+                                    }
+                                    const editFaktur = await findFaktur.update(dataEdit)
+                                    if (editFaktur) {
+                                      if (listId.find(e => e === findOps[i].id)) {
+                                        const send = {
+                                          status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                                          status_reject: 1,
+                                          isreject: 1,
+                                          reason: results.alasan,
+                                          menu_rev: results.menu,
+                                          people_reject: level,
+                                          history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                                        }
+                                        const findRes = await ops.findByPk(findOps[i].id)
+                                        if (findRes) {
+                                          await findRes.update(send)
+                                          temp.push(1)
+                                        }
+                                      } else {
+                                        const send = {
+                                          status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                                          status_reject: 1,
+                                          reason: results.alasan,
+                                          menu_rev: results.menu,
+                                          people_reject: level,
+                                          history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                                        }
+                                        const findRes = await ops.findByPk(findOps[i].id)
+                                        if (findRes) {
+                                          await findRes.update(send)
+                                          temp.push(1)
+                                        }
+                                      }
+                                    } else {
+                                      return response(res, 'failed reject batal cause edit faktur', {}, 400, false)
+                                    }
+                                  } else {
+                                    if (listId.find(e => e === findOps[i].id)) {
+                                      const send = {
+                                        status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                                        status_reject: 1,
+                                        isreject: 1,
+                                        reason: results.alasan,
+                                        menu_rev: results.menu,
+                                        people_reject: level,
+                                        history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                                      }
+                                      const findRes = await ops.findByPk(findOps[i].id)
+                                      if (findRes) {
+                                        await findRes.update(send)
+                                        temp.push(1)
+                                      }
+                                    } else {
+                                      const send = {
+                                        status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                                        status_reject: 1,
+                                        reason: results.alasan,
+                                        menu_rev: results.menu,
+                                        people_reject: level,
+                                        history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                                      }
+                                      const findRes = await ops.findByPk(findOps[i].id)
+                                      if (findRes) {
+                                        await findRes.update(send)
+                                        temp.push(1)
+                                      }
+                                    }
                                   }
                                 } else {
-                                  const send = {
-                                    status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
-                                    status_reject: 1,
-                                    reason: results.alasan,
-                                    menu_rev: results.menu,
-                                    people_reject: level,
-                                    history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
-                                  }
-                                  const findRes = await ops.findByPk(findOps[i].id)
-                                  if (findRes) {
-                                    await findRes.update(send)
-                                    temp.push(1)
+                                  if (listId.find(e => e === findOps[i].id)) {
+                                    const send = {
+                                      status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                                      status_reject: 1,
+                                      isreject: 1,
+                                      reason: results.alasan,
+                                      menu_rev: results.menu,
+                                      people_reject: level,
+                                      history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                                    }
+                                    const findRes = await ops.findByPk(findOps[i].id)
+                                    if (findRes) {
+                                      await findRes.update(send)
+                                      temp.push(1)
+                                    }
+                                  } else {
+                                    const send = {
+                                      status_transaksi: typeReject === 'pembatalan' ? 0 : findOps[i].status_transaksi,
+                                      status_reject: 1,
+                                      reason: results.alasan,
+                                      menu_rev: results.menu,
+                                      people_reject: level,
+                                      history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
+                                    }
+                                    const findRes = await ops.findByPk(findOps[i].id)
+                                    if (findRes) {
+                                      await findRes.update(send)
+                                      temp.push(1)
+                                    }
                                   }
                                 }
                               }
@@ -3013,7 +3175,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,
@@ -3107,7 +3269,7 @@ module.exports = {
                 {
                   model: finance,
                   as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }]
+                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
                 },
                 {
                   model: veriftax,
@@ -3193,7 +3355,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
             },
             {
               model: veriftax,

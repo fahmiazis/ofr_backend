@@ -1,4 +1,4 @@
-const { resmail, picklaim, email, ttd, role, finance, user, ops, klaim, ikk, vervendor } = require('../models')
+const { resmail, picklaim, spvklaim, email, ttd, role, finance, user, ops, klaim, ikk, vervendor } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -836,21 +836,73 @@ module.exports = {
                   ]
                 })
                 if (findUser.length > 0) {
-                  let toMail = null
-                  for (let i = 0; i < findUser.length; i++) {
-                    const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
-                      toMail = findUser[i]
-                    }
-                  }
-                  if (toMail !== null) {
-                    if (findDraft) {
-                      return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
+                  if (accKlaim.find(item => item === noLevel.level)) {
+                    if (noLevel.level === 3) {
+                      let toMail = null
+                      for (let i = 0; i < findUser.length; i++) {
+                        const namePic = findUser[i].fullname
+                        const dataPic = findPic.dataValues
+                        const agr1 = dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()
+                        const agr2 = namePic.toLowerCase()
+                        if (agr1 === agr2) {
+                          toMail = findUser[i]
+                        }
+                      }
+                      if (toMail !== null) {
+                        if (findDraft) {
+                          return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
+                        } else {
+                          return response(res, 'failed get email 2', { toMail }, 404, false)
+                        }
+                      } else {
+                        return response(res, 'failed get email 11 king', { toMail, findUser, listName }, 404, false)
+                      }
                     } else {
-                      return response(res, 'failed get email 2', { toMail }, 404, false)
+                      const findSpv = await spvklaim.findAll()
+                      if (findSpv.length > 0) {
+                        let toMail = null
+                        for (let i = 0; i < findUser.length; i++) {
+                          const namePic = findUser[i].fullname
+                          const dataPic = findPic.dataValues
+                          const dataSpv = findSpv.dataValues
+                          const agr0 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()).spv_klaim.toLowerCase() // eslint-disable-line
+                          const agr1 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()).manager_klaim.toLowerCase() // eslint-disable-line
+                          const agrconv = level === 13 ? agr1 : agr0
+                          const agr2 = namePic.toLowerCase()
+                          if (agrconv === agr2) {
+                            toMail = findUser[i]
+                          }
+                        }
+                        if (toMail !== null) {
+                          if (findDraft) {
+                            return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
+                          } else {
+                            return response(res, 'failed get email 2', { toMail }, 404, false)
+                          }
+                        } else {
+                          return response(res, 'failed get email 11 king', { toMail, findUser, listName }, 404, false)
+                        }
+                      } else {
+                        return response(res, 'failed get email 23', {}, 404, false)
+                      }
                     }
                   } else {
-                    return response(res, 'failed get email 13 king', { toMail, findUser, listName }, 404, false)
+                    let toMail = null
+                    for (let i = 0; i < findUser.length; i++) {
+                      const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
+                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                        toMail = findUser[i]
+                      }
+                    }
+                    if (toMail !== null) {
+                      if (findDraft) {
+                        return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
+                      } else {
+                        return response(res, 'failed get email 2', { toMail }, 404, false)
+                      }
+                    } else {
+                      return response(res, 'failed get email 13 king', { toMail, findUser, listName }, 404, false)
+                    }
                   }
                 } else {
                   return response(res, 'failed get email 0', { findUser }, 404, false)
