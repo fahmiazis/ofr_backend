@@ -54,7 +54,7 @@ module.exports = {
             timeVal1 === 'all'
               ? { [Op.not]: { id: null } }
               : {
-                  start_ikk: {
+                  [tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']: {
                     [Op.gte]: timeV1,
                     [Op.lt]: timeV2
                   }
