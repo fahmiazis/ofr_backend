@@ -61,7 +61,14 @@ module.exports = {
                 }
           ]
         },
-        order: [['id', 'desc']]
+        order: [['id', 'desc']],
+        include: [
+          {
+            model: finance,
+            as: 'depo',
+            include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+          }
+        ]
       })
       const data = []
       findTrans.map(x => {
@@ -251,6 +258,8 @@ module.exports = {
           }
           const data = {
             no_ofr: noDis[i],
+            kode_plant: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).kode_plant,  // eslint-disable-line
+            area: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).depo.area,  // eslint-disable-line
             tgl_ajuan: moment(findTrans.find(({no_transaksi}) => no_transaksi === noDis[i])[tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']).format('DD MMMM YYYY'), // eslint-disable-line
             item: tempTrans
           }
