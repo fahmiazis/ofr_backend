@@ -31,13 +31,17 @@ const dataPphSc = {
 module.exports = {
   getRedpine: async (req, res) => {
     try {
-      const { kode, notrans, time1, time2, tipe } = req.query
+      const { kode, notrans, time1, time2, tipe } = req.body.filters
       const statTrans = 8
       const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' ? 'all' : kode
       const statNo = notrans === 'undefined' || notrans === undefined || notrans === null || notrans === '' ? 'all' : notrans
-      const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' ? 'all' : time1
-      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' ? 'all' : time2
+      const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' ? 'all' : moment(time1).format('DD-MM-YYYY')
+      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' ? 'all' : moment(time2).format('DD-MM-YYYY')
       const tipeVal = tipe === 'undefined' || tipe === undefined || tipe === null || tipe === '' ? 'ikk' : tipe
+
+      console.log(timeVal1)
+      console.log(timeVal2)
+
       const timeV1 = new Date(timeVal1)
       const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd'))
       const transaksi = tipeVal === 'ikk' ? ikk : ops
