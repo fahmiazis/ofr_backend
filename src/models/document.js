@@ -22,7 +22,9 @@ module.exports = (sequelize, DataTypes) => {
     route: DataTypes.TEXT,
     stat_upload: DataTypes.INTEGER,
     type_kasbon: DataTypes.STRING,
-    type_po: DataTypes.STRING
+    type_po: DataTypes.STRING,
+    namedocs: DataTypes.STRING,
+    kode_plant: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'document'

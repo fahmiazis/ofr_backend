@@ -15,6 +15,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'depo'
       })
+      finance.hasOne(models.scylla, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'scylla'
+      })
       finance.hasOne(models.kpp, {
         foreignKey: 'profit_center',
         sourceKey: 'profit_center',

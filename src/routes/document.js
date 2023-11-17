@@ -12,4 +12,11 @@ route.get('/show/:id', dokumen.showDokumen)
 route.patch('/approve/:id', dokumen.approveDoc)
 route.patch('/reject/:id', dokumen.rejectDoc)
 
+route.post('/create', dokumen.createNameDocument)
+route.patch('/name/edit/:id', dokumen.updateNameDocument)
+route.delete('/delete/name/:id', dokumen.deleteNameDocument)
+route.get('/name', dokumen.getNameDocument)
+route.get('/detail', dokumen.getDetailDocument)
+route.get('/detail/name/:id', dokumen.getDetailId)
+
 module.exports = route

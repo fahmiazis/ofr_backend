@@ -1,5 +1,5 @@
 const joi = require('joi')
-const { depo } = require('../models')
+const { depo, finance } = require('../models')
 const { pagination } = require('../helpers/pagination')
 const response = require('../helpers/response')
 const { Op } = require('sequelize')
@@ -206,7 +206,7 @@ module.exports = {
         page = parseInt(page)
       }
       if (level === 12) {
-        const result = await depo.findAll({
+        const result = await finance.findAll({
           where: {
             bm: fullname
           }
@@ -218,9 +218,9 @@ module.exports = {
           return response(res, 'failed to get user', {}, 404, false)
         }
       } else if (level === 7) {
-        const result = await depo.findAll({
+        const result = await finance.findAll({
           where: {
-            om: fullname
+            rom: fullname
           }
         })
         const pageInfo = pagination('/depo/get', req.query, page, limit, result.length)
@@ -230,31 +230,10 @@ module.exports = {
           return response(res, 'failed to get user', {}, 404, false)
         }
       } else {
-        const result = await depo.findAndCountAll({
+        const result = await finance.findAndCountAll({
           where: {
             [Op.or]: [
-              { kode_plant: { [Op.like]: `%${searchValue}%` } },
-              { area: { [Op.like]: `%${searchValue}%` } },
-              { channel: { [Op.like]: `%${searchValue}%` } },
-              { distribution: { [Op.like]: `%${searchValue}%` } },
-              { status_area: { [Op.like]: `%${searchValue}%` } },
-              { cost_center: { [Op.like]: `%${searchValue}%` } },
-              { profit_center: { [Op.like]: `%${searchValue}%` } },
-              { kode_sap_1: { [Op.like]: `%${searchValue}%` } },
-              { kode_sap_2: { [Op.like]: `%${searchValue}%` } },
-              { kode_plant: { [Op.like]: `%${searchValue}%` } },
-              { nom: { [Op.like]: `%${searchValue}%` } },
-              { om: { [Op.like]: `%${searchValue}%` } },
-              { bm: { [Op.like]: `%${searchValue}%` } },
-              { aos: { [Op.like]: `%${searchValue}%` } },
-              { pic_finance: { [Op.like]: `%${searchValue}%` } },
-              { spv_finance: { [Op.like]: `%${searchValue}%` } },
-              { asman_finance: { [Op.like]: `%${searchValue}%` } },
-              { manager_finance: { [Op.like]: `%${searchValue}%` } },
-              { pic_klaim: { [Op.like]: `%${searchValue}%` } },
-              { manager_klaim: { [Op.like]: `%${searchValue}%` } },
-              { pic_tax: { [Op.like]: `%${searchValue}%` } },
-              { manager_tax: { [Op.like]: `%${searchValue}%` } }
+              { kode_plant: { [Op.like]: `%${searchValue}%` } }
             ]
           },
           order: [[sortValue, 'ASC']],

@@ -39,6 +39,8 @@ const picklaimRoute = require('./routes/picklaim')
 const spvklaimRoute = require('./routes/spvklaim')
 const reservoirRoute = require('./routes/reservoir')
 const taxcodeRoute = require('./routes/taxcode')
+const scyllaRoute = require('./routes/scylla')
+
 // transaksi
 const klaimRoute = require('./routes/klaim')
 const opsRoute = require('./routes/operasional')
@@ -86,6 +88,7 @@ app.use('/picklaim', authMiddleware, picklaimRoute)
 app.use('/spvklaim', authMiddleware, spvklaimRoute)
 app.use('/reservoir', authMiddleware, reservoirRoute)
 app.use('/taxcode', authMiddleware, taxcodeRoute)
+app.use('/scylla', authMiddleware, scyllaRoute)
 
 // transaksi
 app.use('/klaim', authMiddleware, klaimRoute)

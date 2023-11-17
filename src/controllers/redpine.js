@@ -1,4 +1,4 @@
-const { ikk, glikk, ttd, veriftax, finance, kliring, kpp, taxcode, ops } = require('../models')
+const { ikk, glikk, ttd, veriftax, finance, kliring, kpp, taxcode, ops, scylla } = require('../models')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
 const moment = require('moment')
@@ -66,7 +66,7 @@ module.exports = {
           {
             model: finance,
             as: 'depo',
-            include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+            include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: scylla, as: 'scylla' }]
           }
         ]
       })
@@ -259,6 +259,7 @@ module.exports = {
           const data = {
             no_ofr: noDis[i],
             kode_plant: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).kode_plant,  // eslint-disable-line
+            kode_depo: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).depo.scylla.kode_depo,  // eslint-disable-line
             area: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).depo.area,  // eslint-disable-line
             tgl_ajuan: moment(findTrans.find(({no_transaksi}) => no_transaksi === noDis[i])[tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']).format('DD MMMM YYYY'), // eslint-disable-line
             item: tempTrans
@@ -300,8 +301,8 @@ module.exports = {
       const statTrans = 8
       const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' ? 'all' : kode
       const statNo = notrans === 'undefined' || notrans === undefined || notrans === null || notrans === '' ? 'all' : notrans
-      const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' ? 'all' : moment(time1).format('DD-MM-YYYY')
-      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' ? 'all' : moment(time2).format('DD-MM-YYYY')
+      const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time1 === 'all' || time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' ? 'all' : moment(time1).format('DD-MM-YYYY')
+      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' ? 'all' : moment(time2).format('DD-MM-YYYY')
       const tipeVal = tipe === 'undefined' || tipe === undefined || tipe === null || tipe === '' ? 'ikk' : tipe
 
       console.log(timeVal1)

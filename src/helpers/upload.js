@@ -26,4 +26,4 @@ const fileFilter = (req, file, cb) => {
   return cb(new Error('Invalid file type. Only excel, pdf, zip, rar, 7zip, and image files are allowed.'), false)
 }
 
-module.exports = multer({ storage, fileFilter, limits: { fileSize: 20000000 } }).single('document')
+module.exports = multer({ storage, fileFilter, limits: { fileSize: 25000000 } }).single('document')
