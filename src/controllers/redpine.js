@@ -125,122 +125,236 @@ module.exports = {
             if (findData.length > 0) {
               for (let j = 0; j < findData.length; j++) {
                 console.log('king findData')
+                const headJurnal = []
+                const detJurnal = []
                 const system = findData.length > 0 && findData[j].depo.type_live === 'NON LIVE SAP (SCYLLA)' ? 'SCYLAA' : 'SAP'
                 const glkk = findData.length > 0 && findData[j].depo !== null && findData[j].depo.glikk !== null ? findData[j].depo.glikk.gl_account : ''
 
                 if ((findData[j].jenis_pph === 'Non PPh' || findData[j].jenis_pph === null) && findData[j].type_transaksi !== 'Ya') {
                   console.log('king non pph non ppn')
-                  tempTrans.push(
-                    jurnal2.map((e, index) => {
-                      return (
-                        {
-                          no_gl: index === 0 ? findData[j].no_coa : glkk,
-                          nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                          tipe: index === 0 ? 'debit' : 'credit',
-                          value: index === 0
-                            ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                            : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
-                          keterangan: index === 0 ? findData[j].sub_coa : ''
-                        }
-                      )
-                    })
-                  )
+                  jurnal2.map((e, index) => {
+                    return (
+                      index === 0
+                        ? (
+                            headJurnal.push(
+                              {
+                                no_gl: index === 0 ? findData[j].no_coa : glkk,
+                                nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
+                                tipe: index === 0 ? 'debit' : 'credit',
+                                value: index === 0
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
+                                keterangan: findData[j].sub_coa
+                              }
+                            )
+                          )
+                        : (
+                            detJurnal.push(
+                              {
+                                no_gl: index === 0 ? findData[j].no_coa : glkk,
+                                nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
+                                tipe: index === 0 ? 'debit' : 'credit',
+                                value: index === 0
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
+                                keterangan: findData[j].sub_coa
+                              }
+                            )
+                          )
+                    )
+                  })
                 } else if (findData[j].jenis_pph !== 'Non PPh' && findData[j].type_transaksi !== 'Ya') {
                   console.log('king pph non ppn')
-                  tempTrans.push(
-                    jurnal3.map((e, index) => {
-                      return (
-                        {
-                          no_gl: index === 0
-                            ? findData[j].no_coa
-                            : index === 1 && system === 'SAP'
-                              ? (findData[j].jenis_pph === cek21
-                                  ? dataPph.pph21
-                                  : findData[j].jenis_pph === cek23
-                                    ? dataPph.pph23
-                                    : findData[j].jenis_pph === cek4a2 && dataPph.pph4a2)
-                              : index === 1 && system !== 'SAP'
-                                ? (findData[j].jenis_pph === cek21
-                                    ? dataPphSc.pph21
-                                    : findData[j].jenis_pph === cek23
-                                      ? dataPphSc.pph23
-                                      : findData[j].jenis_pph === cek4a2 && dataPphSc.pph4a2)
-                                : glkk,
-                          nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
-                          tipe: index === 0 ? 'debit' : 'credit',
-                          value: index === 0
-                            ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                            : index === 1
-                              ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                              : index === 2
-                                ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                : '',
-                          keterangan: index === 0 || index === 1 ? findData[j].sub_coa : ''
-                        }
-                      )
-                    })
-                  )
+                  jurnal3.map((e, index) => {
+                    return (
+                      index === 0
+                        ? (
+                            headJurnal.push(
+                              {
+                                no_gl: index === 0
+                                  ? findData[j].no_coa
+                                  : index === 1 && system === 'SAP'
+                                    ? (findData[j].jenis_pph === cek21
+                                        ? dataPph.pph21
+                                        : findData[j].jenis_pph === cek23
+                                          ? dataPph.pph23
+                                          : findData[j].jenis_pph === cek4a2 && dataPph.pph4a2)
+                                    : index === 1 && system !== 'SAP'
+                                      ? (findData[j].jenis_pph === cek21
+                                          ? dataPphSc.pph21
+                                          : findData[j].jenis_pph === cek23
+                                            ? dataPphSc.pph23
+                                            : findData[j].jenis_pph === cek4a2 && dataPphSc.pph4a2)
+                                      : glkk,
+                                nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
+                                tipe: index === 0 ? 'debit' : 'credit',
+                                value: index === 0
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  : index === 1
+                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    : index === 2
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      : '',
+                                keterangan: findData[j].sub_coa
+                              }
+                            )
+                          )
+                        : (
+                            detJurnal.push(
+                              {
+                                no_gl: index === 0
+                                  ? findData[j].no_coa
+                                  : index === 1 && system === 'SAP'
+                                    ? (findData[j].jenis_pph === cek21
+                                        ? dataPph.pph21
+                                        : findData[j].jenis_pph === cek23
+                                          ? dataPph.pph23
+                                          : findData[j].jenis_pph === cek4a2 && dataPph.pph4a2)
+                                    : index === 1 && system !== 'SAP'
+                                      ? (findData[j].jenis_pph === cek21
+                                          ? dataPphSc.pph21
+                                          : findData[j].jenis_pph === cek23
+                                            ? dataPphSc.pph23
+                                            : findData[j].jenis_pph === cek4a2 && dataPphSc.pph4a2)
+                                      : glkk,
+                                nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
+                                tipe: index === 0 ? 'debit' : 'credit',
+                                value: index === 0
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  : index === 1
+                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    : index === 2
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      : '',
+                                keterangan: findData[j].sub_coa
+                              }
+                            )
+                          )
+                    )
+                  })
                 } else if (findData[j].jenis_pph === 'Non PPh' && findData[j].type_transaksi === 'Ya') {
                   console.log('king ppn non pph')
-                  tempTrans.push(
-                    jurnal3.map((e, index) => {
-                      return (
-                        {
-                          no_gl: index === 0 ? findData[j].no_coa : index === 1 ? dataPph.ppn : glkk,
-                          nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? 'Kas Kecil' : '',
-                          tipe: index === 2 ? 'credit' : 'debit',
-                          value: index === 0
-                            ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                            : index === 1
-                              ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                              : index === 2
-                                ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                : '',
-                          keterangan: index === 0 || index === 1 ? findData[j].sub_coa : ''
-                        }
-                      )
-                    })
-                  )
+                  jurnal3.map((e, index) => {
+                    return (
+                      index === 0
+                        ? (
+                            headJurnal.push(
+                              {
+                                no_gl: index === 0 ? findData[j].no_coa : index === 1 ? dataPph.ppn : glkk,
+                                nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? 'Kas Kecil' : '',
+                                tipe: index === 2 ? 'credit' : 'debit',
+                                value: index === 0
+                                  ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  : index === 1
+                                    ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    : index === 2
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      : '',
+                                keterangan: findData[j].sub_coa
+                              }
+                            )
+                          )
+                        : (
+                            detJurnal.push(
+                              {
+                                no_gl: index === 0 ? findData[j].no_coa : index === 1 ? dataPph.ppn : glkk,
+                                nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? 'Kas Kecil' : '',
+                                tipe: index === 2 ? 'credit' : 'debit',
+                                value: index === 0
+                                  ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  : index === 1
+                                    ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    : index === 2
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      : '',
+                                keterangan: findData[j].sub_coa
+                              }
+                            )
+                          )
+                    )
+                  })
                 } else if (findData[j].jenis_pph !== 'Non PPh' && findData[j].type_transaksi === 'Ya') {
                   console.log('king ppn pph')
-                  tempTrans.push(
-                    jurnal4.map((e, index) => {
-                      return (
-                        {
-                          no_gl: index === 0
-                            ? findData[j].no_coa
-                            : index === 1
-                              ? dataPph.ppn
-                              : index === 2 && system === 'SAP'
-                                ? (findData[j].jenis_pph === cek21
-                                    ? dataPph.pph21
-                                    : findData[j].jenis_pph === cek23
-                                      ? dataPph.pph23
-                                      : findData[j].jenis_pph === cek4a2 && dataPph.pph4a2)
-                                : index === 2 && system !== 'SAP'
-                                  ? (findData[j].jenis_pph === cek21
-                                      ? dataPphSc.pph21
-                                      : findData[j].jenis_pph === cek23
-                                        ? dataPphSc.pph23
-                                        : findData[j].jenis_pph === cek4a2 && dataPphSc.pph4a2)
-                                  : glkk,
-                          nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? `Utang ${findData[j].jenis_pph}` : index === 3 ? 'Kas Kecil' : '',
-                          tipe: index === 0 || index === 1 ? 'debit' : 'credit',
-                          value: index === 0
-                            ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                            : index === 1
-                              ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                              : index === 2
-                                ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                : index === 3
-                                  ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                  : '',
-                          keterangan: index === 0 || index === 1 || index === 2 ? findData[j].sub_coa : ''
-                        }
-                      )
-                    })
-                  )
+                  jurnal4.map((e, index) => {
+                    return (
+                      index === 0 || index === 1
+                        ? (
+                            headJurnal.push(
+                              {
+                                no_gl: index === 0
+                                  ? findData[j].no_coa
+                                  : index === 1
+                                    ? dataPph.ppn
+                                    : index === 2 && system === 'SAP'
+                                      ? (findData[j].jenis_pph === cek21
+                                          ? dataPph.pph21
+                                          : findData[j].jenis_pph === cek23
+                                            ? dataPph.pph23
+                                            : findData[j].jenis_pph === cek4a2 && dataPph.pph4a2)
+                                      : index === 2 && system !== 'SAP'
+                                        ? (findData[j].jenis_pph === cek21
+                                            ? dataPphSc.pph21
+                                            : findData[j].jenis_pph === cek23
+                                              ? dataPphSc.pph23
+                                              : findData[j].jenis_pph === cek4a2 && dataPphSc.pph4a2)
+                                        : glkk,
+                                nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? `Utang ${findData[j].jenis_pph}` : index === 3 ? 'Kas Kecil' : '',
+                                tipe: index === 0 || index === 1 ? 'debit' : 'credit',
+                                value: index === 0
+                                  ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  : index === 1
+                                    ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    : index === 2
+                                      ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      : index === 3
+                                        ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                        : '',
+                                keterangan: findData[j].sub_coa
+                              }
+                            )
+                          )
+                        : (
+                            detJurnal.push(
+                              {
+                                no_gl: index === 0
+                                  ? findData[j].no_coa
+                                  : index === 1
+                                    ? dataPph.ppn
+                                    : index === 2 && system === 'SAP'
+                                      ? (findData[j].jenis_pph === cek21
+                                          ? dataPph.pph21
+                                          : findData[j].jenis_pph === cek23
+                                            ? dataPph.pph23
+                                            : findData[j].jenis_pph === cek4a2 && dataPph.pph4a2)
+                                      : index === 2 && system !== 'SAP'
+                                        ? (findData[j].jenis_pph === cek21
+                                            ? dataPphSc.pph21
+                                            : findData[j].jenis_pph === cek23
+                                              ? dataPphSc.pph23
+                                              : findData[j].jenis_pph === cek4a2 && dataPphSc.pph4a2)
+                                        : glkk,
+                                nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? `Utang ${findData[j].jenis_pph}` : index === 3 ? 'Kas Kecil' : '',
+                                tipe: index === 0 || index === 1 ? 'debit' : 'credit',
+                                value: index === 0
+                                  ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  : index === 1
+                                    ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    : index === 2
+                                      ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      : index === 3
+                                        ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                        : '',
+                                keterangan: findData[j].sub_coa
+                              }
+                            )
+                          )
+                    )
+                  })
                 }
+                const pushTemp = [
+                  { Header: headJurnal }, { Detail: detJurnal }
+                ]
+                tempTrans.push(pushTemp)
               //   }
               }
             }

@@ -21,7 +21,9 @@ module.exports = (sequelize, DataTypes) => {
     kode_plant: DataTypes.STRING,
     datef_skb: DataTypes.DATE,
     datel_skb: DataTypes.DATE,
-    no_skb: DataTypes.TEXT
+    no_skb: DataTypes.TEXT,
+    no_skt: DataTypes.STRING,
+    type_skb: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'vendor'

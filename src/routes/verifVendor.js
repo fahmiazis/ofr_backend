@@ -10,7 +10,7 @@ route.patch('/reject', verifVendor.rejectVerven)
 route.patch('/revisi', verifVendor.submitRevisi)
 route.patch('/edit/:id', verifVendor.EditVerven)
 route.get('/novdr', verifVendor.generateNoVendor)
-route.patch('/doc', verifVendor.getDocument)
+route.patch('/doc', verifVendor.getDocumentSkb)
 route.post('/updoc', verifVendor.uploadDocument)
 
 module.exports = route

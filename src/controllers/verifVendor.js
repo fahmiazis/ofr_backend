@@ -185,7 +185,12 @@ module.exports = {
         no_ktp: joi.string().required(),
         alamat: joi.string().required(),
         no: joi.string().required(),
-        jenis: joi.string().allow('')
+        jenis: joi.string().allow(''),
+        type_skb: joi.string().required(),
+        no_skb: joi.string().allow(''),
+        no_skt: joi.string().allow(''),
+        datef_skb: joi.string().allow(''),
+        datel_skb: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -215,6 +220,7 @@ module.exports = {
           return response(res, 'vendor telah terdftar', {}, 404, false)
         } else {
           const noTrans = results.no
+          const tipe = results.type_skb
           const data = {
             status_transaksi: 2,
             no_transaksi: noTrans,
@@ -224,6 +230,11 @@ module.exports = {
             npwp: results.no_npwp,
             nik: results.no_ktp,
             alamat: results.alamat,
+            type_skb: tipe,
+            no_skb: tipe === 'SKB' ? results.no_skb : null,
+            no_skt: tipe === 'SKT' ? results.no_skt : null,
+            datef_skb: tipe !== 'tidak' ? results.datef_skb : null,
+            datel_skb: tipe !== 'tidak' ? results.datel_skb : null,
             tipe_ajuan: 'add',
             history: `submit ajuan data vendor by ${kode} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
           }
@@ -252,6 +263,194 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
+  getDocumentSkb: async (req, res) => {
+    try {
+      const { no, name, tipeSkb } = req.body
+      const findDoc = await docuser.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      if (findDoc.length > 0) {
+        const findReser = await reservoir.findOne({
+          where: {
+            no_transaksi: no
+          }
+        })
+        if (findReser !== undefined && findReser.status === 'delayed') {
+          const findMaster = await document.findAll({
+            where: {
+              [Op.and]: [
+                { jenis: 'Verifikasi Data Vendor' },
+                { type: name }
+              ]
+            }
+          })
+          const cek = tipeSkb === undefined ? 'tidak' : tipeSkb // eslint-disable-line
+          const resData = cek === 'ya' ? findMaster.length + 1 : findMaster.length
+          const cekDoc = []
+          for (let i = 0; i < resData; i++) {
+            const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB')
+            if (cek === 'ya') {
+              if (findSkb !== undefined) {
+                cekDoc.push(1)
+              } else {
+                if (i === resData - 1) {
+                  const data = {
+                    desc: 'Dokumen SKB',
+                    jenis_form: findMaster[0].jenis,
+                    no_transaksi: no,
+                    tipe: findMaster[0].type,
+                    stat_upload: 1
+                  }
+                  const creDoc = await docuser.create(data)
+                  if (creDoc) {
+                    console.log('berhasil create doc skb')
+                    cekDoc.push(creDoc)
+                  }
+                } else {
+                  cekDoc.push(1)
+                }
+              }
+            } else {
+              cekDoc.push(1)
+            }
+          }
+          if (cekDoc.length > 0) {
+            if (cek === 'tidak') {
+              const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB')
+              if (findSkb !== undefined) {
+                const findId = await docuser.findByPk(findSkb.id)
+                if (findId) {
+                  await findId.destroy()
+                  const findFinDoc = await docuser.findAll({
+                    where: {
+                      no_transaksi: no
+                    }
+                  })
+                  if (findFinDoc.length > 0) {
+                    return response(res, 'success get dokumen flowles1', { result: findFinDoc })
+                  } else {
+                    return response(res, 'success get dokumen gagl1', { result: findDoc })
+                  }
+                } else {
+                  const findFinDoc = await docuser.findAll({
+                    where: {
+                      no_transaksi: no
+                    }
+                  })
+                  if (findFinDoc.length > 0) {
+                    return response(res, 'success get dokumen flowles2', { result: findFinDoc })
+                  } else {
+                    return response(res, 'success get dokumen gagl2', { result: findDoc })
+                  }
+                }
+              } else {
+                const findFinDoc = await docuser.findAll({
+                  where: {
+                    no_transaksi: no
+                  }
+                })
+                if (findFinDoc.length > 0) {
+                  return response(res, 'success get dokumen flowles3', { result: findFinDoc })
+                } else {
+                  return response(res, 'success get dokumen gagl3', { result: findDoc })
+                }
+              }
+            } else {
+              const findFinDoc = await docuser.findAll({
+                where: {
+                  no_transaksi: no
+                }
+              })
+              if (findFinDoc.length > 0) {
+                return response(res, 'success get dokumen flowles4', { result: findFinDoc })
+              } else {
+                return response(res, 'success get dokumen gagl4', { result: findDoc })
+              }
+            }
+          } else {
+            return response(res, 'success get dokumen ggl', { result: findDoc, cekDoc, findMaster })
+          }
+        } else {
+          return response(res, 'success get dokumen', { result: findDoc })
+        }
+      } else {
+        const findMaster = await document.findAll({
+          where: {
+            [Op.and]: [
+              { jenis: 'Verifikasi Data Vendor' },
+              { type: name }
+            ]
+          }
+        })
+        if (findMaster.length > 0) {
+          const temp = []
+          const cek = tipeSkb === undefined ? 'tidak' : tipeSkb // eslint-disable-line
+          const resData = cek === 'ya' ? findMaster.length + 1 : findMaster.length
+          for (let i = 0; i < resData; i++) {
+            if (cek === 'ya') {
+              if (i === resData - 1) {
+                const data = {
+                  desc: 'Dokumen SKB',
+                  jenis_form: findMaster[0].jenis,
+                  no_transaksi: no,
+                  tipe: findMaster[0].type,
+                  stat_upload: 1
+                }
+                const creDoc = await docuser.create(data)
+                if (creDoc) {
+                  temp.push(creDoc)
+                }
+              } else {
+                const data = {
+                  desc: findMaster[i].name,
+                  jenis_form: findMaster[i].jenis,
+                  no_transaksi: no,
+                  tipe: findMaster[i].type,
+                  stat_upload: findMaster[i].stat_upload
+                }
+                const creDoc = await docuser.create(data)
+                if (creDoc) {
+                  temp.push(creDoc)
+                }
+              }
+            } else {
+              const data = {
+                desc: findMaster[i].name,
+                jenis_form: findMaster[i].jenis,
+                no_transaksi: no,
+                tipe: findMaster[i].type,
+                stat_upload: findMaster[i].stat_upload
+              }
+              const creDoc = await docuser.create(data)
+              if (creDoc) {
+                temp.push(creDoc)
+              }
+            }
+          }
+          if (temp.length > 0) {
+            const findDocCre = await docuser.findAll({
+              where: {
+                no_transaksi: no
+              }
+            })
+            if (findDocCre.length > 0) {
+              return response(res, 'success get dokumen', { result: findDocCre })
+            } else {
+              return response(res, 'failed get dokumen1', { result: [] })
+            }
+          } else {
+            return response(res, 'failed get dokumen2', { result: [] })
+          }
+        } else {
+          return response(res, 'failed get dokumen3', { result: [] })
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
   getDocument: async (req, res) => {
     try {
       const { no, name } = req.body
@@ -260,7 +459,6 @@ module.exports = {
           no_transaksi: no
         }
       })
-      console.log(no, name)
       if (findDoc.length > 0) {
         return response(res, 'success get dokumen', { result: findDoc })
       } else {
@@ -346,7 +544,12 @@ module.exports = {
                     no_npwp: findVerif[h].npwp,
                     no_ktp: findVerif[h].nik,
                     alamat: findVerif[h].alamat,
-                    kode_plant: findVerif[h].kode_plant
+                    kode_plant: findVerif[h].kode_plant,
+                    type_skb: findVerif[h].type_skb,
+                    no_skb: findVerif[h].no_skb,
+                    no_skt: findVerif[h].no_skt,
+                    datef_skb: findVerif[h].datef_skb,
+                    datel_skb: findVerif[h].datel_skb
                   }
                   await vendor.create(dataVen)
                   await findRes.update(data)
@@ -383,7 +586,12 @@ module.exports = {
                   no_npwp: findVerif[i].npwp,
                   no_ktp: findVerif[i].nik,
                   alamat: findVerif[i].alamat,
-                  kode_plant: findVerif[i].kode_plant
+                  kode_plant: findVerif[i].kode_plant,
+                  type_skb: findVerif[i].type_skb,
+                  no_skb: findVerif[i].no_skb,
+                  no_skt: findVerif[i].no_skt,
+                  datef_skb: findVerif[i].datef_skb,
+                  datel_skb: findVerif[i].datel_skb
                 }
                 await vendor.create(dataVen)
                 await findRes.update(data)
@@ -769,7 +977,12 @@ module.exports = {
         nama: joi.string().required(),
         no_npwp: joi.string().required(),
         no_ktp: joi.string().required(),
-        alamat: joi.string().required()
+        alamat: joi.string().required(),
+        type_skb: joi.string().required(),
+        no_skb: joi.string().allow(''),
+        no_skt: joi.string().allow(''),
+        datef_skb: joi.string().allow(''),
+        datel_skb: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -791,19 +1004,25 @@ module.exports = {
         if (findAjuanVendor) {
           return response(res, 'nama vendor telah terdftar', {}, 404, false)
         } else {
+          const tipe = results.type_skb
           const findVendor = await vervendor.findByPk(id)
           if (findVendor) {
             const data = {
               nama: results.nama,
               npwp: results.no_npwp,
               nik: results.no_ktp,
-              alamat: results.alamat
+              alamat: results.alamat,
+              type_skb: tipe,
+              no_skb: tipe === 'SKB' ? results.no_skb : null,
+              no_skt: tipe === 'SKT' ? results.no_skt : null,
+              datef_skb: tipe !== 'tidak' ? results.datef_skb : null,
+              datel_skb: tipe !== 'tidak' ? results.datel_skb : null
             }
             const updateVendor = await findVendor.update(data)
             if (updateVendor) {
-              return response(res, 'success create vendor')
+              return response(res, 'success update vendor')
             } else {
-              return response(res, 'false create vendor', {}, 404, false)
+              return response(res, 'false update vendor', {}, 404, false)
             }
           } else {
             return response(res, 'false create vendor', {}, 404, false)
