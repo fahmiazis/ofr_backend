@@ -392,9 +392,10 @@ module.exports = {
             if (temp.length > 0) {
               let noLevel = null
               // const tempStat = findTrans.status_transaksi
-              const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+              // const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
               // const tipeStat = tempStat === 2 ? 2 : 5
-              const tipeStat = cekData === 'ya' ? 2 : 4
+              // const tipeStat = cekData === 'ya' ? 2 : 4
+              const tipeStat = 2
               for (let i = 0; i < 1; i++) {
                 const findLevel = await role.findOne({
                   where: {
@@ -529,14 +530,17 @@ module.exports = {
                   if (cekKasbon !== undefined) {
                     const cekPph = findAllTrans.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
                     const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                    tipeStat = (cekData === 'ya' && cekPph === 'ya') ? 2 : 4
+                    // tipeStat = (cekData === 'ya' && cekPph === 'ya') ? 2 : 4
+                    tipeStat = (cekPph === 'ya') ? 2 : 4
                   } else {
                     const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                    tipeStat = cekData === 'ya' ? 2 : 4
+                    // tipeStat = cekData === 'ya' ? 2 : 4
+                    tipeStat = 2
                   }
                 } else if (jenis === 'ikk') {
                   const cekData = findAllTrans.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                  tipeStat = cekData === 'ya' ? 2 : 4
+                  // tipeStat = cekData === 'ya' ? 2 : 4
+                  tipeStat = 2
                 } else {
                   tipeStat = statVerif
                 }

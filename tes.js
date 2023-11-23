@@ -1,13 +1,19 @@
-const ppu = '559585971542000'
-const pa = '012345.67890123.45'
+const ppu = '234354654675e'
+const pa = '0'
 const vendor = 'V100100100'
 
 // PPU :  (10 digit number)
 // PA :  (16 digit number)
 // No Vendor :  (10 digit komibanasi number dan text)
 
-const conv = parseInt(pa)
+const conv = ppu.toString()
+const splconv = conv.split('')
 
-console.log(conv)
-console.log(pa.length)
-console.log(vendor.length)
+// console.log(typeof conv === 'number')
+console.log(isNaN(parseFloat(pa)))
+// splconv.map(item => {
+//   return (
+//     isNaN(parseFloat(item)) === false ? console.log(item) : console.log('kong')
+//   )
+// })
+// console.log(vendor.length)

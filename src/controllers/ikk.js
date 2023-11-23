@@ -829,7 +829,8 @@ module.exports = {
           if (findMaster.length > 0) {
             const temp = []
             const cek = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-            const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
+            // const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
+            const resData = cek === 'ya' ? findMaster.length : findMaster.length
             for (let i = 0; i < resData; i++) {
               // if (cek === 'no') {
               //   if (i === resData - 1) {
@@ -1657,7 +1658,8 @@ module.exports = {
                         if (findTtd.length === findFull.length) {
                           const temp = []
                           const cekData = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                          const resData = cekData === 'ya' ? 3 : 4
+                          // const resData = cekData === 'ya' ? 3 : 4
+                          const resData = 3
                           for (let i = 0; i < findIkk.length; i++) {
                             const send = {
                               status_transaksi: resData,
@@ -2502,8 +2504,8 @@ module.exports = {
             })
             if (findIkk.length > 0) {
               const cekData = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-              const resData = level === 2 && cekData === 'ya' ? 5 : 4
-              // const resData = 5
+              // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              const resData = 5
               for (let h = 0; h < findIkk.length; h++) {
                 const findRes = await ikk.findByPk(findIkk[h].id)
                 if (findRes) {
@@ -2535,8 +2537,8 @@ module.exports = {
           if (findIkk.length > 0) {
             const temp = []
             const cekData = findIkk.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-            const resData = level === 2 && cekData === 'ya' ? 5 : 4
-            // const resData = 5
+            // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+            const resData = 5
             for (let i = 0; i < findIkk.length; i++) {
               const findRes = await ikk.findByPk(findIkk[i].id)
               if (findRes) {

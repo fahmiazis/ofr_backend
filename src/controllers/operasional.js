@@ -1071,45 +1071,45 @@ module.exports = {
           const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
           const cekDoc = []
           for (let i = 0; i < resData.length; i++) {
-            if (cek === 'no') {
-              if (i === resData - 1) {
-                const data = {
-                  desc: 'Dokumen SKB',
-                  jenis_form: findMaster[0].jenis,
-                  no_transaksi: no,
-                  tipe: findMaster[0].type,
-                  stat_upload: 1
-                }
-                const creDoc = await docuser.create(data)
-                if (creDoc) {
-                  cekDoc.push(creDoc)
-                }
-              } else {
-                const data = {
-                  desc: findMaster[i].name,
-                  jenis_form: findMaster[i].jenis,
-                  no_transaksi: no,
-                  tipe: findMaster[i].type,
-                  stat_upload: findMaster[i].stat_upload
-                }
-                const creDoc = await docuser.create(data)
-                if (creDoc) {
-                  cekDoc.push(creDoc)
-                }
-              }
-            } else {
-              const data = {
-                desc: findMaster[i].name,
-                jenis_form: findMaster[i].jenis,
-                no_transaksi: no,
-                tipe: findMaster[i].type,
-                stat_upload: findMaster[i].stat_upload
-              }
-              const creDoc = await docuser.create(data)
-              if (creDoc) {
-                cekDoc.push(creDoc)
-              }
+            // if (cek === 'no') {
+            //   if (i === resData - 1) {
+            //     const data = {
+            //       desc: 'Dokumen SKB',
+            //       jenis_form: findMaster[0].jenis,
+            //       no_transaksi: no,
+            //       tipe: findMaster[0].type,
+            //       stat_upload: 1
+            //     }
+            //     const creDoc = await docuser.create(data)
+            //     if (creDoc) {
+            //       cekDoc.push(creDoc)
+            //     }
+            //   } else {
+            //     const data = {
+            //       desc: findMaster[i].name,
+            //       jenis_form: findMaster[i].jenis,
+            //       no_transaksi: no,
+            //       tipe: findMaster[i].type,
+            //       stat_upload: findMaster[i].stat_upload
+            //     }
+            //     const creDoc = await docuser.create(data)
+            //     if (creDoc) {
+            //       cekDoc.push(creDoc)
+            //     }
+            //   }
+            // } else {
+            const data = {
+              desc: findMaster[i].name,
+              jenis_form: findMaster[i].jenis,
+              no_transaksi: no,
+              tipe: findMaster[i].type,
+              stat_upload: findMaster[i].stat_upload
             }
+            const creDoc = await docuser.create(data)
+            if (creDoc) {
+              cekDoc.push(creDoc)
+            }
+            // }
           }
           if (cekDoc.length > 0) {
             const findFinDoc = await docuser.findAll({
@@ -1146,47 +1146,48 @@ module.exports = {
           if (findMaster.length > 0) {
             const temp = []
             const cek = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-            const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
+            // const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
+            const resData = cek === 'ya' ? findMaster.length : findMaster.length
             for (let i = 0; i < resData; i++) {
-              if (cek === 'no') {
-                if (i === resData - 1) {
-                  const data = {
-                    desc: 'Dokumen SKB',
-                    jenis_form: findMaster[0].jenis,
-                    no_transaksi: no,
-                    tipe: findMaster[0].type,
-                    stat_upload: 1
-                  }
-                  const creDoc = await docuser.create(data)
-                  if (creDoc) {
-                    temp.push(creDoc)
-                  }
-                } else {
-                  const data = {
-                    desc: findMaster[i].name,
-                    jenis_form: findMaster[i].jenis,
-                    no_transaksi: no,
-                    tipe: findMaster[i].type,
-                    stat_upload: findMaster[i].stat_upload
-                  }
-                  const creDoc = await docuser.create(data)
-                  if (creDoc) {
-                    temp.push(creDoc)
-                  }
-                }
-              } else {
-                const data = {
-                  desc: findMaster[i].name,
-                  jenis_form: findMaster[i].jenis,
-                  no_transaksi: no,
-                  tipe: findMaster[i].type,
-                  stat_upload: findMaster[i].stat_upload
-                }
-                const creDoc = await docuser.create(data)
-                if (creDoc) {
-                  temp.push(creDoc)
-                }
+              // if (cek === 'no') {
+              //   if (i === resData - 1) {
+              //     const data = {
+              //       desc: 'Dokumen SKB',
+              //       jenis_form: findMaster[0].jenis,
+              //       no_transaksi: no,
+              //       tipe: findMaster[0].type,
+              //       stat_upload: 1
+              //     }
+              //     const creDoc = await docuser.create(data)
+              //     if (creDoc) {
+              //       temp.push(creDoc)
+              //     }
+              //   } else {
+              //     const data = {
+              //       desc: findMaster[i].name,
+              //       jenis_form: findMaster[i].jenis,
+              //       no_transaksi: no,
+              //       tipe: findMaster[i].type,
+              //       stat_upload: findMaster[i].stat_upload
+              //     }
+              //     const creDoc = await docuser.create(data)
+              //     if (creDoc) {
+              //       temp.push(creDoc)
+              //     }
+              //   }
+              // } else {
+              const data = {
+                desc: findMaster[i].name,
+                jenis_form: findMaster[i].jenis,
+                no_transaksi: no,
+                tipe: findMaster[i].type,
+                stat_upload: findMaster[i].stat_upload
               }
+              const creDoc = await docuser.create(data)
+              if (creDoc) {
+                temp.push(creDoc)
+              }
+              // }
             }
             if (temp.length > 0) {
               const findDocCre = await docuser.findAll({
@@ -2008,7 +2009,8 @@ module.exports = {
                         if (findTtd.length === findFull.length) {
                           const temp = []
                           const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                          const resData = cekData === 'ya' ? 3 : 4
+                          // const resData = cekData === 'ya' ? 3 : 4
+                          const resData = 3
                           for (let i = 0; i < findOps.length; i++) {
                             const send = {
                               status_transaksi: resData,
@@ -2859,7 +2861,7 @@ module.exports = {
               if (cekKasbon !== undefined) {
                 const cekPph = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
                 const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                const resData = level === 2 && (cekData === 'ya' && cekPph === 'ya') ? 5 : 4
+                const resData = level === 2 && (cekPph === 'ya') ? 5 : 4
                 // const resData = 5
                 for (let j = 0; j < findOps.length; j++) {
                   const findRes = await ops.findByPk(findOps[j].id)
@@ -2878,8 +2880,8 @@ module.exports = {
                 }
               } else {
                 const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                const resData = level === 2 && cekData === 'ya' ? 5 : 4
-                // const resData = 5
+                // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+                const resData = 5
                 for (let j = 0; j < findOps.length; j++) {
                   const findRes = await ops.findByPk(findOps[j].id)
                   if (findRes) {
@@ -2915,7 +2917,7 @@ module.exports = {
               const temp = []
               const cekPph = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
               const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-              const resData = level === 2 && (cekData === 'ya' && cekPph === 'ya') ? 5 : 4
+              const resData = level === 2 && (cekPph === 'ya') ? 5 : 4
               for (let i = 0; i < findOps.length; i++) {
                 const findRes = await ops.findByPk(findOps[i].id)
                 if (findRes) {
@@ -2939,7 +2941,8 @@ module.exports = {
             } else {
               const temp = []
               const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-              const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              const resData = 5
               for (let i = 0; i < findOps.length; i++) {
                 const findRes = await ops.findByPk(findOps[i].id)
                 if (findRes) {

@@ -290,14 +290,14 @@ module.exports = {
           const resData = cek === 'ya' ? findMaster.length + 1 : findMaster.length
           const cekDoc = []
           for (let i = 0; i < resData; i++) {
-            const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB')
+            const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
             if (cek === 'ya') {
               if (findSkb !== undefined) {
                 cekDoc.push(1)
               } else {
                 if (i === resData - 1) {
                   const data = {
-                    desc: 'Dokumen SKB',
+                    desc: 'Dokumen SKB/SKT',
                     jenis_form: findMaster[0].jenis,
                     no_transaksi: no,
                     tipe: findMaster[0].type,
@@ -318,7 +318,7 @@ module.exports = {
           }
           if (cekDoc.length > 0) {
             if (cek === 'tidak') {
-              const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB')
+              const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
               if (findSkb !== undefined) {
                 const findId = await docuser.findByPk(findSkb.id)
                 if (findId) {
@@ -392,7 +392,7 @@ module.exports = {
             if (cek === 'ya') {
               if (i === resData - 1) {
                 const data = {
-                  desc: 'Dokumen SKB',
+                  desc: 'Dokumen SKB/SKT',
                   jenis_form: findMaster[0].jenis,
                   no_transaksi: no,
                   tipe: findMaster[0].type,

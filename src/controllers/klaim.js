@@ -1,4 +1,4 @@
-const { klaim, coa, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring } = require('../models')
+const { klaim, coa, depo, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -741,6 +741,10 @@ module.exports = {
               as: 'depo'
             },
             {
+              model: depo,
+              as: 'scarea'
+            },
+            {
               model: picklaim,
               as: 'picklaim'
             },
@@ -834,6 +838,10 @@ module.exports = {
                 {
                   model: finance,
                   as: 'depo'
+                },
+                {
+                  model: depo,
+                  as: 'scarea'
                 },
                 {
                   model: picklaim,
@@ -967,6 +975,10 @@ module.exports = {
                     as: 'depo'
                   },
                   {
+                    model: depo,
+                    as: 'scarea'
+                  },
+                  {
                     model: picklaim,
                     as: 'picklaim'
                   },
@@ -1061,6 +1073,10 @@ module.exports = {
               as: 'depo'
             },
             {
+              model: depo,
+              as: 'scarea'
+            },
+            {
               model: picklaim,
               as: 'picklaim'
             },
@@ -1116,6 +1132,10 @@ module.exports = {
               as: 'depo'
             },
             {
+              model: depo,
+              as: 'scarea'
+            },
+            {
               model: picklaim,
               as: 'picklaim'
             },
@@ -1152,6 +1172,10 @@ module.exports = {
             {
               model: finance,
               as: 'depo'
+            },
+            {
+              model: depo,
+              as: 'scarea'
             }
           ]
         })
@@ -1189,6 +1213,10 @@ module.exports = {
           {
             model: finance,
             as: 'depo'
+          },
+          {
+            model: depo,
+            as: 'scarea'
           },
           {
             model: picklaim,
@@ -2339,6 +2367,10 @@ module.exports = {
               as: 'depo'
             },
             {
+              model: depo,
+              as: 'scarea'
+            },
+            {
               model: picklaim,
               as: 'picklaim'
             },
@@ -2422,6 +2454,10 @@ module.exports = {
                 {
                   model: finance,
                   as: 'depo'
+                },
+                {
+                  model: depo,
+                  as: 'scarea'
                 },
                 {
                   model: picklaim,
@@ -2544,6 +2580,10 @@ module.exports = {
                     as: 'depo'
                   },
                   {
+                    model: depo,
+                    as: 'scarea'
+                  },
+                  {
                     model: picklaim,
                     as: 'picklaim'
                   },
@@ -2626,6 +2666,10 @@ module.exports = {
             {
               model: finance,
               as: 'depo'
+            },
+            {
+              model: depo,
+              as: 'scarea'
             },
             {
               model: picklaim,
@@ -2934,10 +2978,20 @@ module.exports = {
                 const kodeVendor = dataKlaim[3]
                 const nominal = dataKlaim[4]
 
-                const dataPpu = ppu.toString().length !== 10 || typeof parseInt(ppu) !== 'number' ? { no_transaksi: dataKlaim[0], mess: 'Pastikan PPU Diisi dengan Sesuai' } : null
-                const dataPa = pa.toString().length !== 16 || typeof parseInt(pa) !== 'number' ? { no_transaksi: dataKlaim[0], mess: 'Pastikan  PA Diisi dengan Sesuai' } : null
+                const dataPpu = ppu.toString().length !== 10 ||
+                ppu.toString().split('').map(item => { return isNaN(parseFloat(item))}) === true
+                  ? { no_transaksi: dataKlaim[0], mess: 'Pastikan PPU Diisi dengan Sesuai' }
+                  : null
+                const dataPa = pa.toString().length !== 16 ||
+                pa.toString().split('').map(item => { return (isNaN(parseFloat(item))) }) === true
+                  ? { no_transaksi: dataKlaim[0], mess: 'Pastikan  PA Diisi dengan Sesuai' }
+                  : null
                 const dataVendor = kodeVendor.toString().length !== 10 ? { no_transaksi: dataKlaim[0], mess: 'Pastikan Kode Vendor Diisi dengan Sesuai' } : null
-                const dataNominal = typeof parseInt(nominal) !== 'number' ? { no_transaksi: dataKlaim[0], mess: 'Pastikan Nominal Diisi dengan Sesuai' } : null
+                const dataNominal = nominal.toString().split('').map(item => { return (isNaN(parseFloat(item))) }) === true
+                  ? { no_transaksi: dataKlaim[0], mess: 'Pastikan Nominal Diisi dengan Sesuai' }
+                  : null
+
+                // console.log(ppu.toString().split('').map(item => { return isNaN(parseFloat(item)) === true && true }) === true)
                 if (dataPpu !== null || dataPa !== null || dataVendor !== null || dataNominal !== null) {
                   const mesTemp = [dataPpu, dataPa, dataVendor, dataNominal]
                   mesData.push(mesTemp)

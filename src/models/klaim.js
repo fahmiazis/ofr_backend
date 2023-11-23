@@ -25,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kode_plant',
         as: 'depo'
       })
+      klaim.hasOne(models.depo, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'scarea'
+      })
       klaim.hasOne(models.picklaim, {
         foreignKey: 'kode_plant',
         sourceKey: 'kode_plant',
