@@ -2979,19 +2979,19 @@ module.exports = {
                 const nominal = dataKlaim[4]
 
                 const dataPpu = ppu.toString().length !== 10 ||
-                ppu.toString().split('').map(item => { return isNaN(parseFloat(item))}) === true
+                (ppu.toString().split('').filter((item) => isNaN(parseFloat(item))).length > 0)
                   ? { no_transaksi: dataKlaim[0], mess: 'Pastikan PPU Diisi dengan Sesuai' }
                   : null
                 const dataPa = pa.toString().length !== 16 ||
-                pa.toString().split('').map(item => { return (isNaN(parseFloat(item))) }) === true
-                  ? { no_transaksi: dataKlaim[0], mess: 'Pastikan  PA Diisi dengan Sesuai' }
+                (pa.toString().split('').filter((item) => isNaN(parseFloat(item))).length > 0)
+                  ? { no_transaksi: dataKlaim[0], mess: 'Pastikan PA Diisi dengan Sesuai' }
                   : null
                 const dataVendor = kodeVendor.toString().length !== 10 ? { no_transaksi: dataKlaim[0], mess: 'Pastikan Kode Vendor Diisi dengan Sesuai' } : null
-                const dataNominal = nominal.toString().split('').map(item => { return (isNaN(parseFloat(item))) }) === true
+                const dataNominal = (nominal.toString().split('').filter((item) => isNaN(parseFloat(item))).length > 0)
                   ? { no_transaksi: dataKlaim[0], mess: 'Pastikan Nominal Diisi dengan Sesuai' }
                   : null
 
-                // console.log(ppu.toString().split('').map(item => { return isNaN(parseFloat(item)) === true && true }) === true)
+                // console.log(ppu.toString().split('').filter((item) => isNaN(parseFloat(item))).length > 0
                 if (dataPpu !== null || dataPa !== null || dataVendor !== null || dataNominal !== null) {
                   const mesTemp = [dataPpu, dataPa, dataVendor, dataNominal]
                   mesData.push(mesTemp)
