@@ -349,7 +349,7 @@ module.exports = {
                       const pushTemp = [
                         { Header: headJurnal }, { Detail: detJurnal }
                       ]
-                      tempTrans.push(pushTemp)
+                      tempTrans.push({ transaksi: pushTemp })
                     } else {
                       jurnal2.map((e, index) => {
                         return (
@@ -381,7 +381,7 @@ module.exports = {
                       const pushTemp = [
                         { Header: headJurnal }, { Detail: detJurnal }
                       ]
-                      tempTrans.push(pushTemp)
+                      tempTrans.push({ transaksi: pushTemp })
                     }
                   }
                   // jurnal4.map((e, index) => {
@@ -466,7 +466,7 @@ module.exports = {
                 if (findData[j].jenis_pph !== 'Non PPh' && findData[j].type_transaksi === 'Ya') {
                   console.log('ppn pph')
                 } else {
-                  tempTrans.push(pushTemp)
+                  tempTrans.push({ transaksi: pushTemp })
                 }
               //   }
               }

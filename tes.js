@@ -93,4 +93,27 @@ const dataJurnal = {
   ]
 }
 
-dataJurnal.result[0].item.map(x => { return console.table(x) })
+const dataLoop = dataJurnal.result
+
+for (let i = 0; i < dataLoop.length; i++) {
+  const data = dataLoop[i].item
+  for (let j = 0; j < data.length; j++) {
+    const dataHeader = data[j].Header !== undefined && data[j].Header
+    const dataDetail = data[j].Detail !== undefined && data[j].Detail
+    console.log(dataHeader)
+    console.log(dataHeader)
+    const cekHead = []
+    const cekDetail = []
+    for (let x = 0; x < dataHeader.length; x++) {
+      const dataTrans = dataHeader[x]
+      console.log(dataTrans) // Create Header
+    }
+    if (cekHead.length > 0) {
+      for (let x = 0; x < dataDetail.length; x++) {
+        const dataTrans = dataDetail[x]
+        cekDetail.push(dataTrans)
+        console.log(dataTrans) // Create Detail
+      }
+    }
+  }
+}
