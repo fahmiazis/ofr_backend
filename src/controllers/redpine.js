@@ -496,7 +496,7 @@ module.exports = {
               }
             }
             if (temp.length > 0) {
-              return response(res, 'success get jurnal ', { result: dataJurnal })
+              return response(res, 'success get jurnal', { result: dataJurnal })
             } else {
               return response(res, 'data kosong', { result: dataJurnal })
             }
@@ -755,15 +755,15 @@ module.exports = {
             }
           }
           if (temp.length > 0) {
-            return response(res, 'success get jurnal ', { result: dataJurnal, no_ofr: noDis })
+            return response(res, 'success get jurnal', { result: dataJurnal, no_ofr: noDis })
           } else {
-            return response(res, 'success get jurnal g', { result: dataJurnal, no_ofr: noDis })
+            return response(res, 'success get jurnalg', { result: dataJurnal, no_ofr: noDis })
           }
         } else {
-          return response(res, 'success get jurnal t', { result: findTrans, no_ofr: noDis })
+          return response(res, 'success get jurnalt', { result: findTrans, no_ofr: noDis })
         }
       } else {
-        return response(res, 'success get jurnal s', { result: findTrans, no_ofr: noDis })
+        return response(res, 'success get jurnals', { result: findTrans, no_ofr: noDis })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
