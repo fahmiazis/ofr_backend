@@ -30,5 +30,8 @@ route.patch('/detailid/:id', klaim.getDetailId)
 route.patch('/getdocbayar', klaim.getDocBayar)
 route.patch('/upniverif', klaim.updateNilaiVerif)
 route.post('/upload', klaim.uploadDataKlaim)
+route.patch('/outlet/up', klaim.updateOutlet)
+route.delete('/outlet/del/:id', klaim.deleteOutlet)
+route.get('/outlet/get/:id', klaim.getOutlet)
 
 module.exports = route

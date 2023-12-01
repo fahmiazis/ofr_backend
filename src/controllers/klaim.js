@@ -1,4 +1,4 @@
-const { klaim, coa, depo, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring } = require('../models')
+const { klaim, coa, depo, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -27,13 +27,13 @@ module.exports = {
         bank_tujuan: joi.string().required(),
         norek_ajuan: joi.string().required(),
         nama_tujuan: joi.string().required(),
-        status_npwp: joi.number().required(),
+        // status_npwp: joi.number().required(),
         tujuan_tf: joi.string().required(),
-        nama_npwp: joi.string().allow(''),
+        // nama_npwp: joi.string().allow(''),
         tiperek: joi.string().allow(''),
-        no_npwp: joi.string().allow(''),
-        nama_ktp: joi.string().allow(''),
-        no_ktp: joi.string().allow(''),
+        // no_npwp: joi.string().allow(''),
+        // nama_ktp: joi.string().allow(''),
+        // no_ktp: joi.string().allow(''),
         periode: joi.string().allow(''),
         no_surkom: joi.string().required(),
         nama_program: joi.string().required(),
@@ -171,13 +171,13 @@ module.exports = {
         bank_tujuan: joi.string().required(),
         norek_ajuan: joi.string().required(),
         nama_tujuan: joi.string().required(),
-        status_npwp: joi.number().required(),
+        // status_npwp: joi.number().required(),
         tujuan_tf: joi.string().required(),
-        nama_npwp: joi.string().allow(''),
+        // nama_npwp: joi.string().allow(''),
         tiperek: joi.string().allow(''),
-        no_npwp: joi.string().allow(''),
-        nama_ktp: joi.string().allow(''),
-        no_ktp: joi.string().allow(''),
+        // no_npwp: joi.string().allow(''),
+        // nama_ktp: joi.string().allow(''),
+        // no_ktp: joi.string().allow(''),
         periode: joi.string().allow(''),
         no_surkom: joi.string().required(),
         nama_program: joi.string().required(),
@@ -331,8 +331,31 @@ module.exports = {
       const id = req.params.id
       const findKlaim = await klaim.findByPk(id)
       if (findKlaim) {
-        await findKlaim.destroy()
-        return response(res, 'success delete cart klaim', { result: findKlaim })
+        const findOutlet = await outlet.findAll({
+          where: {
+            klaimId: id
+          }
+        })
+        if (findOutlet.length > 0) {
+          const cek = []
+          for (let i = 0; i < findOutlet.length; i++) {
+            const findData = await outlet.findByPk(findOutlet[i].id)
+            if (findData) {
+              await findData.destroy()
+              cek.push(findData)
+            }
+          }
+          if (cek.length > 0) {
+            await findKlaim.destroy()
+            return response(res, 'success delete cart klaim', { result: findKlaim })
+          } else {
+            await findKlaim.destroy()
+            return response(res, 'success delete cart klaim', { result: findKlaim })
+          }
+        } else {
+          await findKlaim.destroy()
+          return response(res, 'success delete cart klaim', { result: findKlaim })
+        }
       } else {
         return response(res, 'failed get cart', {}, 404, false)
       }
@@ -3061,5 +3084,96 @@ module.exports = {
         return response(res, error.message, {}, 500, false)
       }
     })
+  },
+  updateOutlet: async (req, res) => {
+    try {
+      const schema = joi.object({
+        id: joi.number().required(),
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const list = results.list
+        if (list.length > 0) {
+          const temp = []
+          for (let i = 0; i < list.length; i++) {
+            const val = list[i]
+            const findOutlet = await outlet.findAll({
+              where: {
+                klaimId: results.id
+              }
+            })
+            const data = {
+              klaimId: results.id,
+              nilai_ajuan: val.nilai_ajuan,
+              status_npwp: val.status_npwp,
+              nama_npwp: val.nama_npwp,
+              no_npwp: val.no_npwp,
+              nama_ktp: val.nama_ktp,
+              no_ktp: val.no_ktp
+            }
+            if (findOutlet.length > 0) {
+              const cekData = findOutlet.find(({no_ktp, no_npwp}) => (data.no_ktp !== '' && no_ktp === data.no_ktp) || (data.no_npwp !== '' && no_npwp === data.no_npwp)) // eslint-disable-line
+              // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              if (cekData !== undefined) {
+                const findData = await outlet.findByPk(cekData.id)
+                if (findData) {
+                  const creOutlet = await findData.update(data)
+                  temp.push(creOutlet)
+                }
+              } else {
+                const creOutlet = await outlet.create(data)
+                temp.push(creOutlet)
+              }
+            } else {
+              const creOutlet = await outlet.create(data)
+              temp.push(creOutlet)
+            }
+          }
+          if (temp.length > 0) {
+            return response(res, 'success update outlet', { list })
+          } else {
+            return response(res, 'failed update outlet', { list })
+          }
+        } else {
+          return response(res, 'failed update outlet', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  deleteOutlet: async (req, res) => {
+    try {
+      const id = req.params.id
+      const findOutlet = await outlet.findByPk(id)
+      if (findOutlet) {
+        await findOutlet.destroy()
+        return response(res, 'success delete outlet', { result: findOutlet })
+      } else {
+        return response(res, 'failed get cart', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getOutlet: async (req, res) => {
+    try {
+      const id = req.params.id
+      const findOutlet = await outlet.findAll({
+        where: {
+          klaimId: id
+        }
+      })
+      if (findOutlet.length > 0) {
+        return response(res, 'success get outlet', { result: findOutlet })
+      } else {
+        return response(res, 'failed get outlet', { result: findOutlet })
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }
