@@ -129,7 +129,12 @@ module.exports = (sequelize, DataTypes) => {
     stat_skt: DataTypes.TEXT,
     datef_skb: DataTypes.DATE,
     datel_skb: DataTypes.DATE,
-    no_skb: DataTypes.TEXT
+    no_skb: DataTypes.TEXT,
+    no_pol: DataTypes.TEXT,
+    nominal_bbm: DataTypes.TEXT,
+    liter: DataTypes.TEXT,
+    km: DataTypes.TEXT,
+    stat_bbm: DataTypes.TEXT
   }, {
     sequelize,
     modelName: 'ops'

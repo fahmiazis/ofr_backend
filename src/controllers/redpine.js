@@ -140,7 +140,7 @@ module.exports = {
                               {
                                 no_gl: index === 0 ? findData[j].no_coa : glkk,
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                                tipe: index === 0 ? 'debit' : 'credit',
+                                tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'credit' : index === 0 ? 'debit' : 'debit',
                                 value: index === 0
                                   ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
                                   : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
@@ -153,7 +153,7 @@ module.exports = {
                               {
                                 no_gl: index === 0 ? findData[j].no_coa : glkk,
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                                tipe: index === 0 ? 'debit' : 'credit',
+                                tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'debit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
                                   ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
                                   : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
@@ -624,7 +624,7 @@ module.exports = {
                               {
                                 no_gl: index === 0 ? findData[j].no_coa : glkk,
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                                tipe: index === 0 ? 'debit' : 'credit',
+                                tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'credit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
                                   ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
                                   : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
@@ -637,7 +637,7 @@ module.exports = {
                               {
                                 no_gl: index === 0 ? findData[j].no_coa : glkk,
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                                tipe: index === 0 ? 'debit' : 'credit',
+                                tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'debit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
                                   ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
                                   : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',

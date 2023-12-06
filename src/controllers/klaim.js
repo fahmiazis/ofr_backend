@@ -3085,7 +3085,7 @@ module.exports = {
       }
     })
   },
-  updateOutlet: async (req, res) => {
+  uploadOutlet: async (req, res) => {
     try {
       const schema = joi.object({
         id: joi.number().required(),
@@ -3133,12 +3133,121 @@ module.exports = {
             }
           }
           if (temp.length > 0) {
-            return response(res, 'success update outlet', { list })
+            return response(res, 'success upload outlet', { list })
           } else {
-            return response(res, 'failed update outlet', { list })
+            return response(res, 'failed upload outlet', { list })
           }
         } else {
-          return response(res, 'failed update outlet', {}, 404, false)
+          return response(res, 'failed upload outlet', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  addOutlet: async (req, res) => {
+    try {
+      const schema = joi.object({
+        id: joi.number().required(),
+        nilai_ajuan: joi.number().required(),
+        status_npwp: joi.number().required(),
+        no_ktp: joi.string().allow(''),
+        no_npwp: joi.string().allow(''),
+        nama_ktp: joi.string().allow(''),
+        nama_npwp: joi.string().allow('')
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const temp = []
+        for (let i = 0; i < 1; i++) {
+          const findOutlet = await outlet.findAll({
+            where: {
+              klaimId: results.id
+            }
+          })
+          const data = {
+            klaimId: results.id,
+            nilai_ajuan: results.nilai_ajuan,
+            status_npwp: results.status_npwp,
+            nama_npwp: results.nama_npwp,
+            no_npwp: results.no_npwp,
+            nama_ktp: results.nama_ktp,
+            no_ktp: results.no_ktp
+          }
+          if (findOutlet.length > 0) {
+              const cekData = findOutlet.find(({no_ktp, no_npwp}) => (data.no_ktp !== '' && no_ktp === data.no_ktp) || (data.no_npwp !== '' && no_npwp === data.no_npwp)) // eslint-disable-line
+            // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+            if (cekData !== undefined) {
+              temp.push()
+            } else {
+              const creOutlet = await outlet.create(data)
+              temp.push(creOutlet)
+            }
+          } else {
+            const creOutlet = await outlet.create(data)
+            temp.push(creOutlet)
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, 'success add outlet', { temp })
+        } else {
+          return response(res, 'failed add outlet', { temp })
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  updateOutlet: async (req, res) => {
+    try {
+      const schema = joi.object({
+        id: joi.number().required(),
+        idOutlet: joi.number().required(),
+        nilai_ajuan: joi.number().required(),
+        status_npwp: joi.number().required(),
+        no_ktp: joi.string().allow(''),
+        no_npwp: joi.string().allow(''),
+        nama_ktp: joi.string().allow(''),
+        nama_npwp: joi.string().allow('')
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const temp = []
+        for (let i = 0; i < 1; i++) {
+          const findOutlet = await outlet.findAll({
+            where: {
+              klaimId: results.id
+            }
+          })
+          const data = {
+            klaimId: results.id,
+            nilai_ajuan: results.nilai_ajuan,
+            status_npwp: results.status_npwp,
+            nama_npwp: results.nama_npwp,
+            no_npwp: results.no_npwp,
+            nama_ktp: results.nama_ktp,
+            no_ktp: results.no_ktp
+          }
+          if (findOutlet.length > 0) {
+              const cekData = findOutlet.find(({no_ktp, no_npwp}) => (data.no_ktp !== '' && no_ktp === data.no_ktp) || (data.no_npwp !== '' && no_npwp === data.no_npwp)) // eslint-disable-line
+            // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+            if (cekData !== undefined) {
+              temp.push()
+            } else {
+              const findData = await outlet.findByPk(results.idOutlet)
+              const upOutlet = await findData.update(data)
+              temp.push(upOutlet)
+            }
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, 'success update outlet', { temp })
+        } else {
+          return response(res, 'failed update outlet', { temp })
         }
       }
     } catch (error) {
