@@ -49,7 +49,11 @@ module.exports = {
         no_bpkk: joi.string().required(),
         tgl_faktur: joi.string().allow(''),
         typeniknpwp: joi.string().allow(''),
-        stat_skb: joi.string().allow('')
+        stat_skb: joi.string().allow(''),
+        stat_bbm: joi.string().allow(''),
+        km: joi.string().allow(''),
+        liter: joi.string().allow(''),
+        no_pol: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -114,7 +118,11 @@ module.exports = {
               jenis_vendor: result.type_transaksi,
               tgl_faktur: results.tgl_faktur,
               typeniknpwp: results.typeniknpwp,
-              stat_skb: results.stat_skb
+              stat_skb: results.stat_skb,
+              stat_bbm: results.stat_bbm,
+              km: results.km,
+              liter: results.liter,
+              no_pol: results.no_pol
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -2148,7 +2156,11 @@ module.exports = {
         no_bpkk: joi.string().required(),
         tgl_faktur: joi.string().allow(''),
         typeniknpwp: joi.string().allow(''),
-        stat_skb: joi.string().allow('')
+        stat_skb: joi.string().allow(''),
+        stat_bbm: joi.string().allow(''),
+        km: joi.string().allow(''),
+        liter: joi.string().allow(''),
+        no_pol: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -2214,7 +2226,11 @@ module.exports = {
               jenis_vendor: result.type_transaksi,
               tgl_faktur: results.tgl_faktur,
               typeniknpwp: results.typeniknpwp,
-              stat_skb: results.stat_skb
+              stat_skb: results.stat_skb,
+              stat_bbm: results.stat_bbm,
+              km: results.km,
+              liter: results.liter,
+              no_pol: results.no_pol
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')

@@ -265,7 +265,7 @@ module.exports = {
   },
   getDocumentSkb: async (req, res) => {
     try {
-      const { no, name, tipeSkb } = req.body
+      const { no, name, tipeSkb, modalOpen } = req.body
       const findDoc = await docuser.findAll({
         where: {
           no_transaksi: no
@@ -286,52 +286,93 @@ module.exports = {
               ]
             }
           })
-          const cek = tipeSkb === undefined ? 'tidak' : tipeSkb // eslint-disable-line
-          const resData = cek === 'ya' ? findMaster.length + 1 : findMaster.length
-          const cekDoc = []
-          for (let i = 0; i < resData; i++) {
-            const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
-            if (cek === 'ya') {
-              if (findSkb !== undefined) {
-                cekDoc.push(1)
-              } else {
-                if (i === resData - 1) {
-                  const data = {
-                    desc: 'Dokumen SKB/SKT',
-                    jenis_form: findMaster[0].jenis,
-                    no_transaksi: no,
-                    tipe: findMaster[0].type,
-                    stat_upload: 1
-                  }
-                  const creDoc = await docuser.create(data)
-                  if (creDoc) {
-                    console.log('berhasil create doc skb')
-                    cekDoc.push(creDoc)
+          if (modalOpen === 'ya') {
+            const pardoc = []
+            for (let i = 0; i < findDoc.length; i++) {
+              const send = {
+                path: null,
+                divisi: 'tax',
+                history: null,
+                jenis_dok: 'lampiran',
+                status: null
+              }
+              const findId = await docuser.findByPk(findDoc[i].id)
+              if (findId) {
+                await findId.update(send)
+                pardoc.push(findId)
+              }
+            }
+            if (pardoc.length > 0) {
+              const cek = tipeSkb === undefined ? 'tidak' : tipeSkb // eslint-disable-line
+              const resData = cek === 'ya' ? findMaster.length + 1 : findMaster.length
+              const cekDoc = []
+              for (let i = 0; i < resData; i++) {
+                const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
+                if (cek === 'ya') {
+                  if (findSkb !== undefined) {
+                    cekDoc.push(1)
+                  } else {
+                    if (i === resData - 1) {
+                      const data = {
+                        desc: 'Dokumen SKB/SKT',
+                        jenis_form: findMaster[0].jenis,
+                        no_transaksi: no,
+                        tipe: findMaster[0].type,
+                        stat_upload: 1
+                      }
+                      const creDoc = await docuser.create(data)
+                      if (creDoc) {
+                        console.log('berhasil create doc skb')
+                        cekDoc.push(creDoc)
+                      }
+                    } else {
+                      cekDoc.push(1)
+                    }
                   }
                 } else {
                   cekDoc.push(1)
                 }
               }
-            } else {
-              cekDoc.push(1)
-            }
-          }
-          if (cekDoc.length > 0) {
-            if (cek === 'tidak') {
-              const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
-              if (findSkb !== undefined) {
-                const findId = await docuser.findByPk(findSkb.id)
-                if (findId) {
-                  await findId.destroy()
-                  const findFinDoc = await docuser.findAll({
-                    where: {
-                      no_transaksi: no
+              if (cekDoc.length > 0) {
+                if (cek === 'tidak') {
+                  const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
+                  if (findSkb !== undefined) {
+                    const findId = await docuser.findByPk(findSkb.id)
+                    if (findId) {
+                      await findId.destroy()
+                      const findFinDoc = await docuser.findAll({
+                        where: {
+                          no_transaksi: no
+                        }
+                      })
+                      if (findFinDoc.length > 0) {
+                        return response(res, 'success get dokumen flowles1', { result: findFinDoc })
+                      } else {
+                        return response(res, 'success get dokumen gagl1', { result: findDoc })
+                      }
+                    } else {
+                      const findFinDoc = await docuser.findAll({
+                        where: {
+                          no_transaksi: no
+                        }
+                      })
+                      if (findFinDoc.length > 0) {
+                        return response(res, 'success get dokumen flowles2', { result: findFinDoc })
+                      } else {
+                        return response(res, 'success get dokumen gagl2', { result: findDoc })
+                      }
                     }
-                  })
-                  if (findFinDoc.length > 0) {
-                    return response(res, 'success get dokumen flowles1', { result: findFinDoc })
                   } else {
-                    return response(res, 'success get dokumen gagl1', { result: findDoc })
+                    const findFinDoc = await docuser.findAll({
+                      where: {
+                        no_transaksi: no
+                      }
+                    })
+                    if (findFinDoc.length > 0) {
+                      return response(res, 'success get dokumen flowles3', { result: findFinDoc })
+                    } else {
+                      return response(res, 'success get dokumen gagl3', { result: findDoc })
+                    }
                   }
                 } else {
                   const findFinDoc = await docuser.findAll({
@@ -340,9 +381,87 @@ module.exports = {
                     }
                   })
                   if (findFinDoc.length > 0) {
-                    return response(res, 'success get dokumen flowles2', { result: findFinDoc })
+                    return response(res, 'success get dokumen flowles4', { result: findFinDoc })
                   } else {
-                    return response(res, 'success get dokumen gagl2', { result: findDoc })
+                    return response(res, 'success get dokumen gagl4', { result: findDoc })
+                  }
+                }
+              } else {
+                return response(res, 'success get dokumen ggl', { result: findDoc, cekDoc, findMaster })
+              }
+            } else {
+              return response(res, 'success get dokumen gjl', { result: findDoc })
+            }
+          } else {
+            const cek = tipeSkb === undefined ? 'tidak' : tipeSkb // eslint-disable-line
+            const resData = cek === 'ya' ? findMaster.length + 1 : findMaster.length
+            const cekDoc = []
+            for (let i = 0; i < resData; i++) {
+              const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
+              if (cek === 'ya') {
+                if (findSkb !== undefined) {
+                  cekDoc.push(1)
+                } else {
+                  if (i === resData - 1) {
+                    const data = {
+                      desc: 'Dokumen SKB/SKT',
+                      jenis_form: findMaster[0].jenis,
+                      no_transaksi: no,
+                      tipe: findMaster[0].type,
+                      stat_upload: 1
+                    }
+                    const creDoc = await docuser.create(data)
+                    if (creDoc) {
+                      console.log('berhasil create doc skb')
+                      cekDoc.push(creDoc)
+                    }
+                  } else {
+                    cekDoc.push(1)
+                  }
+                }
+              } else {
+                cekDoc.push(1)
+              }
+            }
+            if (cekDoc.length > 0) {
+              if (cek === 'tidak') {
+                const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
+                if (findSkb !== undefined) {
+                  const findId = await docuser.findByPk(findSkb.id)
+                  if (findId) {
+                    await findId.destroy()
+                    const findFinDoc = await docuser.findAll({
+                      where: {
+                        no_transaksi: no
+                      }
+                    })
+                    if (findFinDoc.length > 0) {
+                      return response(res, 'success get dokumen flowles1', { result: findFinDoc })
+                    } else {
+                      return response(res, 'success get dokumen gagl1', { result: findDoc })
+                    }
+                  } else {
+                    const findFinDoc = await docuser.findAll({
+                      where: {
+                        no_transaksi: no
+                      }
+                    })
+                    if (findFinDoc.length > 0) {
+                      return response(res, 'success get dokumen flowles2', { result: findFinDoc })
+                    } else {
+                      return response(res, 'success get dokumen gagl2', { result: findDoc })
+                    }
+                  }
+                } else {
+                  const findFinDoc = await docuser.findAll({
+                    where: {
+                      no_transaksi: no
+                    }
+                  })
+                  if (findFinDoc.length > 0) {
+                    return response(res, 'success get dokumen flowles3', { result: findFinDoc })
+                  } else {
+                    return response(res, 'success get dokumen gagl3', { result: findDoc })
                   }
                 }
               } else {
@@ -352,25 +471,14 @@ module.exports = {
                   }
                 })
                 if (findFinDoc.length > 0) {
-                  return response(res, 'success get dokumen flowles3', { result: findFinDoc })
+                  return response(res, 'success get dokumen flowles4', { result: findFinDoc })
                 } else {
-                  return response(res, 'success get dokumen gagl3', { result: findDoc })
+                  return response(res, 'success get dokumen gagl4', { result: findDoc })
                 }
               }
             } else {
-              const findFinDoc = await docuser.findAll({
-                where: {
-                  no_transaksi: no
-                }
-              })
-              if (findFinDoc.length > 0) {
-                return response(res, 'success get dokumen flowles4', { result: findFinDoc })
-              } else {
-                return response(res, 'success get dokumen gagl4', { result: findDoc })
-              }
+              return response(res, 'success get dokumen ggl', { result: findDoc, cekDoc, findMaster })
             }
-          } else {
-            return response(res, 'success get dokumen ggl', { result: findDoc, cekDoc, findMaster })
           }
         } else {
           return response(res, 'success get dokumen', { result: findDoc })

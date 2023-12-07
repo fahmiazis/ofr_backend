@@ -700,19 +700,49 @@ module.exports = {
       const level = req.user.level
       const name = req.user.name
       const id = req.params.id
-      const result = await docuser.findByPk(id)
-      if (result) {
-        const data = {
-          status: `${result.status}, level ${level}; status approve; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
-        }
-        const updateData = await result.update(data)
-        if (updateData) {
-          return response(res, 'success approve dokumen', { updateData })
-        } else {
-          return response(res, 'failed to approve dokumen', {}, 404, false)
-        }
+      const schema = joi.object({
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        return response(res, 'failed to get dokumen', {}, 404, false)
+        const list = results.list
+        if (list.length > 0) {
+          const cek = []
+          for (let i = 0; i < list.length; i++) {
+            const result = await docuser.findByPk(list[i])
+            if (result) {
+              const data = {
+                status: `${result.status}, level ${level}; status approve; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
+              }
+              const updateData = await result.update(data)
+              if (updateData) {
+                cek.push(updateData)
+              }
+            }
+          }
+          if (cek.length > 0) {
+            return response(res, 'success approve dokumen', { result: cek })
+          } else {
+            return response(res, 'failed to approve dokumen', {}, 404, false)
+          }
+        } else {
+          const result = await docuser.findByPk(id)
+          if (result) {
+            const data = {
+              status: `${result.status}, level ${level}; status approve; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
+            }
+            const updateData = await result.update(data)
+            if (updateData) {
+              return response(res, 'success approve dokumen', { result: updateData })
+            } else {
+              return response(res, 'failed to approve dokumen', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed to approve dokumen', {}, 404, false)
+          }
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -723,19 +753,49 @@ module.exports = {
       const level = req.user.level
       const name = req.user.name
       const id = req.params.id
-      const result = await docuser.findByPk(id)
-      if (result) {
-        const data = {
-          status: `${result.status}, level ${level}; status reject; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
-        }
-        const updateData = await result.update(data)
-        if (updateData) {
-          return response(res, 'success reject dokumen', { updateData })
-        } else {
-          return response(res, 'failed to reject dokumen', {}, 404, false)
-        }
+      const schema = joi.object({
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        return response(res, 'failed to get dokumen', {}, 404, false)
+        const list = results.list
+        if (list.length > 0) {
+          const cek = []
+          for (let i = 0; i < list.length; i++) {
+            const result = await docuser.findByPk(list[i])
+            if (result) {
+              const data = {
+                status: `${result.status}, level ${level}; status reject; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
+              }
+              const updateData = await result.update(data)
+              if (updateData) {
+                cek.push(updateData)
+              }
+            }
+          }
+          if (cek.length > 0) {
+            return response(res, 'success reject dokumen', { result: cek })
+          } else {
+            return response(res, 'failed to reject dokumen', {}, 404, false)
+          }
+        } else {
+          const result = await docuser.findByPk(id)
+          if (result) {
+            const data = {
+              status: `${result.status}, level ${level}; status reject; by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')};`
+            }
+            const updateData = await result.update(data)
+            if (updateData) {
+              return response(res, 'success reject dokumen', { updateData })
+            } else {
+              return response(res, 'failed to reject dokumen', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed to get dokumen', {}, 404, false)
+          }
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

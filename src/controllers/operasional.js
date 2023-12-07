@@ -52,7 +52,11 @@ module.exports = {
         no_po: joi.string().allow(''),
         nilai_po: joi.string().allow(''),
         nilai_pr: joi.string().allow(''),
-        stat_skb: joi.string().allow('')
+        stat_skb: joi.string().allow(''),
+        stat_bbm: joi.string().allow(''),
+        km: joi.string().allow(''),
+        liter: joi.string().allow(''),
+        no_pol: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -120,7 +124,11 @@ module.exports = {
               no_po: results.no_po,
               nilai_po: results.nilai_po,
               nilai_pr: results.nilai_pr,
-              stat_skb: results.stat_skb
+              stat_skb: results.stat_skb,
+              stat_bbm: results.stat_bbm,
+              km: results.km,
+              liter: results.liter,
+              no_pol: results.no_pol
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -322,7 +330,11 @@ module.exports = {
         no_po: joi.string().allow(''),
         nilai_po: joi.string().allow(''),
         nilai_pr: joi.string().allow(''),
-        stat_skb: joi.string().allow('')
+        stat_skb: joi.string().allow(''),
+        stat_bbm: joi.string().allow(''),
+        km: joi.string().allow(''),
+        liter: joi.string().allow(''),
+        no_pol: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -391,7 +403,11 @@ module.exports = {
               no_po: results.no_po,
               nilai_po: results.nilai_po,
               nilai_pr: results.nilai_pr,
-              stat_skb: results.stat_skb
+              stat_skb: results.stat_skb,
+              stat_bbm: results.stat_bbm,
+              km: results.km,
+              liter: results.liter,
+              no_pol: results.no_pol
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
