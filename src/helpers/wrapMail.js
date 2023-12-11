@@ -6,21 +6,21 @@ async function wrapedSendMail (mailOptions) {
       connectionTimeout: 60000,
       socketTimeout: 120000,
       greetingTimeout: 30000,
-      // host: 'mail.pinusmerahabadi.co.id',
-      // secure: false,
-      // port: 587,
-      // auth: {
-      //   user: 'acc@pinusmerahabadi.co.id',
-      //   pass: 'acc1801'
-      // },
-      // tls: {
-      //   rejectUnauthorized: false
-      // }
-      service: 'gmail',
+      host: 'mail.pinusmerahabadi.co.id',
+      secure: false,
+      port: 587,
       auth: {
-        user: 'insfopma@gmail.com',
-        pass: 'dwnf ykro lbml pbvn'
+        user: 'acc@pinusmerahabadi.co.id',
+        pass: 'acc1223'
+      },
+      tls: {
+        rejectUnauthorized: false
       }
+      // service: 'gmail',
+      // auth: {
+      //   user: 'insfopma@gmail.com',
+      //   pass: 'dwnf ykro lbml pbvn'
+      // }
     })
     let cek = []
     transporter.sendMail(mailOptions, function (error, info) {

@@ -34,5 +34,11 @@ route.patch('/getdocbayar', ops.getDocBayar)
 route.patch('/revkasbon', ops.revisiKasbon)
 route.get('/report', ops.getReport)
 route.patch('/upniverif', ops.updateNilaiVerif)
+// bbm
+route.patch('/bbm/upload', ops.uploadBbm)
+route.patch('/bbm/update', ops.updateBbm)
+route.patch('/bbm/add', ops.addBbm)
+route.delete('/bbm/del/:id', ops.deleteBbm)
+route.get('/bbm/get/:id', ops.getBbm)
 
 module.exports = route

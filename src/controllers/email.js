@@ -1859,7 +1859,7 @@ module.exports = {
   tesEmail: async (req, res) => {
     try {
       const mailOptions = {
-        from: 'fahmiazis797@gmail.com',
+        from: 'noreply_ofr@pinusmerahabadi.co.id',
         replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
         to: 'fahmiazis797@gmail.com',
         cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',

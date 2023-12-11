@@ -3233,7 +3233,7 @@ module.exports = {
             no_ktp: results.no_ktp
           }
           if (findOutlet.length > 0) {
-              const cekData = findOutlet.find(({no_ktp, no_npwp}) => (data.no_ktp !== '' && no_ktp === data.no_ktp) || (data.no_npwp !== '' && no_npwp === data.no_npwp)) // eslint-disable-line
+              const cekData = findOutlet.find(({no_ktp, no_npwp, id}) => (data.no_ktp !== '' && no_ktp === data.no_ktp && id !== results.idOutlet) || (data.no_npwp !== '' && no_npwp === data.no_npwp && id !== results.idOutlet)) // eslint-disable-line
             // const resData = level === 2 && cekData === 'ya' ? 5 : 4
             if (cekData !== undefined) {
               temp.push()

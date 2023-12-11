@@ -50,6 +50,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'tax_code',
         as: 'taxcode'
       })
+      ops.hasMany(models.bbm, {
+        foreignKey: 'transId',
+        sourceKey: 'id',
+        as: 'bbm'
+      })
     }
   }
   ops.init({
