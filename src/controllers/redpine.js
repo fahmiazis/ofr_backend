@@ -142,8 +142,8 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
                                 tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'credit' : index === 0 ? 'debit' : 'debit',
                                 value: index === 0
-                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku
+                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku : '',
                                 keterangan: findData[j].sub_coa
                               }
                             )
@@ -155,8 +155,8 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
                                 tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'debit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
-                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku
+                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku : '',
                                 keterangan: findData[j].sub_coa
                               }
                             )
@@ -189,11 +189,11 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
                                 tipe: index === 0 ? 'debit' : 'credit',
                                 value: index === 0
-                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku
                                   : index === 1
-                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                                     : index === 2
-                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                       : '',
                                 keterangan: findData[j].sub_coa
                               }
@@ -220,11 +220,11 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
                                 tipe: index === 0 ? 'debit' : 'credit',
                                 value: index === 0
-                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku
                                   : index === 1
-                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                                     : index === 2
-                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                       : '',
                                 keterangan: findData[j].sub_coa
                               }
@@ -244,11 +244,11 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? 'Kas Kecil' : '',
                                 tipe: index === 2 ? 'credit' : 'debit',
                                 value: index === 0
-                                  ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  ? findData[j].dpp !== null && findData[j].dpp
                                   : index === 1
-                                    ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    ? findData[j].ppn !== null && findData[j].ppn
                                     : index === 2
-                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                       : '',
                                 keterangan: findData[j].sub_coa
                               }
@@ -261,11 +261,11 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? 'Kas Kecil' : '',
                                 tipe: index === 2 ? 'credit' : 'debit',
                                 value: index === 0
-                                  ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  ? findData[j].dpp !== null && findData[j].dpp
                                   : index === 1
-                                    ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    ? findData[j].ppn !== null && findData[j].ppn
                                     : index === 2
-                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                       : '',
                                 keterangan: findData[j].sub_coa
                               }
@@ -303,13 +303,13 @@ module.exports = {
                                     nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
                                     tipe: index === 0 ? 'debit' : 'credit',
                                     value: index === 0
-                                      ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_ajuan !== null && findData[j].nilai_ajuan
                                       : index === 1
-                                        ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                        ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                                         : index === 2
-                                          ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                          ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                           : '',
-                                    keterangan: findData[j].no_faktur
+                                    keterangan: findData[j].no_faktur.replace(/[^a-zA-Z0-9]/g, '')
                                   }
                                 )
                               )
@@ -334,13 +334,13 @@ module.exports = {
                                     nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
                                     tipe: 'credit',
                                     value: index === 0
-                                      ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].dpp !== null && findData[j].dpp
                                       : index === 1
-                                        ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                        ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                                         : index === 2
-                                          ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                          ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                           : '',
-                                    keterangan: findData[j].no_faktur
+                                    keterangan: findData[j].no_faktur.replace(/[^a-zA-Z0-9]/g, '')
                                   }
                                 )
                               )
@@ -360,8 +360,8 @@ module.exports = {
                                     no_gl: dataPph.ppn,
                                     nama_gl: 'PPN Masukan Non Dagang',
                                     tipe: 'debit',
-                                    value: findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
-                                    keterangan: findData[j].no_faktur
+                                    value: findData[j].ppn !== null && findData[j].ppn,
+                                    keterangan: findData[j].no_faktur.replace(/[^a-zA-Z0-9]/g, '')
                                   }
                                 )
                               )
@@ -371,8 +371,8 @@ module.exports = {
                                     no_gl: glkk,
                                     nama_gl: 'Kas Kecil',
                                     tipe: 'credit',
-                                    value: findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
-                                    keterangan: findData[j].no_faktur
+                                    value: findData[j].ppn !== null && findData[j].ppn,
+                                    keterangan: findData[j].no_faktur.replace(/[^a-zA-Z0-9]/g, '')
                                   }
                                 )
                               )
@@ -410,13 +410,13 @@ module.exports = {
                   //               nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? `Utang ${findData[j].jenis_pph}` : index === 3 ? 'Kas Kecil' : '',
                   //               tipe: index === 0 || index === 1 ? 'debit' : 'credit',
                   //               value: index === 0
-                  //                 ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                 ? findData[j].dpp !== null && findData[j].dpp
                   //                 : index === 1
-                  //                   ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                   ? findData[j].ppn !== null && findData[j].ppn
                   //                   : index === 2
-                  //                     ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                     ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                   //                     : index === 3
-                  //                       ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                       ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                   //                       : '',
                   //               keterangan: findData[j].sub_coa
                   //             }
@@ -445,13 +445,13 @@ module.exports = {
                   //               nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? `Utang ${findData[j].jenis_pph}` : index === 3 ? 'Kas Kecil' : '',
                   //               tipe: index === 0 || index === 1 ? 'debit' : 'credit',
                   //               value: index === 0
-                  //                 ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                 ? findData[j].dpp !== null && findData[j].dpp
                   //                 : index === 1
-                  //                   ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                   ? findData[j].ppn !== null && findData[j].ppn
                   //                   : index === 2
-                  //                     ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                     ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                   //                     : index === 3
-                  //                       ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                       ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                   //                       : '',
                   //               keterangan: findData[j].sub_coa
                   //             }
@@ -626,8 +626,8 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
                                 tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'credit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
-                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku
+                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku : '',
                                 keterangan: findData[j].sub_coa
                               }
                             )
@@ -639,8 +639,8 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
                                 tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'debit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
-                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '',
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku
+                                  : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku : '',
                                 keterangan: findData[j].sub_coa
                               }
                             )
@@ -673,11 +673,11 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
                                 tipe: index === 0 ? 'debit' : 'credit',
                                 value: index === 0
-                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku
                                   : index === 1
-                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                                     : index === 2
-                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                       : '',
                                 keterangan: findData[j].sub_coa
                               }
@@ -704,11 +704,11 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
                                 tipe: index === 0 ? 'debit' : 'credit',
                                 value: index === 0
-                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  ? findData[j].nilai_buku !== null && findData[j].nilai_buku
                                   : index === 1
-                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                                     : index === 2
-                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                       : '',
                                 keterangan: findData[j].sub_coa
                               }
@@ -728,11 +728,11 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? 'Kas Kecil' : '',
                                 tipe: index === 2 ? 'credit' : 'debit',
                                 value: index === 0
-                                  ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  ? findData[j].dpp !== null && findData[j].dpp
                                   : index === 1
-                                    ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    ? findData[j].ppn !== null && findData[j].ppn
                                     : index === 2
-                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                       : '',
                                 keterangan: findData[j].sub_coa
                               }
@@ -745,11 +745,11 @@ module.exports = {
                                 nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? 'Kas Kecil' : '',
                                 tipe: index === 2 ? 'credit' : 'debit',
                                 value: index === 0
-                                  ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                  ? findData[j].dpp !== null && findData[j].dpp
                                   : index === 1
-                                    ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                    ? findData[j].ppn !== null && findData[j].ppn
                                     : index === 2
-                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                       : '',
                                 keterangan: findData[j].sub_coa
                               }
@@ -787,13 +787,13 @@ module.exports = {
                                     nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
                                     tipe: index === 0 ? 'debit' : 'credit',
                                     value: index === 0
-                                      ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].nilai_ajuan !== null && findData[j].nilai_ajuan
                                       : index === 1
-                                        ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                        ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                                         : index === 2
-                                          ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                          ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                           : '',
-                                    keterangan: findData[j].no_faktur
+                                    keterangan: findData[j].no_faktur.replace(/[^a-zA-Z0-9]/g, '')
                                   }
                                 )
                               )
@@ -818,13 +818,13 @@ module.exports = {
                                     nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? `Utang ${findData[j].jenis_pph}` : index === 2 ? 'Kas Kecil' : '',
                                     tipe: 'credit',
                                     value: index === 0
-                                      ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                      ? findData[j].dpp !== null && findData[j].dpp
                                       : index === 1
-                                        ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                        ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                                         : index === 2
-                                          ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                          ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                                           : '',
-                                    keterangan: findData[j].no_faktur
+                                    keterangan: findData[j].no_faktur.replace(/[^a-zA-Z0-9]/g, '')
                                   }
                                 )
                               )
@@ -844,8 +844,8 @@ module.exports = {
                                     no_gl: dataPph.ppn,
                                     nama_gl: 'PPN Masukan Non Dagang',
                                     tipe: 'debit',
-                                    value: findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
-                                    keterangan: findData[j].no_faktur
+                                    value: findData[j].ppn !== null && findData[j].ppn,
+                                    keterangan: findData[j].no_faktur.replace(/[^a-zA-Z0-9]/g, '')
                                   }
                                 )
                               )
@@ -855,8 +855,8 @@ module.exports = {
                                     no_gl: glkk,
                                     nama_gl: 'Kas Kecil',
                                     tipe: 'credit',
-                                    value: findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
-                                    keterangan: findData[j].no_faktur
+                                    value: findData[j].ppn !== null && findData[j].ppn,
+                                    keterangan: findData[j].no_faktur.replace(/[^a-zA-Z0-9]/g, '')
                                   }
                                 )
                               )
@@ -894,13 +894,13 @@ module.exports = {
                   //               nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? `Utang ${findData[j].jenis_pph}` : index === 3 ? 'Kas Kecil' : '',
                   //               tipe: index === 0 || index === 1 ? 'debit' : 'credit',
                   //               value: index === 0
-                  //                 ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                 ? findData[j].dpp !== null && findData[j].dpp
                   //                 : index === 1
-                  //                   ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                   ? findData[j].ppn !== null && findData[j].ppn
                   //                   : index === 2
-                  //                     ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                     ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                   //                     : index === 3
-                  //                       ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                       ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                   //                       : '',
                   //               keterangan: findData[j].sub_coa
                   //             }
@@ -929,13 +929,13 @@ module.exports = {
                   //               nama_gl: index === 0 ? findData[j].nama_coa : index === 1 ? 'PPN Masukan Non Dagang' : index === 2 ? `Utang ${findData[j].jenis_pph}` : index === 3 ? 'Kas Kecil' : '',
                   //               tipe: index === 0 || index === 1 ? 'debit' : 'credit',
                   //               value: index === 0
-                  //                 ? findData[j].dpp !== null && findData[j].dpp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                 ? findData[j].dpp !== null && findData[j].dpp
                   //                 : index === 1
-                  //                   ? findData[j].ppn !== null && findData[j].ppn.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                   ? findData[j].ppn !== null && findData[j].ppn
                   //                   : index === 2
-                  //                     ? findData[j].nilai_utang !== null && findData[j].nilai_utang.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                     ? findData[j].nilai_utang !== null && findData[j].nilai_utang
                   //                     : index === 3
-                  //                       ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                  //                       ? findData[j].nilai_bayar !== null && findData[j].nilai_bayar
                   //                       : '',
                   //               keterangan: findData[j].sub_coa
                   //             }
