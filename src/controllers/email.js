@@ -711,8 +711,15 @@ module.exports = {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
                     const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
-                      toMail = findUser[i]
+                    const findKode = findUser[i].kode_plant === null ? '' : findUser[i].kode_plant
+                    if (noLevel.level === 5) {
+                      if (findDepo.kode_plant === findKode && findDepo.aos.toString().toLowerCase() === findName.toLowerCase()) {
+                        toMail = findUser[i]
+                      }
+                    } else {
+                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                        toMail = findUser[i]
+                      }
                     }
                   }
                   if (toMail !== null) {

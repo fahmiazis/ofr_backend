@@ -207,7 +207,7 @@ module.exports = {
       const kode = req.user.kode
       const listGl = [52010402, 524112, 55050009, 548519, 63050009, 52010401, 524111]
       const listPma = [52010402, 524112, 55050009, 548519, 63050009, 52010401, 524111]
-      const listKasbon = [54010201, 55010102, 55030001, 55030002, 55010302]
+      // const listKasbon = [54010201, 55010102, 55030001, 55030002, 55010302]
       if (tipe === 'ikk') {
         const findDepo = await finance.findOne({
           where: {
@@ -228,7 +228,10 @@ module.exports = {
           if (findTarif.length > 0) {
             const findAllTarif = await veriftax.findAll({
               where: {
-                system: { [Op.like]: `%${cekLive}` }
+                [Op.and]: [
+                  { system: { [Op.like]: `%${cekLive}` } },
+                  { grouping: { [Op.like]: '%NON KASBON' } }
+                ]
               }
             })
             if (findAllTarif.length > 0) {
@@ -243,8 +246,6 @@ module.exports = {
           return response(res, 'failed get tarif1', {}, 404, false)
         }
       } else if (tipe === 'kasbon') {
-        const dataAll = []
-        const data = []
         const findDepo = await finance.findOne({
           where: {
             kode_plant: { [Op.like]: `%${kode}` }
@@ -252,36 +253,34 @@ module.exports = {
         })
         if (findDepo) {
           const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
-          for (let i = 0; i < listKasbon.length; i++) {
-            const findTarif = await veriftax.findAll({
+          const findTarif = await veriftax.findAll({
+            where: {
+              [Op.and]: [
+                { system: { [Op.like]: `%${cekLive}` } },
+                { grouping: { [Op.like]: '%KASBON' } }
+              ]
+            },
+            group: ['gl_account']
+          })
+          if (findTarif.length > 0) {
+            const findAllTarif = await veriftax.findAll({
               where: {
-                gl_account: { [Op.like]: `%${listKasbon[i]}` },
-                system: { [Op.like]: `%${cekLive}` }
-              },
-              group: ['gl_account']
-            })
-            if (findTarif.length > 0) {
-              const findAllTarif = await veriftax.findAll({
-                where: {
-                  gl_account: { [Op.like]: `%${listKasbon[i]}` },
-                  system: { [Op.like]: `%${cekLive}` }
-                }
-              })
-              if (findAllTarif.length > 0) {
-                data.push(findTarif[0])
-                for (let j = 0; j < findAllTarif.length; j++) {
-                  dataAll.push(findAllTarif[j])
-                }
+                [Op.and]: [
+                  { system: { [Op.like]: `%${cekLive}` } },
+                  { grouping: { [Op.like]: '%KASBON' } }
+                ]
               }
+            })
+            if (findAllTarif.length > 0) {
+              return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, listGl, listPma })
+            } else {
+              return response(res, 'failed get tarif3', {}, 404, false)
             }
-          }
-          if (dataAll.length > 0) {
-            return response(res, 'succes get tarif', { result: data, length: dataAll, listGl, listPma })
           } else {
-            return response(res, 'failed get tarif3', {}, 404, false)
+            return response(res, 'failed get tarif2', {}, 404, false)
           }
         } else {
-          return response(res, 'failed get tarif3', {}, 404, false)
+          return response(res, 'failed get tarif1', {}, 404, false)
         }
       } else if (tipe === 'ops') {
         const findDepo = await finance.findOne({
@@ -293,14 +292,20 @@ module.exports = {
           const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
           const findTarif = await veriftax.findAll({
             where: {
-              system: { [Op.like]: `%${cekLive}` }
+              [Op.and]: [
+                { system: { [Op.like]: `%${cekLive}` } },
+                { grouping: { [Op.like]: '%NON KASBON' } }
+              ]
             },
             group: ['gl_account']
           })
           if (findTarif.length > 0) {
             const findAllTarif = await veriftax.findAll({
               where: {
-                system: { [Op.like]: `%${cekLive}` }
+                [Op.and]: [
+                  { system: { [Op.like]: `%${cekLive}` } },
+                  { grouping: { [Op.like]: '%NON KASBON' } }
+                ]
               }
             })
             if (findAllTarif.length > 0) {

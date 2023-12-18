@@ -124,8 +124,8 @@ module.exports = {
               if (findKlaim) {
                 const month = moment(results.periode_awal).format('DD MMMM YYYY')
                 const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
-                const monthCom = moment(findKlaim.periode_awall).format('DD MMMM YYYY')
-                const monthComLast = moment(findKlaim.periode_akhir).format('DD MMMM YYYY')
+                const monthCom = moment(findKlaim.periode_awall).format('DD YYYY')
+                const monthComLast = moment(findKlaim.periode_akhir).format('DD YYYY')
                 if (month === monthCom && monthLast === monthComLast && results.nama_subcoa === findKlaim.nama_subcoa) {
                   return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findKlaim })
                 } else {
@@ -203,10 +203,6 @@ module.exports = {
             const findDraft = await klaim.findOne({
               where: {
                 kode_plant: kode,
-                [Op.or]: [
-                  { status_transaksi: null },
-                  { status_transaksi: 1 }
-                ],
                 [Op.not]: [
                   { id: id }
                 ]
@@ -238,7 +234,7 @@ module.exports = {
               nama_program: results.nama_program,
               dn_area: results.dn_area
             }
-            if (findDraft) {
+            if (findDraft.kode_plant !== kode) {
               return response(res, 'Maximal 1 data dalam satu ajuan klaim', {}, 400, false)
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
               // const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
@@ -273,8 +269,8 @@ module.exports = {
               if (findKlaim) {
                 const month = moment(results.periode_awal).format('DD MMMM YYYY')
                 const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
-                const monthCom = moment(findKlaim.periode_awall).format('DD MMMM YYYY')
-                const monthComLast = moment(findKlaim.periode_akhir).format('DD MMMM YYYY')
+                const monthCom = moment(findKlaim.periode_awall).format('DD YYYY')
+                const monthComLast = moment(findKlaim.periode_akhir).format('DD YYYY')
                 if (month === monthCom && monthLast === monthComLast && results.nama_subcoa === findKlaim.nama_subcoa) {
                   return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findKlaim })
                 } else {

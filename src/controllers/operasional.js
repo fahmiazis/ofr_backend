@@ -634,7 +634,7 @@ module.exports = {
       if (findOps) {
         const findBbm = await bbm.findAll({
           where: {
-            klaimId: id
+            transId: id
           }
         })
         if (findBbm.length > 0) {
@@ -1239,6 +1239,8 @@ module.exports = {
             }
           })
           const cek = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+          const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
+
           const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
           const cekDoc = []
           for (let i = 0; i < resData.length; i++) {
@@ -1274,7 +1276,7 @@ module.exports = {
               jenis_form: findMaster[i].jenis,
               no_transaksi: no,
               tipe: findMaster[i].type,
-              stat_upload: findMaster[i].stat_upload
+              stat_upload: findMaster[i].name === 'KWITANSI' && cekKasbon !== undefined ? 0 : findMaster[i].stat_upload
             }
             const creDoc = await docuser.create(data)
             if (creDoc) {
@@ -1317,6 +1319,7 @@ module.exports = {
           if (findMaster.length > 0) {
             const temp = []
             const cek = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+            const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
             // const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
             const resData = cek === 'ya' ? findMaster.length : findMaster.length
             for (let i = 0; i < resData; i++) {
@@ -1352,7 +1355,7 @@ module.exports = {
                 jenis_form: findMaster[i].jenis,
                 no_transaksi: no,
                 tipe: findMaster[i].type,
-                stat_upload: findMaster[i].stat_upload
+                stat_upload: findMaster[i].name === 'KWITANSI' && cekKasbon !== undefined ? 0 : findMaster[i].stat_upload
               }
               const creDoc = await docuser.create(data)
               if (creDoc) {

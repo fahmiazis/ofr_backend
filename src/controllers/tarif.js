@@ -22,6 +22,7 @@ module.exports = {
         type_transaksi: joi.string().required(),
         jenis_pph: joi.string().required(),
         grouping: joi.string().required(),
+        po: joi.string().required(),
         status_npwp: joi.string().required(),
         status_ident: joi.string().required(),
         tarif_pph: joi.string().required(),
@@ -68,6 +69,7 @@ module.exports = {
         type_transaksi: joi.string().required(),
         jenis_pph: joi.string().required(),
         grouping: joi.string().required(),
+        po: joi.string().required(),
         status_npwp: joi.string().required(),
         status_ident: joi.string().required(),
         tarif_pph: joi.string().required(),
@@ -134,6 +136,7 @@ module.exports = {
           'GL Jurnal',
           'GL Name',
           'Jenis Transaksi',
+          'PO/NON PO',
           'Grouping',
           'OP/BADAN',
           'Jenis PPh',
@@ -185,8 +188,8 @@ module.exports = {
                 where: {
                   gl_account: { [Op.like]: `%${dataTarif[1]}` },
                   jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
-                  type_transaksi: { [Op.like]: `%${dataTarif[6]}` },
-                  status_npwp: { [Op.like]: `%${dataTarif[8]}` }
+                  type_transaksi: { [Op.like]: `%${dataTarif[7]}` },
+                  status_npwp: { [Op.like]: `%${dataTarif[9]}` }
                 }
               })
               const data = {
@@ -195,15 +198,16 @@ module.exports = {
                 gl_jurnal: dataTarif[2],
                 gl_name: dataTarif[3],
                 jenis_transaksi: dataTarif[4],
-                grouping: dataTarif[5],
-                type_transaksi: dataTarif[6],
-                jenis_pph: dataTarif[7],
-                status_npwp: dataTarif[8],
-                tax_type: dataTarif[9],
-                tax_code: dataTarif[10],
-                tarif_pph: parseFloat(dataTarif[11]) + '%',
-                dpp_nongrossup: parseFloat(dataTarif[12]) + '%',
-                dpp_grossup: parseFloat(dataTarif[13]) + '%'
+                po: dataTarif[5],
+                grouping: dataTarif[6],
+                type_transaksi: dataTarif[7],
+                jenis_pph: dataTarif[8],
+                status_npwp: dataTarif[9],
+                tax_type: dataTarif[10],
+                tax_code: dataTarif[11],
+                tarif_pph: parseFloat(dataTarif[12]) + '%',
+                dpp_nongrossup: parseFloat(dataTarif[13]) + '%',
+                dpp_grossup: parseFloat(dataTarif[14]) + '%'
               }
               if (select) {
                 const upverif = await select.update(data)
@@ -365,8 +369,8 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['SAP/REDPINE', 'GL Account', 'GL Jurnal', 'GL Name', 'Jenis Transaksi', 'Grouping', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'WHT Tax Type', 'WHT Tax Code', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
-        const key = ['system', 'gl_account', 'gl_name', 'jenis_transaksi', 'grouping', 'type_transaksi', 'jenis_pph', 'status_npwp', 'tax_type', 'tax_code', 'tarif_pph', 'dpp_nongrossup', 'dpp_grossup']
+        const header = ['SAP/REDPINE', 'GL Account', 'GL Jurnal', 'GL Name', 'Jenis Transaksi', 'PO/NON PO', 'Grouping', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'WHT Tax Type', 'WHT Tax Code', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
+        const key = ['system', 'gl_account', 'gl_name', 'jenis_transaksi', 'po', 'grouping', 'type_transaksi', 'jenis_pph', 'status_npwp', 'tax_type', 'tax_code', 'tarif_pph', 'dpp_nongrossup', 'dpp_grossup']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)

@@ -32,7 +32,8 @@ module.exports = (sequelize, DataTypes) => {
     tax_type: DataTypes.STRING,
     tax_code: DataTypes.STRING,
     grouping: DataTypes.STRING,
-    gl_jurnal: DataTypes.STRING
+    gl_jurnal: DataTypes.STRING,
+    po: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'veriftax'
