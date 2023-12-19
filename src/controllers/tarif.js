@@ -314,7 +314,8 @@ module.exports = {
             { status_npwp: { [Op.like]: `%${searchValue}%` } },
             { tax_type: { [Op.like]: `%${searchValue}%` } },
             { tax_code: { [Op.like]: `%${searchValue}%` } },
-            { grouping: { [Op.like]: `%${searchValue}` } }
+            { grouping: { [Op.like]: `%${searchValue}` } },
+            { po: { [Op.like]: `%${searchValue}` } }
           ]
         },
         order: [[sortValue, 'ASC']],

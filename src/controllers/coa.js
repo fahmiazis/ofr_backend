@@ -257,7 +257,7 @@ module.exports = {
             where: {
               [Op.and]: [
                 { system: { [Op.like]: `%${cekLive}` } },
-                { grouping: { [Op.like]: '%KASBON' } }
+                { grouping: 'KASBON' }
               ]
             },
             group: ['gl_account']
@@ -267,7 +267,7 @@ module.exports = {
               where: {
                 [Op.and]: [
                   { system: { [Op.like]: `%${cekLive}` } },
-                  { grouping: { [Op.like]: '%KASBON' } }
+                  { grouping: 'KASBON' }
                 ]
               }
             })

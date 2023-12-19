@@ -295,13 +295,13 @@ module.exports = {
                       if (findDraft) {
                         return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
                       } else {
-                        return response(res, 'failed get email', { toMail }, 404, false)
+                        return response(res, 'failed get emai7l', { toMail }, 404, false)
                       }
                     } else {
-                      return response(res, 'failed get email', { toMail }, 404, false)
+                      return response(res, 'failed get emai6l', { toMail }, 404, false)
                     }
                   } else {
-                    return response(res, 'failed get email', { findUser }, 404, false)
+                    return response(res, 'failed get emai5l', { findUser }, 404, false)
                   }
                 } else {
                   const findUser = await user.findOne({
@@ -318,17 +318,17 @@ module.exports = {
                   if (findUser) {
                     return response(res, 'success get draft email', { from: name, to: findUser, cc: temp, result: findDraft })
                   } else {
-                    return response(res, 'failed get email', { findUser }, 404, false)
+                    return response(res, 'failed get emai4l', { findUser }, 404, false)
                   }
                 }
               } else {
-                return response(res, 'failed get email', { temp }, 404, false)
+                return response(res, 'failed get emai1l', { temp }, 404, false)
               }
             } else {
-              return response(res, 'failed get email', { findDraft }, 404, false)
+              return response(res, 'failed get emai2l', { findDraft }, 404, false)
             }
           } else {
-            return response(res, 'failed get email', { findApp }, 404, false)
+            return response(res, 'failed get emai3l', { findApp }, 404, false)
           }
         } else if (tipe === 'full approve') {
           const findDraft = await email.findOne({
@@ -1672,10 +1672,10 @@ module.exports = {
             const mailOptions = {
               from: 'noreply_ofr@pinusmerahabadi.co.id',
               replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
-              // to: `${to}`,
-              // cc: cc.split(','),
-              to: 'fahmiazis797@gmail.com',
-              cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
+              to: `${to}`,
+              cc: cc.split(','),
+              // to: 'fahmiazis797@gmail.com',
+              // cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
               subject: `${subject}`,
               html: `
                   <head>
