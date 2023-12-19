@@ -283,10 +283,12 @@ module.exports = {
                       }
                     ]
                   })
+                  const cekName = []
                   if (findUser.length > 0) {
                     let toMail = null
                     for (let i = 0; i < findUser.length; i++) {
                       const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
+                      cekName.push(findName)
                       if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
                         toMail = findUser[i]
                       }
@@ -295,10 +297,10 @@ module.exports = {
                       if (findDraft) {
                         return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
                       } else {
-                        return response(res, 'failed get emai7l', { toMail }, 404, false)
+                        return response(res, 'failed get emai7l', { toMail, findUser, listName, cekName }, 404, false)
                       }
                     } else {
-                      return response(res, 'failed get emai6l', { toMail }, 404, false)
+                      return response(res, 'failed get emai6llll', { toMail, findUser, listName, cekName }, 404, false)
                     }
                   } else {
                     return response(res, 'failed get emai5l', { findUser }, 404, false)
