@@ -2,7 +2,7 @@ const route = require('express').Router()
 const faktur = require('../controllers/faktur')
 
 route.post('/add', faktur.addFaktur)
-route.get('/all', faktur.getFaktur)
+route.patch('/all', faktur.getFaktur)
 route.get('/get', faktur.getAllFaktur)
 route.get('/detail/:no', faktur.getDetailFaktur)
 route.patch('/update/:id', faktur.updateFaktur)

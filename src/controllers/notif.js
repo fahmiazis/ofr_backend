@@ -93,7 +93,8 @@ module.exports = {
             { user: { [Op.like]: `%${name}%` } },
             tipe === 'read' ? { [Op.not]: { status: null } } : tipe === 'unread' ? { status: null } : { [Op.not]: { id: null } }
           ]
-        }
+        },
+        order: [['id', 'DESC']]
       })
       if (findNotif.length > 0) {
         return response(res, 'succes get notif', { result: findNotif, length: findNotif.length })
@@ -136,7 +137,7 @@ module.exports = {
             { menu: { [Op.like]: `%${searchValue}%` } }
           ]
         },
-        order: [[sortValue, 'ASC']],
+        order: [[sortValue, 'DESC']],
         limit: limit,
         offset: (page - 1) * limit
       })

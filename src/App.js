@@ -53,6 +53,9 @@ const notifRoute = require('./routes/notif')
 // redpine
 const redpineRoute = require('./routes/redpine')
 
+// bracket
+const bracketRoute = require('./routes/bracket')
+
 // show document
 const showRoute = require('./routes/show')
 
@@ -101,6 +104,9 @@ app.use('/notif', authMiddleware, notifRoute)
 
 // redpine
 app.use('/redpine', redpineRoute)
+
+// bracket
+app.use('/bracket', bracketRoute)
 
 // show document
 app.use('/show', showRoute)

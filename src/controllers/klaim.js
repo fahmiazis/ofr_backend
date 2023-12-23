@@ -37,7 +37,8 @@ module.exports = {
         periode: joi.string().allow(''),
         no_surkom: joi.string().required(),
         nama_program: joi.string().required(),
-        dn_area: joi.string().required()
+        dn_area: joi.string().required(),
+        no_faktur: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -88,7 +89,8 @@ module.exports = {
               periode: results.periode,
               no_surkom: results.no_surkom,
               nama_program: results.nama_program,
-              dn_area: results.dn_area
+              dn_area: results.dn_area,
+              no_faktur: results.no_faktur
             }
             if (findDraft) {
               return response(res, 'Maximal 1 data dalam satu ajuan klaim', {}, 400, false)
@@ -181,7 +183,8 @@ module.exports = {
         periode: joi.string().allow(''),
         no_surkom: joi.string().required(),
         nama_program: joi.string().required(),
-        dn_area: joi.string().required()
+        dn_area: joi.string().required(),
+        no_faktur: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -232,7 +235,8 @@ module.exports = {
               periode: results.periode,
               no_surkom: results.no_surkom,
               nama_program: results.nama_program,
-              dn_area: results.dn_area
+              dn_area: results.dn_area,
+              no_faktur: results.no_faktur
             }
             if (findDraft.kode_plant !== kode) {
               return response(res, 'Maximal 1 data dalam satu ajuan klaim', {}, 400, false)

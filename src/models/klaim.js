@@ -101,7 +101,8 @@ module.exports = (sequelize, DataTypes) => {
     nilai_verif: DataTypes.STRING,
     type_nilaiverif: DataTypes.STRING,
     tgl_submitbukti: DataTypes.DATE,
-    tgl_getdana: DataTypes.DATE
+    tgl_getdana: DataTypes.DATE,
+    no_faktur: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'klaim'

@@ -202,24 +202,35 @@ module.exports = {
     try {
       // const nofaktur = req.params.faktur
       // const kode = req.user.kode
-      const { search } = req.query
-      let searchValue = ''
-      if (typeof search === 'object') {
-        searchValue = Object.values(search)[0]
-      } else {
-        searchValue = search || ''
-      }
-      const dataFind = searchValue.replace(/[-' '.]/g, '')
-      console.log(dataFind)
-      const findFaktur = await faktur.findAll({
-        where: {
-          npwp: { [Op.like]: `%${dataFind}%` }
+      const { npwp, noFaktur } = req.body
+      if (npwp === undefined && noFaktur === undefined) {
+        const findFaktur = await faktur.findAll({
+          where: {
+            status: null
+          }
+        })
+        if (findFaktur.length > 0) {
+          return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+        } else {
+          return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
         }
-      })
-      if (findFaktur.length > 0) {
-        return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
       } else {
-        return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
+        const dataFind = npwp.replace(/[-' '.]/g, '')
+        console.log(dataFind)
+        const findFaktur = await faktur.findAll({
+          where: {
+            [Op.or]: [
+              dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}%` } },
+              { no_faktur: { [Op.like]: `%${noFaktur}%` } }
+            ],
+            status: null
+          }
+        })
+        if (findFaktur.length > 0) {
+          return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+        } else {
+          return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

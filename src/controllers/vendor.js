@@ -206,11 +206,29 @@ module.exports = {
   getVendor: async (req, res) => {
     try {
       // const kode = req.user.kode
-      const findVendor = await vendor.findAll()
-      if (findVendor.length > 0) {
-        return response(res, 'succes get vendor', { result: findVendor, length: findVendor.length })
+      const { noIdent } = req.body
+      const dataFind = noIdent.replace(/[-' '.]/g, '')
+      if (noIdent !== undefined) {
+        const findVendor = await vendor.findAll({
+          where: {
+            [Op.or]: [
+              { no_npwp: { [Op.like]: `%${dataFind}%` } },
+              { no_ktp: { [Op.like]: `%${dataFind}%` } }
+            ]
+          }
+        })
+        if (findVendor.length > 0) {
+          return response(res, 'succes get vendor', { result: findVendor, length: findVendor.length })
+        } else {
+          return response(res, 'failed get vendor', {}, 404, false)
+        }
       } else {
-        return response(res, 'failed get vendor', {}, 404, false)
+        const findVendor = await vendor.findAll()
+        if (findVendor.length > 0) {
+          return response(res, 'succes get vendor', { result: findVendor, length: findVendor.length })
+        } else {
+          return response(res, 'failed get vendor', {}, 404, false)
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
