@@ -1,8 +1,8 @@
 const route = require('express').Router()
 const bracket = require('../controllers/bracket')
 
-route.post('/login', bracket.loginBracket)
-route.post('/register', bracket.registerBracket)
+route.patch('/login', bracket.loginBracket)
+route.patch('/register', bracket.registerBracket)
 route.patch('/generate', bracket.generateBracket)
 route.delete('/delpar', bracket.deleteId)
 route.delete('/delall', bracket.deleteBracket)
