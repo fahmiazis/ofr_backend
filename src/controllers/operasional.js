@@ -1214,7 +1214,7 @@ module.exports = {
     })
   },
   getDocument: async (req, res) => {
-    // try {
+    try {
       const { no, name } = req.body
       const findDoc = await docuser.findAll({
         where: {
@@ -1387,9 +1387,9 @@ module.exports = {
           return response(res, 'failed get dokumen', { result: [] })
         }
       }
-    // } catch (error) {
-    //   return response(res, error.message, {}, 500, false)
-    // }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   },
   getDocDraft: async (req, res) => {
     try {
