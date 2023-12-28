@@ -1489,6 +1489,10 @@ module.exports = {
               as: 'appForm'
             },
             {
+              model: ttd,
+              as: 'appList'
+            },
+            {
               model: finance,
               as: 'depo',
               include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
@@ -1709,6 +1713,10 @@ module.exports = {
             {
               model: ttd,
               as: 'appForm'
+            },
+            {
+              model: ttd,
+              as: 'appList'
             },
             {
               model: finance,
