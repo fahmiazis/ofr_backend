@@ -182,7 +182,7 @@ module.exports = {
       const schema = joi.object({
         nama: joi.string().required(),
         no_npwp: joi.string().required(),
-        no_ktp: joi.string().required(),
+        no_ktp: joi.string().allow(''),
         alamat: joi.string().required(),
         no: joi.string().required(),
         jenis: joi.string().allow(''),
@@ -201,8 +201,8 @@ module.exports = {
             [Op.or]: [
               { nama: { [Op.like]: `%${results.nama}` } },
               { no_npwp: { [Op.like]: `%${results.no_npwp}%` } },
-              { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
-              { alamat: { [Op.like]: `%${results.alamat}%` } }
+              results.no_ktp === '' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } }
+              // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
           }
         })
@@ -211,13 +211,13 @@ module.exports = {
             [Op.or]: [
               { nama: { [Op.like]: `%${results.nama}` } },
               { npwp: { [Op.like]: `%${results.no_npwp}%` } },
-              { nik: { [Op.like]: `%${results.no_ktp}%` } },
-              { alamat: { [Op.like]: `%${results.alamat}%` } }
+              results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } }
+              // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
           }
         })
         if (findNameVendor || findAjuanVendor) {
-          return response(res, 'vendor telah terdftar', {}, 404, false)
+          return response(res, 'vendor telah terdftar', { findAjuanVendor, findNameVendor }, 404, false)
         } else {
           const noTrans = results.no
           const tipe = results.type_skb
