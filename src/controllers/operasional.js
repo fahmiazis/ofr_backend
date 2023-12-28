@@ -7,6 +7,8 @@ const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
 const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34]
+const nonPph = 'Non PPh'
+const spend = 'Rekening Spending Card'
 
 module.exports = {
   addCart: async (req, res) => {
@@ -1243,7 +1245,8 @@ module.exports = {
           })
           const cek = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
           const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
-
+          const cekPph = findOps.find((item) => item.jenis_pph !== nonPph)
+          const cekRek = findOps.find((item) => item.tiperek !== spend)
           const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
           const cekDoc = []
           for (let i = 0; i < resData.length; i++) {
@@ -1274,12 +1277,18 @@ module.exports = {
             //     }
             //   }
             // } else {
+            const nameDoc = findMaster[i].name
+            const statDoc = nameDoc === 'KWITANSI' && cekKasbon !== undefined
+              ? 0
+              : nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && (cekPph === undefined && cekRek === undefined)
+                ? 0
+                : findMaster[i].stat_upload
             const data = {
               desc: findMaster[i].name,
               jenis_form: findMaster[i].jenis,
               no_transaksi: no,
               tipe: findMaster[i].type,
-              stat_upload: findMaster[i].name === 'KWITANSI' && cekKasbon !== undefined ? 0 : findMaster[i].stat_upload
+              stat_upload: statDoc
             }
             const creDoc = await docuser.create(data)
             if (creDoc) {
@@ -1321,8 +1330,10 @@ module.exports = {
           })
           if (findMaster.length > 0) {
             const temp = []
-            const cek = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-            const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
+            const cek = findOps.find((item) => item.stat_skb === 'ya') === undefined ? 'ya' : 'no'
+            const cekKasbon = findOps.find((item) => item.type_kasbon === 'kasbon')
+            const cekPph = findOps.find((item) => item.jenis_pph !== nonPph)
+            const cekRek = findOps.find((item) => item.tiperek !== spend)
             // const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
             const resData = cek === 'ya' ? findMaster.length : findMaster.length
             for (let i = 0; i < resData; i++) {
@@ -1353,12 +1364,24 @@ module.exports = {
               //     }
               //   }
               // } else {
+              const nameDoc = findMaster[i].name
+              const statDoc = nameDoc === 'KWITANSI' && cekKasbon !== undefined
+                ? 0
+                : nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && (cekPph === undefined && cekRek === undefined)
+                  ? 0
+                  : findMaster[i].stat_upload
+
+              console.log(nameDoc)
+              console.log(nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)')
+              console.log(statDoc)
+              console.log(cekPph)
+              console.log(cekRek)
               const data = {
                 desc: findMaster[i].name,
                 jenis_form: findMaster[i].jenis,
                 no_transaksi: no,
                 tipe: findMaster[i].type,
-                stat_upload: findMaster[i].name === 'KWITANSI' && cekKasbon !== undefined ? 0 : findMaster[i].stat_upload
+                stat_upload: statDoc
               }
               const creDoc = await docuser.create(data)
               if (creDoc) {
