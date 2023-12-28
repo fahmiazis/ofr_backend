@@ -1232,7 +1232,7 @@ module.exports = {
             no_transaksi: no
           }
         })
-        if (findReser !== undefined && (findReser.status !== undefined && findReser.status === 'delayed') && findOps.length > 0) {
+        if (findReser !== undefined && findReser !== null && findReser !== '' && findReser.status === 'delayed' && findOps.length > 0) {
           const findMaster = await document.findAll({
             where: {
               [Op.and]: [
