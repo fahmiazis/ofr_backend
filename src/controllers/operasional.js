@@ -6,7 +6,7 @@ const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { filterApp, filter, filterBayar } = require('../helpers/pagination')
-const access = [10, 11, 12, 2, 7, 8, 9, 4, 14]
+const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34]
 
 module.exports = {
   addCart: async (req, res) => {
@@ -1479,8 +1479,9 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            ['id', 'DESC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {
@@ -1590,7 +1591,7 @@ module.exports = {
                 ]
               },
               order: [
-                ['id', 'ASC'],
+                ['id', 'DESC'],
                 [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
                 [{ model: ttd, as: 'appList' }, 'id', 'DESC']
               ],
@@ -1700,8 +1701,9 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            ['id', 'DESC'],
+            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
           include: [
             {

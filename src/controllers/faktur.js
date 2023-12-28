@@ -219,9 +219,9 @@ module.exports = {
         console.log(dataFind)
         const findFaktur = await faktur.findAll({
           where: {
-            [Op.or]: [
-              dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}%` } },
-              { no_faktur: { [Op.like]: `%${noFaktur}%` } }
+            [Op.and]: [
+              dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}` } },
+              { no_faktur: { [Op.like]: `%${noFaktur}` } }
             ],
             status: null
           }
