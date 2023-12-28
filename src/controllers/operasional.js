@@ -1214,7 +1214,7 @@ module.exports = {
     })
   },
   getDocument: async (req, res) => {
-    try {
+    // try {
       const { no, name } = req.body
       const findDoc = await docuser.findAll({
         where: {
@@ -1387,9 +1387,9 @@ module.exports = {
           return response(res, 'failed get dokumen', { result: [] })
         }
       }
-    } catch (error) {
-      return response(res, error.message, {}, 500, false)
-    }
+    // } catch (error) {
+    //   return response(res, error.message, {}, 500, false)
+    // }
   },
   getDocDraft: async (req, res) => {
     try {
@@ -1479,7 +1479,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'DESC'],
+            ['start_ops', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
@@ -1595,7 +1595,7 @@ module.exports = {
                 ]
               },
               order: [
-                ['id', 'DESC'],
+                ['start_ops', 'DESC'],
                 [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
                 [{ model: ttd, as: 'appList' }, 'id', 'DESC']
               ],
@@ -1705,7 +1705,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'DESC'],
+            ['start_ops', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
