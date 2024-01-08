@@ -1560,7 +1560,9 @@ module.exports = {
               { asman_finance: level === 8 ? name : 'undefined' },
               { manager_finance: level === 9 ? name : 'undefined' },
               { pic_tax: level === 4 ? name : 'undefined' },
-              { manager_tax: level === 14 ? name : 'undefined' }
+              { manager_tax: level === 14 ? name : 'undefined' },
+              { spv_tax: level === 24 ? name : 'undefined' },
+              { asman_tax: level === 34 ? name : 'undefined' }
             ]
           }
         })
@@ -3449,7 +3451,9 @@ module.exports = {
               { asman_finance: level === 8 ? name : 'undefined' },
               { manager_finance: level === 9 ? name : 'undefined' },
               { pic_tax: level === 4 ? name : 'undefined' },
-              { manager_tax: level === 14 ? name : 'undefined' }
+              { manager_tax: level === 14 ? name : 'undefined' },
+              { spv_tax: level === 24 ? name : 'undefined' },
+              { asman_tax: level === 34 ? name : 'undefined' }
             ]
           }
         })

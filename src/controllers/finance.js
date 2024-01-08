@@ -146,7 +146,7 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
-        const cek = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC FINANCE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM']
+        const cek = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM']
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
           console.log(valid[i], cek[i])
@@ -426,7 +426,7 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC FINANCE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM']
+        const header = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM']
         const key = [
           'kode_plant',
           'profit_center',

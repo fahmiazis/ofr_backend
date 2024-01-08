@@ -297,7 +297,7 @@ module.exports = {
       if (typeof sort === 'object') {
         sortValue = Object.values(sort)[0]
       } else {
-        sortValue = sort || 'id'
+        sortValue = sort || 'createdAt'
       }
       if (!limit) {
         limit = 10
