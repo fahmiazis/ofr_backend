@@ -1624,7 +1624,7 @@ module.exports = {
             const dataTo = nameTo === undefined ? '' : nameTo
             for (let i = 0; i < findData.length; i++) {
               const data = findData[i]
-              const dateData = tipe === 'ikk' ? data.start_ikk : tipe === 'klaim' ? data.start_klaim : data.start_ops
+              const dateData = tipe === 'ikk' ? data.start_ikk : tipe === 'klaim' ? data.start_klaim : tipe === 'vendor' ? data.start_transaksi : data.start_ops
               const element = tipe === 'vendor'
                 ? `
                     <tr>
@@ -1674,10 +1674,10 @@ module.exports = {
             const mailOptions = {
               from: 'noreply_ofr@pinusmerahabadi.co.id',
               replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
-              to: `${to}`,
-              cc: cc.split(','),
-              // to: 'fahmiazis797@gmail.com',
-              // cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
+              // to: `${to}`,
+              // cc: cc.split(','),
+              to: 'fahmiazis797@gmail.com',
+              cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
               subject: `${subject}`,
               html: `
                   <head>

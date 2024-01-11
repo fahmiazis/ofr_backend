@@ -18,5 +18,6 @@ route.delete('/delete/name/:id', dokumen.deleteNameDocument)
 route.get('/name', dokumen.getNameDocument)
 route.get('/detail', dokumen.getDetailDocument)
 route.get('/detail/name/:id', dokumen.getDetailId)
+route.get('/template', dokumen.getTempDocument)
 
 module.exports = route

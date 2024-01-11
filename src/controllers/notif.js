@@ -7,7 +7,7 @@ module.exports = {
   addNotif: async (req, res) => {
     try {
       const level = req.user.level
-      const { nameTo, no, tipe, jenis, menu, proses, route } = req.body
+      const { nameTo, no, tipe, jenis, menu, proses, route, draft } = req.body
       const findRole = await role.findOne({
         where: {
           level: level
@@ -23,40 +23,79 @@ module.exports = {
           }
         })
         if (findData) {
-          const findNotif = await notif.findOne({
-            where: {
-              [Op.and]: [
-                { user: { [Op.like]: `%${nameTo}%` } },
-                { no_transaksi: { [Op.like]: `%${no}%` } },
-                { proses: { [Op.like]: `%${menu}%` } },
-                { tipe: { [Op.like]: `%${proses}%` } }
-              ]
+          if (jenis === 'ajuan') {
+            const cekData = []
+            const dataTo = draft.to.length > 0 ? draft.to : [{ username: nameTo }]
+            for (let i = 0; i < dataTo.length; i++) {
+              const findNotif = await notif.findOne({
+                where: {
+                  [Op.and]: [
+                    { user: { [Op.like]: `%${dataTo[i].username}%` } },
+                    { no_transaksi: { [Op.like]: `%${no}%` } },
+                    { proses: { [Op.like]: `%${menu}%` } },
+                    { tipe: { [Op.like]: `%${proses}%` } }
+                  ]
+                }
+              })
+              if (findNotif) {
+                return response(res, 'success create notif', { findNotif })
+              } else {
+                const data = {
+                  user: dataTo[i].username,
+                  kode_plant: findData[0].kode_plant,
+                  transaksi: tipe,
+                  proses: menu,
+                  no_transaksi: no,
+                  tipe: proses,
+                  routes: route
+                }
+                const createNotif = await notif.create(data)
+                if (createNotif) {
+                  cekData.push(createNotif)
+                }
+              }
             }
-          })
-          if (findNotif) {
-            return response(res, 'success create notif', { findNotif })
-          } else {
-            const data = {
-              user: nameTo,
-              kode_plant: findData[0].kode_plant,
-              transaksi: tipe,
-              proses: menu,
-              no_transaksi: no,
-              tipe: proses,
-              routes: route
-            }
-            const createNotif = await notif.create(data)
-            if (createNotif) {
-              return response(res, 'success create notif', { createNotif })
+            if (cekData.length) {
+              return response(res, 'success create notif', { cekData })
             } else {
-              return response(res, 'failed create notif', { createNotif }, 404, false)
+              return response(res, 'failed create notif', { cekData })
+            }
+          } else {
+            const findNotif = await notif.findOne({
+              where: {
+                [Op.and]: [
+                  { user: { [Op.like]: `%${nameTo}%` } },
+                  { no_transaksi: { [Op.like]: `%${no}%` } },
+                  { proses: { [Op.like]: `%${menu}%` } },
+                  { tipe: { [Op.like]: `%${proses}%` } }
+                ]
+              }
+            })
+            if (findNotif) {
+              return response(res, 'success create notif', { findNotif })
+            } else {
+              const data = {
+                user: nameTo,
+                kode_plant: findData[0].kode_plant,
+                transaksi: tipe,
+                proses: menu,
+                no_transaksi: no,
+                tipe: proses,
+                routes: route
+              }
+              const createNotif = await notif.create(data)
+              if (createNotif) {
+                return response(res, 'success create notif', { createNotif })
+              } else {
+                return response(res, 'failed create notif', { createNotif })
+              }
             }
           }
         } else {
-          return response(res, 'failed create notif', { findData }, 404, false)
+          return response(res, 'failed create notif', { findData })
         }
       } else {
-        return response(res, 'failed get notif', { findRole }, 404, false)
+        return response(res, 'failed get notif', { findRole })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

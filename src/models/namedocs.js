@@ -16,7 +16,9 @@ module.exports = (sequelize, DataTypes) => {
   namedocs.init({
     name: DataTypes.STRING,
     type: DataTypes.STRING,
-    kode_plant: DataTypes.STRING
+    kode_plant: DataTypes.STRING,
+    menu: DataTypes.STRING,
+    status: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'namedocs'

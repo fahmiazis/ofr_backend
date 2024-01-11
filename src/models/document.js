@@ -24,7 +24,8 @@ module.exports = (sequelize, DataTypes) => {
     type_kasbon: DataTypes.STRING,
     type_po: DataTypes.STRING,
     namedocs: DataTypes.STRING,
-    kode_plant: DataTypes.STRING
+    kode_plant: DataTypes.STRING,
+    status: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'document'
