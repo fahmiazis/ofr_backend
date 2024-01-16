@@ -10,6 +10,12 @@ const multer = require('multer')
 const excel = require('exceljs')
 const vs = require('fs-extra')
 const { APP_URL } = process.env
+const borderStyles = {
+  top: { style: 'thin' },
+  left: { style: 'thin' },
+  bottom: { style: 'thin' },
+  right: { style: 'thin' }
+}
 
 module.exports = {
   addFinance: async (req, res) => {
@@ -459,8 +465,20 @@ module.exports = {
           temp = {}
         }
         worksheet.columns = arr
-        const cek = worksheet.addRows(result)
-        if (cek) {
+        worksheet.addRows(result)
+        worksheet.eachRow({ includeEmpty: true }, function (row, rowNumber) {
+          row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+            cell.border = borderStyles
+          })
+        })
+
+        worksheet.columns.forEach(column => {
+          const lengths = column.values.map(v => v.toString().length)
+          const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+          column.width = maxLength + 5
+        })
+        const cek = [1]
+        if (cek.length > 0) {
           const name = new Date().getTime().toString().concat('-finance').concat('.xlsx')
           await workbook.xlsx.writeFile(name)
           vs.move(name, `assets/exports/${name}`, function (err) {
@@ -471,7 +489,7 @@ module.exports = {
           })
           return response(res, 'success', { link: `${APP_URL}/download/${name}` })
         } else {
-          return response(res, 'failed create file', {}, 404, false)
+          return response(res, 'failed create file finance', {}, 404, false)
         }
       } else {
         return response(res, 'failed', {}, 404, false)
