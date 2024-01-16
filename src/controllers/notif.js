@@ -25,7 +25,7 @@ module.exports = {
         if (findData) {
           if (jenis === 'ajuan') {
             const cekData = []
-            const dataTo = draft.to.length > 0 ? draft.to : [{ username: nameTo }]
+            const dataTo = draft.to !== undefined && draft.to.length !== undefined && draft.to.length > 0 ? draft.to : [{ username: nameTo }]
             for (let i = 0; i < dataTo.length; i++) {
               const findNotif = await notif.findOne({
                 where: {
