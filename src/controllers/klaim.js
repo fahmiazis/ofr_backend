@@ -2318,9 +2318,21 @@ module.exports = {
             }
           }
           if (temp.length) {
-            return response(res, 'success submit ajuan bayar klaim', {})
+            const data = {
+              no_transaksi: results.no_transfer,
+              transaksi: 'klaim',
+              tipe: 'ho',
+              status: 'used',
+              createdAt: moment()
+            }
+            const creatReser = await reservoir.create(data)
+            if (creatReser) {
+              return response(res, 'success submit ajuan bayar klaim', {})
+            } else {
+              return response(res, 'success submit ajuan bayar klaim failed create reser', {})
+            }
           } else {
-            return response(res, 'success submit ajuan bayar klaim', {})
+            return response(res, 'failed submit ajuan bayar klaim', { temp }, 404, false)
           }
         }
       }
