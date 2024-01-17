@@ -2277,10 +2277,19 @@ module.exports = {
       } else {
         const findNo = await reservoir.findOne({
           where: {
-            no_transaksi: results.no_transfer
+            [Op.and]: [
+              { no_transaksi: results.no_transfer },
+              { transaksi: 'klaim' },
+              { tipe: 'ho' }
+            ]
           }
         })
-        if (findNo) {
+        const findPemb = await klaim.findOne({
+          where: {
+            no_pembayaran: results.no_transfer
+          }
+        })
+        if (findNo || findPemb) {
           return response(res, 'no transaksi telah terdaftar', {}, 404, false)
         } else {
           const temp = []
