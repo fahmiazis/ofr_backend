@@ -3306,10 +3306,19 @@ module.exports = {
       } else {
         const findNo = await reservoir.findOne({
           where: {
-            no_transaksi: results.no_transfer
+            [Op.and]: [
+              { no_transaksi: results.no_transfer },
+              { transaksi: 'ops' },
+              { tipe: 'ho' }
+            ]
           }
         })
-        if (findNo) {
+        const findPemb = await ops.findOne({
+          where: {
+            no_pembayaran: results.no_transfer
+          }
+        })
+        if (findNo || findPemb) {
           return response(res, 'no transaksi telah terdaftar', {}, 404, false)
         } else {
           const temp = []
@@ -3337,10 +3346,22 @@ module.exports = {
               }
             }
           }
-          if (temp.length) {
-            return response(res, 'success submit ajuan bayar ops', {})
+          if (temp.length > 0) {
+            const data = {
+              no_transaksi: results.no_transfer,
+              transaksi: 'ops',
+              tipe: 'ho',
+              status: 'used',
+              createdAt: moment()
+            }
+            const creatReser = await reservoir.create(data)
+            if (creatReser) {
+              return response(res, 'success submit ajuan bayar ops', {})
+            } else {
+              return response(res, 'success submit ajuan bayar ops failed create reser', {})
+            }
           } else {
-            return response(res, 'success submit ajuan bayar ops', {})
+            return response(res, 'failed submit ajuan bayar ops', { temp }, 404, false)
           }
         }
       }
