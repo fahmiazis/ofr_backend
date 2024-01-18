@@ -19,6 +19,8 @@ route.patch('/update/:id', klaim.editKlaim)
 route.patch('/subrev', klaim.submitRevisi)
 route.patch('/verif', klaim.submitVerif)
 route.patch('/editvrf/:id', klaim.updateDataVerif)
+
+route.patch('/genbayar', klaim.genNomorTransfer)
 route.patch('/subbayar', klaim.submitAjuanBayar)
 route.patch('/ttdlist', klaim.getApprovalList)
 route.patch('/applist', klaim.approveListKlaim)

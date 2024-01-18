@@ -457,12 +457,12 @@ module.exports = {
             if (findDoc.length > 0) {
               const tempDoc = []
               for (let i = 0; i < findDoc.length; i++) {
-                const data = {
-                  no_transaksi: noTrans
-                }
+                // const data = {
+                //   no_transaksi: noTrans
+                // }
                 const upDoc = await docuser.findByPk(findDoc[i].id)
                 if (upDoc) {
-                  await upDoc.update(data)
+                  await upDoc.destroy()
                   tempDoc.push(upDoc)
                 }
               }
@@ -626,8 +626,13 @@ module.exports = {
         }
       })
       if (findDoc.length > 0) {
-        return response(res, 'success get dokumen', { result: findDoc })
+        return response(res, 'success get dokumen2', { result: findDoc })
       } else {
+        const findKlaim = await klaim.findAll({
+          where: {
+            no_transaksi: no
+          }
+        })
         const findMaster = await document.findAll({
           where: {
             [Op.and]: [
@@ -638,13 +643,19 @@ module.exports = {
         })
         if (findMaster.length > 0) {
           const temp = []
+          const tiperek = (findKlaim[0].tiperek === 'Rekening ZBA' || findKlaim[0].tiperek === 'Rekening Bank Coll') && findKlaim[0].tujuan_tf === 'PMA' ? 'ya' : 'tidak'
+          console.log(tiperek)
           for (let i = 0; i < findMaster.length; i++) {
+            const nameDoc = findMaster[i].name
+            const statDoc = nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && tiperek === 'ya'
+              ? 0
+              : findMaster[i].stat_upload
             const data = {
               desc: findMaster[i].name,
               jenis_form: findMaster[i].jenis,
               no_transaksi: no,
               tipe: findMaster[i].type,
-              stat_upload: findMaster[i].stat_upload
+              stat_upload: statDoc
             }
             const creDoc = await docuser.create(data)
             if (creDoc) {
@@ -658,7 +669,7 @@ module.exports = {
               }
             })
             if (findDocCre.length > 0) {
-              return response(res, 'success get dokumen', { result: findDocCre })
+              return response(res, 'success get dokumen1', { result: findDocCre })
             } else {
               return response(res, 'failed get dokumen', { result: [] })
             }
@@ -818,12 +829,19 @@ module.exports = {
                   category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
-                    : {
-                        start_klaim: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
+                    : category === 'ajuan bayar'
+                      ? {
+                          tgl_sublist: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
                         }
-                      }
+                      : {
+                          start_klaim: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        }
                 ],
                 [Op.or]: [
                   { kode_plant: { [Op.like]: `%${searchValue}%` } },
@@ -2275,12 +2293,13 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findNo = await reservoir.findOne({
+        const findNo = await reservoir.findAll({
           where: {
-            [Op.and]: [
-              { no_transaksi: results.no_transfer },
-              { transaksi: 'klaim' },
-              { tipe: 'ho' }
+            status: 'delayed',
+            transaksi: 'klaim',
+            kode_plant: name,
+            [Op.not]: [
+              { no_transaksi: results.no_transfer }
             ]
           }
         })
@@ -2289,7 +2308,7 @@ module.exports = {
             no_pembayaran: results.no_transfer
           }
         })
-        if (findNo || findPemb) {
+        if (findPemb) {
           return response(res, 'no transaksi telah terdaftar', {}, 404, false)
         } else {
           const temp = []
@@ -2317,19 +2336,52 @@ module.exports = {
               }
             }
           }
-          if (temp.length) {
-            const data = {
-              no_transaksi: results.no_transfer,
-              transaksi: 'klaim',
-              tipe: 'ho',
-              status: 'used',
-              createdAt: moment()
-            }
-            const creatReser = await reservoir.create(data)
-            if (creatReser) {
-              return response(res, 'success submit ajuan bayar klaim', {})
+          if (temp.length > 0) {
+            if (findNo.length > 0) {
+              const cekUpdate = []
+              for (let i = 0; i < findNo.length; i++) {
+                const data = {
+                  status: 'expired'
+                }
+                const findReser = await reservoir.findByPk(findNo[i].id)
+                if (findReser) {
+                  const upReser = await findReser.update(data)
+                  cekUpdate.push(upReser)
+                }
+              }
+              if (cekUpdate.length > 0) {
+                const dataUsed = {
+                  status: 'used'
+                }
+                const findUseReser = await reservoir.findOne({
+                  where: {
+                    no_transaksi: results.no_transfer
+                  }
+                })
+                if (findUseReser) {
+                  await findUseReser.update(dataUsed)
+                  return response(res, 'success submit ajuan bayar klaim', {})
+                } else {
+                  return response(res, 'success submit ajuan bayar klaim failed update reser', {})
+                }
+              } else {
+                return response(res, 'success submit ajuan bayar klaim failed create reser', {})
+              }
             } else {
-              return response(res, 'success submit ajuan bayar klaim failed create reser', {})
+              const dataUsed = {
+                status: 'used'
+              }
+              const findUseReser = await reservoir.findOne({
+                where: {
+                  no_transaksi: results.no_transfer
+                }
+              })
+              if (findUseReser) {
+                await findUseReser.update(dataUsed)
+                return response(res, 'success submit ajuan bayar klaim', {})
+              } else {
+                return response(res, 'success submit ajuan bayar klaim failed update reser', {})
+              }
             }
           } else {
             return response(res, 'failed submit ajuan bayar klaim', { temp }, 404, false)
@@ -3301,6 +3353,113 @@ module.exports = {
         return response(res, 'success get outlet', { result: findOutlet })
       } else {
         return response(res, 'failed get outlet', { result: findOutlet })
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  genNomorTransfer: async (req, res) => {
+    try {
+      const timeV1 = moment().startOf('month')
+      const timeV2 = moment().endOf('month').add(1, 'd')
+      const name = req.user.fullname
+      const findNo = await reservoir.findAll({
+        where: {
+          tipe: 'ho',
+          createdAt: {
+            [Op.gte]: timeV1,
+            [Op.lt]: timeV2
+          }
+        },
+        order: [['id', 'DESC']],
+        limit: 50
+      })
+      const cekNo = []
+      if (findNo.length > 0) {
+        for (let i = 0; i < findNo.length; i++) {
+          const no = findNo[i].no_transaksi.split('/')
+          cekNo.push(parseInt(no[0]))
+        }
+      } else {
+        cekNo.push(0)
+      }
+      const noPemb = Math.max(...cekNo) + 1
+      const change = noPemb.toString().split('')
+      const notrans = change.length === 2 ? '00' + noPemb : change.length === 1 ? '000' + noPemb : change.length === 3 ? '0' + noPemb : noPemb
+      const month = parseInt(moment().format('MM'))
+      const year = moment().format('YYYY')
+      let rome = ''
+      if (month === 1) {
+        rome = 'I'
+      } else if (month === 2) {
+        rome = 'II'
+      } else if (month === 3) {
+        rome = 'III'
+      } else if (month === 4) {
+        rome = 'IV'
+      } else if (month === 5) {
+        rome = 'V'
+      } else if (month === 6) {
+        rome = 'VI'
+      } else if (month === 7) {
+        rome = 'VII'
+      } else if (month === 8) {
+        rome = 'VIII'
+      } else if (month === 9) {
+        rome = 'IX'
+      } else if (month === 10) {
+        rome = 'X'
+      } else if (month === 11) {
+        rome = 'XI'
+      } else if (month === 12) {
+        rome = 'XII'
+      }
+      const tipe = 'FAD'
+      const noNow = `${notrans}/${rome}/${year}-${tipe}`
+      if (noNow) {
+        const data = {
+          no_transaksi: noNow,
+          transaksi: 'klaim',
+          tipe: 'ho',
+          status: 'delayed',
+          kode_plant: name,
+          createdAt: moment()
+        }
+        const createReser = await reservoir.create(data)
+        if (createReser) {
+          const findPemb = await reservoir.findAll({
+            where: {
+              status: 'delayed',
+              transaksi: 'klaim',
+              kode_plant: name,
+              [Op.not]: [
+                { no_transaksi: noNow }
+              ]
+            }
+          })
+          if (findPemb.length > 0) {
+            const cekUpdate = []
+            for (let i = 0; i < findPemb.length; i++) {
+              const data = {
+                status: 'expired'
+              }
+              const findReser = await reservoir.findByPk(findPemb[i].id)
+              if (findReser) {
+                const upReser = await findReser.update(data)
+                cekUpdate.push(upReser)
+              }
+            }
+            if (cekUpdate.length > 0) {
+              return response(res, 'success create no transfer', { no_transfer: noNow, findNo, findPemb })
+            } else {
+              return response(res, 'failed create no transfer', {}, 400, false)
+            }
+          } else {
+            return response(res, 'success create no transfer', { no_transfer: noNow, findNo, findPemb })
+          }
+        } else {
+          return response(res, 'failed create no transfer1', {}, 400, false)
+        }
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

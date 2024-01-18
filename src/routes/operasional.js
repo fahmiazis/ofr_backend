@@ -24,6 +24,7 @@ route.patch('/realisasi', ops.submitRealisasi)
 
 route.patch('/editvrf/:id', ops.updateDataVerif)
 route.patch('/confident/:id', ops.confirmNewIdent)
+route.patch('/genbayar', ops.genNomorTransfer)
 route.patch('/subbayar', ops.submitAjuanBayar)
 route.patch('/ttdlist', ops.getApprovalList)
 route.patch('/applist', ops.approveListOps)
