@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'profit_center',
         as: 'glikk'
       })
+      finance.hasOne(models.user, {
+        foreignKey: 'fullname',
+        sourceKey: 'pic_finance',
+        as: 'pic'
+      })
     }
   }
   finance.init({

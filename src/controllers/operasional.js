@@ -1,4 +1,4 @@
-const { ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, taxcode, bbm } = require('../models')
+const { ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, taxcode, bbm, user } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -3476,7 +3476,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
             },
             {
               model: veriftax,
@@ -3576,7 +3576,7 @@ module.exports = {
                 {
                   model: finance,
                   as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
                 },
                 {
                   model: veriftax,
