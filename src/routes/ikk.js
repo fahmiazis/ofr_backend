@@ -32,4 +32,6 @@ route.patch('/getdocbayar', ikk.getDocBayar)
 route.patch('/confident/:id', ikk.confirmNewIdent)
 route.patch('/detrep', ikk.getDetailReport)
 
+route.patch('/download', ikk.downloadFormVerif)
+
 module.exports = route

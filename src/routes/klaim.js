@@ -38,4 +38,6 @@ route.patch('/outlet/add', klaim.addOutlet)
 route.delete('/outlet/del/:id', klaim.deleteOutlet)
 route.get('/outlet/get/:id', klaim.getOutlet)
 
+route.patch('/download', klaim.downloadFormVerif)
+
 module.exports = route

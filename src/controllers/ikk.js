@@ -3550,5 +3550,37 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  downloadFormVerif: async (req, res) => {
+    try {
+      const { list } = req.body
+      const cek = []
+      for (let j = 0; j < list.length; j++) {
+        const findIkk = await ikk.findAll({
+          where: {
+            no_transaksi: list[j]
+          }
+        })
+        if (findIkk.length > 0) {
+          for (let i = 0; i < findIkk.length; i++) {
+            const send = {
+              status_download: 1
+            }
+            const findId = await ikk.findByPk(findIkk[i].id)
+            if (findId) {
+              await findId.update(send)
+              cek.push(findId)
+            }
+          }
+        }
+      }
+      if (cek.length > 0) {
+        return response(res, 'success download form verif', { cek })
+      } else {
+        return response(res, 'failed download form verif', { cek })
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }

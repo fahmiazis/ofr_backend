@@ -7,9 +7,11 @@ const { pagination } = require('../helpers/pagination')
 const uploadMaster = require('../helpers/uploadMaster')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
+const moment = require('moment')
 const excel = require('exceljs')
 const vs = require('fs-extra')
 const { APP_URL } = process.env
+const nonPph = 'Non PPh'
 const borderStyles = {
   top: { style: 'thin' },
   left: { style: 'thin' },
@@ -149,9 +151,13 @@ module.exports = {
           'NPWP/NIK',
           'WHT Tax Type',
           'WHT Tax Code',
+          'Nominal Minimum',
+          'Nominal Maximum',
           'Tarif PPh',
           'Tarif DPP Non Grossup',
-          'Tarif DPP Grossup'
+          'Tarif DPP Grossup',
+          'Start Periode',
+          'End Periode'
         ]
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
@@ -190,12 +196,36 @@ module.exports = {
             rows.shift()
             for (let i = 0; i < rows.length; i++) {
               const dataTarif = rows[i]
+              const minNom = dataTarif[12] === '' || dataTarif[12] === null || isNaN(parseFloat(dataTarif[12])) ? null : parseFloat(dataTarif[12])
+              const maxNom = dataTarif[13] === '' || dataTarif[13] === null || isNaN(parseFloat(dataTarif[13])) ? null : parseFloat(dataTarif[13])
               const select = await veriftax.findOne({
                 where: {
                   gl_account: { [Op.like]: `%${dataTarif[1]}` },
                   jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
                   type_transaksi: { [Op.like]: `%${dataTarif[7]}` },
-                  status_npwp: { [Op.like]: `%${dataTarif[9]}` }
+                  status_npwp: { [Op.like]: `%${dataTarif[9]}` },
+                  [Op.and]: [
+                    minNom === null ? { [Op.not]: { id: null } } : { min_nominal: minNom },
+                    maxNom === null ? { [Op.not]: { id: null } } : { max_nominal: maxNom }
+                  ],
+                  end_period: null
+                }
+              })
+              const findTarif = await veriftax.findOne({
+                where: {
+                  gl_account: { [Op.like]: `%${dataTarif[1]}` },
+                  jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
+                  type_transaksi: { [Op.like]: `%${dataTarif[7]}` },
+                  status_npwp: { [Op.like]: `%${dataTarif[9]}` },
+                  end_period: null
+                }
+              })
+              const findPph = await veriftax.findOne({
+                where: {
+                  gl_account: { [Op.like]: `%${dataTarif[1]}` },
+                  jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
+                  jenis_pph: { [Op.like]: `%${nonPph}` },
+                  end_period: null
                 }
               })
               const data = {
@@ -211,14 +241,58 @@ module.exports = {
                 status_npwp: dataTarif[9],
                 tax_type: dataTarif[10],
                 tax_code: dataTarif[11],
-                tarif_pph: parseFloat(dataTarif[12]) + '%',
-                dpp_nongrossup: parseFloat(dataTarif[13]) + '%',
-                dpp_grossup: parseFloat(dataTarif[14]) + '%'
+                min_nominal: minNom,
+                max_nominal: maxNom,
+                tarif_pph: parseFloat(dataTarif[14]) + '%',
+                dpp_nongrossup: parseFloat(dataTarif[15]) + '%',
+                dpp_grossup: parseFloat(dataTarif[16]) + '%',
+                start_period: dataTarif[17],
+                end_period: null
               }
-              if (select) {
-                const upverif = await select.update(data)
+              const expired = {
+                end_period: moment()
+              }
+
+              if (findPph && dataTarif[8] !== nonPph) {
+                const upverif = await findPph.update(expired)
                 if (upverif) {
-                  arr.push(1)
+                  const createTarif = await veriftax.create(data)
+                  if (createTarif) {
+                    arr.push(1)
+                  }
+                }
+              } else if (select) {
+                const upverif = await select.update(expired)
+                if (upverif) {
+                  const createTarif = await veriftax.create(data)
+                  if (createTarif) {
+                    arr.push(1)
+                  }
+                }
+              } else if (findTarif) {
+                arr.push(1)
+                const cekMinNom = findTarif.min_nominal === '' || findTarif.min_nominal === null || isNaN(parseFloat(findTarif.min_nominal)) ? null : parseFloat(findTarif.min_nominal)
+                if (cekMinNom === null && minNom !== null) {
+                  const upverif = await findTarif.update(expired)
+                  if (upverif) {
+                    const createTarif = await veriftax.create(data)
+                    if (createTarif) {
+                      arr.push(1)
+                    }
+                  }
+                } else if (cekMinNom === minNom) {
+                  const upverif = await findTarif.update(expired)
+                  if (upverif) {
+                    const createTarif = await veriftax.create(data)
+                    if (createTarif) {
+                      arr.push(1)
+                    }
+                  }
+                } else if (cekMinNom !== null && cekMinNom !== minNom) {
+                  const createTarif = await veriftax.create(data)
+                  if (createTarif) {
+                    arr.push(1)
+                  }
                 }
               } else {
                 const createTarif = await veriftax.create(data)
@@ -229,24 +303,30 @@ module.exports = {
             }
             if (arr.length > 0) {
               fs.unlink(dokumen, function (err) {
-                if (err) throw err
-                console.log('success')
+                if (err) {
+                  return response(res, 'successfully upload file master', { err })
+                } else {
+                  return response(res, 'successfully upload file master')
+                }
               })
-              return response(res, 'successfully upload file master')
             } else {
               fs.unlink(dokumen, function (err) {
-                if (err) throw err
-                console.log('success')
+                if (err) {
+                  return response(res, 'successfully upload file master', { err })
+                } else {
+                  return response(res, 'successfully upload file master')
+                }
               })
-              return response(res, 'failed to upload file', {}, 404, false)
             }
           }
         } else {
           fs.unlink(dokumen, function (err) {
-            if (err) throw err
-            console.log('success')
+            if (err) {
+              return response(res, 'Failed to upload master file, please use the template provided', { err }, 400, false)
+            } else {
+              return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
+            }
           })
-          return response(res, 'Failed to upload master file, please use the template provided', {}, 400, false)
         }
       } catch (error) {
         return response(res, error.message, {}, 500, false)
@@ -320,8 +400,10 @@ module.exports = {
             { status_npwp: { [Op.like]: `%${searchValue}%` } },
             { tax_type: { [Op.like]: `%${searchValue}%` } },
             { tax_code: { [Op.like]: `%${searchValue}%` } },
-            { grouping: { [Op.like]: `%${searchValue}` } },
-            { po: { [Op.like]: `%${searchValue}` } }
+            { grouping: { [Op.like]: `%${searchValue}%` } },
+            { po: { [Op.like]: `%${searchValue}%` } },
+            { min_nominal: { [Op.like]: `%${searchValue}%` } },
+            { max_nominal: { [Op.like]: `%${searchValue}%` } }
           ]
         },
         order: [[sortValue, 'ASC']],
@@ -376,9 +458,50 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['SAP/REDPINE', 'GL Account', 'GL Jurnal', 'GL Name', 'Jenis Transaksi', 'PO/NON PO', 'Grouping', 'OP/BADAN', 'Jenis PPh', 'NPWP/NIK', 'WHT Tax Type', 'WHT Tax Code', 'Tarif PPh', 'Tarif DPP Non Grossup', 'Tarif DPP Grossup']
-        const key = ['system', 'gl_account', 'gl_name', 'jenis_transaksi', 'po', 'grouping', 'type_transaksi', 'jenis_pph', 'status_npwp', 'tax_type', 'tax_code', 'tarif_pph', 'dpp_nongrossup', 'dpp_grossup']
+        const header = [
+          'SAP/SCYLLA',
+          'GL Account',
+          'GL Jurnal',
+          'GL Name',
+          'Jenis Transaksi',
+          'PO/NON PO',
+          'Grouping',
+          'OP/BADAN',
+          'Jenis PPh',
+          'NPWP/NIK',
+          'WHT Tax Type',
+          'WHT Tax Code',
+          'Nominal Minimum',
+          'Nominal Maximum',
+          'Tarif PPh',
+          'Tarif DPP Non Grossup',
+          'Tarif DPP Grossup',
+          'Start Periode',
+          'End Periode'
+        ]
+        const key = [
+          'system',
+          'gl_account',
+          'gl_jurnal',
+          'gl_name',
+          'jenis_transaksi',
+          'po',
+          'grouping',
+          'type_transaksi',
+          'jenis_pph',
+          'status_npwp',
+          'tax_type',
+          'tax_code',
+          'min_nominal',
+          'max_nominal',
+          'tarif_pph',
+          'dpp_nongrossup',
+          'dpp_grossup',
+          'start_period',
+          'end_period'
+        ]
         for (let i = 0; i < header.length; i++) {
+          // const val =
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
           temp = {}

@@ -227,7 +227,8 @@ module.exports = {
               [Op.and]: [
                 { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: { [Op.like]: '%NON KASBON' } }
-              ]
+              ],
+              end_period: null
             },
             group: ['gl_account']
           })
@@ -237,11 +238,26 @@ module.exports = {
                 [Op.and]: [
                   { system: { [Op.like]: `%${cekLive}` } },
                   { grouping: { [Op.like]: '%NON KASBON' } }
-                ]
-              }
+                ],
+                end_period: null
+              },
+              group: ['jenis_transaksi']
             })
             if (findAllTarif.length > 0) {
-              return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, listGl, listPma })
+              const findNomTarif = await veriftax.findAll({
+                where: {
+                  [Op.and]: [
+                    { system: { [Op.like]: `%${cekLive}` } },
+                    { grouping: { [Op.like]: '%NON KASBON' } }
+                  ],
+                  end_period: null
+                }
+              })
+              if (findNomTarif.length > 0) {
+                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma })
+              } else {
+                return response(res, 'failed get tarif4', {}, 404, false)
+              }
             } else {
               return response(res, 'failed get tarif3', {}, 404, false)
             }
@@ -264,7 +280,8 @@ module.exports = {
               [Op.and]: [
                 { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: 'KASBON' }
-              ]
+              ],
+              end_period: null
             },
             group: ['gl_account']
           })
@@ -274,11 +291,26 @@ module.exports = {
                 [Op.and]: [
                   { system: { [Op.like]: `%${cekLive}` } },
                   { grouping: 'KASBON' }
-                ]
-              }
+                ],
+                end_period: null
+              },
+              group: ['jenis_transaksi']
             })
             if (findAllTarif.length > 0) {
-              return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, listGl, listPma })
+              const findNomTarif = await veriftax.findAll({
+                where: {
+                  [Op.and]: [
+                    { system: { [Op.like]: `%${cekLive}` } },
+                    { grouping: 'KASBON' }
+                  ],
+                  end_period: null
+                }
+              })
+              if (findNomTarif.length > 0) {
+                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma })
+              } else {
+                return response(res, 'failed get tarif4', {}, 404, false)
+              }
             } else {
               return response(res, 'failed get tarif3', {}, 404, false)
             }
@@ -301,7 +333,8 @@ module.exports = {
               [Op.and]: [
                 { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: { [Op.like]: '%NON KASBON' } }
-              ]
+              ],
+              end_period: null
             },
             group: ['gl_account']
           })
@@ -311,11 +344,26 @@ module.exports = {
                 [Op.and]: [
                   { system: { [Op.like]: `%${cekLive}` } },
                   { grouping: { [Op.like]: '%NON KASBON' } }
-                ]
-              }
+                ],
+                end_period: null
+              },
+              group: ['jenis_transaksi']
             })
             if (findAllTarif.length > 0) {
-              return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, listGl, listPma })
+              const findNomTarif = await veriftax.findAll({
+                where: {
+                  [Op.and]: [
+                    { system: { [Op.like]: `%${cekLive}` } },
+                    { grouping: { [Op.like]: '%NON KASBON' } }
+                  ],
+                  end_period: null
+                }
+              })
+              if (findNomTarif.length > 0) {
+                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma })
+              } else {
+                return response(res, 'failed get tarif4', {}, 404, false)
+              }
             } else {
               return response(res, 'failed get tarif3', {}, 404, false)
             }
@@ -332,7 +380,7 @@ module.exports = {
           }
         })
         if (findCoa.length > 0) {
-          return response(res, 'succes get coa', { result: findCoa, length: findCoa.length, listGl })
+          return response(res, 'succes get coa', { result: findCoa, length: findCoa.length, nomcoa: findCoa, listGl, listPma })
         } else {
           return response(res, 'failed get coa', {}, 404, false)
         }
