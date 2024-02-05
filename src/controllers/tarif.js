@@ -453,7 +453,11 @@ module.exports = {
   },
   exportSqlTarif: async (req, res) => {
     try {
-      const result = await veriftax.findAll()
+      const result = await veriftax.findAll({
+        where: {
+          end_period: null
+        }
+      })
       if (result) {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
