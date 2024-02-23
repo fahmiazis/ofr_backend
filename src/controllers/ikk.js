@@ -53,7 +53,8 @@ module.exports = {
         stat_bbm: joi.string().allow(''),
         km: joi.string().allow(''),
         liter: joi.string().allow(''),
-        no_pol: joi.string().allow('')
+        no_pol: joi.string().allow(''),
+        id_pelanggan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -122,7 +123,8 @@ module.exports = {
               stat_bbm: results.stat_bbm,
               km: results.km,
               liter: results.liter,
-              no_pol: results.no_pol
+              no_pol: results.no_pol,
+              id_pelanggan: results.id_pelanggan
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -2160,7 +2162,8 @@ module.exports = {
         stat_bbm: joi.string().allow(''),
         km: joi.string().allow(''),
         liter: joi.string().allow(''),
-        no_pol: joi.string().allow('')
+        no_pol: joi.string().allow(''),
+        id_pelanggan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -2230,7 +2233,8 @@ module.exports = {
               stat_bbm: results.stat_bbm,
               km: results.km,
               liter: results.liter,
-              no_pol: results.no_pol
+              no_pol: results.no_pol,
+              id_pelanggan: results.id_pelanggan
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')

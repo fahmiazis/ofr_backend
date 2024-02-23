@@ -140,7 +140,8 @@ module.exports = (sequelize, DataTypes) => {
     liter: DataTypes.TEXT,
     km: DataTypes.TEXT,
     stat_bbm: DataTypes.TEXT,
-    status_download: DataTypes.INTEGER
+    status_download: DataTypes.INTEGER,
+    id_pelanggan: DataTypes.TEXT
   }, {
     sequelize,
     modelName: 'ops'

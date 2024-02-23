@@ -23,8 +23,8 @@ module.exports = {
         periode_awal: joi.date().required(),
         periode_akhir: joi.date().required(),
         nilai_ajuan: joi.string().required(),
-        bank_tujuan: joi.string().required(),
-        norek_ajuan: joi.string().required(),
+        bank_tujuan: joi.string().allow(''),
+        norek_ajuan: joi.string().allow(''),
         nama_tujuan: joi.string().required(),
         status_npwp: joi.number().required(),
         tujuan_tf: joi.string().required(),
@@ -58,7 +58,8 @@ module.exports = {
         stat_bbm: joi.string().allow(''),
         km: joi.string().allow(''),
         liter: joi.string().allow(''),
-        no_pol: joi.string().allow('')
+        no_pol: joi.string().allow(''),
+        id_pelanggan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -130,7 +131,8 @@ module.exports = {
               stat_bbm: results.stat_bbm,
               km: results.km,
               liter: results.liter,
-              no_pol: results.no_pol
+              no_pol: results.no_pol,
+              id_pelanggan: results.id_pelanggan
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -301,8 +303,8 @@ module.exports = {
         periode_awal: joi.date().required(),
         periode_akhir: joi.date().required(),
         nilai_ajuan: joi.string().required(),
-        bank_tujuan: joi.string().required(),
-        norek_ajuan: joi.string().required(),
+        bank_tujuan: joi.string().allow(''),
+        norek_ajuan: joi.string().allow(''),
         nama_tujuan: joi.string().required(),
         status_npwp: joi.number().required(),
         tujuan_tf: joi.string().required(),
@@ -336,7 +338,8 @@ module.exports = {
         stat_bbm: joi.string().allow(''),
         km: joi.string().allow(''),
         liter: joi.string().allow(''),
-        no_pol: joi.string().allow('')
+        no_pol: joi.string().allow(''),
+        id_pelanggan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -409,7 +412,8 @@ module.exports = {
               stat_bbm: results.stat_bbm,
               km: results.km,
               liter: results.liter,
-              no_pol: results.no_pol
+              no_pol: results.no_pol,
+              id_pelanggan: results.id_pelanggan
             }
             if (findDraft) {
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
@@ -1247,6 +1251,7 @@ module.exports = {
           const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
           const cekPph = findOps.find((item) => item.jenis_pph !== nonPph)
           const cekRek = findOps.find((item) => item.tiperek !== spend)
+          const cekVendor = findOps.find((item) => item.tujuan_tf === 'Vendor')
           const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
           const cekDoc = []
           for (let i = 0; i < resData.length; i++) {
@@ -1283,6 +1288,7 @@ module.exports = {
               : nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && (cekPph === undefined && cekRek === undefined)
                 ? 0
                 : findMaster[i].stat_upload
+
             const data = {
               desc: findMaster[i].name,
               jenis_form: findMaster[i].jenis,
@@ -1290,9 +1296,14 @@ module.exports = {
               tipe: findMaster[i].type,
               stat_upload: statDoc
             }
-            const creDoc = await docuser.create(data)
-            if (creDoc) {
-              cekDoc.push(creDoc)
+
+            if (nameDoc === 'HALAMAN DEPAN BUKU TABUNGAN/RK' && cekVendor === undefined) {
+              console.log('')
+            } else {
+              const creDoc = await docuser.create(data)
+              if (creDoc) {
+                cekDoc.push(creDoc)
+              }
             }
             // }
           }
@@ -1336,6 +1347,7 @@ module.exports = {
             const cekRek = findOps.find((item) => item.tiperek !== spend)
             // const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
             const resData = cek === 'ya' ? findMaster.length : findMaster.length
+            const cekVendor = findOps.find((item) => item.tujuan_tf === 'Vendor')
             for (let i = 0; i < resData; i++) {
               // if (cek === 'no') {
               //   if (i === resData - 1) {
@@ -1371,11 +1383,6 @@ module.exports = {
                   ? 0
                   : findMaster[i].stat_upload
 
-              console.log(nameDoc)
-              console.log(nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)')
-              console.log(statDoc)
-              console.log(cekPph)
-              console.log(cekRek)
               const data = {
                 desc: findMaster[i].name,
                 jenis_form: findMaster[i].jenis,
@@ -1383,9 +1390,14 @@ module.exports = {
                 tipe: findMaster[i].type,
                 stat_upload: statDoc
               }
-              const creDoc = await docuser.create(data)
-              if (creDoc) {
-                temp.push(creDoc)
+
+              if (nameDoc === 'HALAMAN DEPAN BUKU TABUNGAN/RK' && cekVendor === undefined) {
+                console.log('')
+              } else {
+                const creDoc = await docuser.create(data)
+                if (creDoc) {
+                  temp.push(creDoc)
+                }
               }
               // }
             }
@@ -1440,7 +1452,7 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.fullname
       const role = req.user.role
-      const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi, search } = req.query
+      const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi, search, jentrans, desttf } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? 'all' : reject
@@ -1603,14 +1615,16 @@ module.exports = {
                             [Op.gte]: timeV1,
                             [Op.lt]: timeV2
                           }
-                        }
+                        },
+                  jentrans === 'undefined' || jentrans === undefined || jentrans === '' || jentrans === null || jentrans === 'all' ? { [Op.not]: { id: null } } : { sub_coa: jentrans },
+                  desttf === 'undefined' || desttf === undefined || desttf === '' || desttf === null || desttf === 'all' ? { [Op.not]: { id: null } } : { tujuan_tf: desttf }
                 ],
                 [Op.or]: [
                   { kode_plant: { [Op.like]: `%${searchValue}%` } },
                   { area: { [Op.like]: `%${searchValue}%` } },
                   { cost_center: { [Op.like]: `%${searchValue}%` } },
                   { no_coa: { [Op.like]: `%${searchValue}%` } },
-                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                  // { sub_coa: { [Op.like]: `%${searchValue}%` } },
                   { nama_coa: { [Op.like]: `%${searchValue}%` } },
                   { keterangan: { [Op.like]: `%${searchValue}%` } },
                   { no_faktur: { [Op.like]: `%${searchValue}%` } },
@@ -3331,29 +3345,32 @@ module.exports = {
         } else {
           const temp = []
           const list = results.list
-          for (let i = 0; i < list.length; i++) {
-            const findOps = await ops.findAll({
-              where: {
-                no_transaksi: list[i]
+          // for (let i = 0; i < list.length; i++) {
+          //   const findOps = await ops.findAll({
+          //     where: {
+          //       no_transaksi: list[i]
+          //     }
+          //   })
+          //   if (findOps.length > 0) {
+          for (let j = 0; j < list.length; j++) {
+            const findData = await ops.findByPk(list[j])
+            if (findData) {
+              const send = {
+                status_transaksi: 6,
+                no_pembayaran: results.no_transfer,
+                tanggal_transfer: results.tgl_transfer,
+                tgl_sublist: moment(),
+                history: `${findData.history}, submit ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
               }
-            })
-            if (findOps.length > 0) {
-              for (let j = 0; j < findOps.length; j++) {
-                const send = {
-                  status_transaksi: 6,
-                  no_pembayaran: results.no_transfer,
-                  tanggal_transfer: results.tgl_transfer,
-                  tgl_sublist: moment(),
-                  history: `${findOps[j].history}, submit ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
-                }
-                const findRes = await ops.findByPk(findOps[j].id)
-                if (findRes) {
-                  await findRes.update(send)
-                  temp.push(1)
-                }
+              const findRes = await ops.findByPk(findData.id)
+              if (findRes) {
+                await findRes.update(send)
+                temp.push(1)
               }
             }
           }
+          //   }
+          // }
           if (temp.length > 0) {
             if (findNo.length > 0) {
               const cekUpdate = []

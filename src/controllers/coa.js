@@ -213,6 +213,7 @@ module.exports = {
       const kode = req.user.kode
       const listGl = [52010402, 524112, 55050009, 548519, 63050009, 52010401, 524111]
       const listPma = [52010402, 524112, 55050009, 548519, 63050009, 52010401, 524111]
+      const glLisIn = [55020004, 547810, 547710, 55020001]
       // const listKasbon = [54010201, 55010102, 55030001, 55030002, 55010302]
       if (tipe === 'ikk') {
         const findDepo = await finance.findOne({
@@ -254,7 +255,7 @@ module.exports = {
                 }
               })
               if (findNomTarif.length > 0) {
-                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma })
+                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma, glLisIn })
               } else {
                 return response(res, 'failed get tarif4', {}, 404, false)
               }
@@ -307,7 +308,7 @@ module.exports = {
                 }
               })
               if (findNomTarif.length > 0) {
-                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma })
+                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma, glLisIn })
               } else {
                 return response(res, 'failed get tarif4', {}, 404, false)
               }
@@ -360,7 +361,7 @@ module.exports = {
                 }
               })
               if (findNomTarif.length > 0) {
-                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma })
+                return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma, glLisIn })
               } else {
                 return response(res, 'failed get tarif4', {}, 404, false)
               }
@@ -373,6 +374,37 @@ module.exports = {
         } else {
           return response(res, 'failed get tarif1', {}, 404, false)
         }
+      } else if (tipe === 'opskasbon') {
+        const findTarif = await veriftax.findAll({
+          where: {
+            end_period: null
+          },
+          group: ['gl_account']
+        })
+        if (findTarif.length > 0) {
+          const findAllTarif = await veriftax.findAll({
+            where: {
+              end_period: null
+            },
+            group: ['jenis_transaksi']
+          })
+          if (findAllTarif.length > 0) {
+            const findNomTarif = await veriftax.findAll({
+              where: {
+                end_period: null
+              }
+            })
+            if (findNomTarif.length > 0) {
+              return response(res, 'succes get tarif', { result: findTarif, length: findAllTarif, nomcoa: findNomTarif, listGl, listPma, glLisIn })
+            } else {
+              return response(res, 'failed get tarif4', {}, 404, false)
+            }
+          } else {
+            return response(res, 'failed get tarif3', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed get tarif2', {}, 404, false)
+        }
       } else {
         const findCoa = await coa.findAll({
           where: {
@@ -380,7 +412,7 @@ module.exports = {
           }
         })
         if (findCoa.length > 0) {
-          return response(res, 'succes get coa', { result: findCoa, length: findCoa.length, nomcoa: findCoa, listGl, listPma })
+          return response(res, 'succes get coa', { result: findCoa, length: findCoa.length, nomcoa: findCoa, listGl, listPma, glLisIn })
         } else {
           return response(res, 'failed get coa', {}, 404, false)
         }
