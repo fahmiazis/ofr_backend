@@ -32,11 +32,18 @@ route.patch('/detailid/:id', klaim.getDetailId)
 route.patch('/getdocbayar', klaim.getDocBayar)
 route.patch('/upniverif', klaim.updateNilaiVerif)
 route.post('/upload', klaim.uploadDataKlaim)
+
 route.patch('/outlet/upload', klaim.uploadOutlet)
 route.patch('/outlet/update', klaim.updateOutlet)
 route.patch('/outlet/add', klaim.addOutlet)
 route.delete('/outlet/del/:id', klaim.deleteOutlet)
 route.get('/outlet/get/:id', klaim.getOutlet)
+
+route.patch('/faktur/upload', klaim.uploadFaktur)
+route.patch('/faktur/update', klaim.updateFaktur)
+route.patch('/faktur/add', klaim.addFaktur)
+route.delete('/faktur/del/:id', klaim.deleteFaktur)
+route.get('/faktur/get/:id', klaim.getFaktur)
 
 route.patch('/download', klaim.downloadFormVerif)
 

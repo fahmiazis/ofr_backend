@@ -1,4 +1,4 @@
-const { klaim, coa, depo, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet } = require('../models')
+const { klaim, coa, depo, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet, fakturkl } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -336,6 +336,11 @@ module.exports = {
             klaimId: id
           }
         })
+        const findFaktur = await fakturkl.findAll({
+          where: {
+            klaimId: id
+          }
+        })
         if (findOutlet.length > 0) {
           const cek = []
           for (let i = 0; i < findOutlet.length; i++) {
@@ -345,16 +350,47 @@ module.exports = {
               cek.push(findData)
             }
           }
-          if (cek.length > 0) {
-            await findKlaim.destroy()
-            return response(res, 'success delete cart klaim', { result: findKlaim })
+          if (findFaktur.length > 0) {
+            const cekFaktur = []
+            for (let i = 0; i < findFaktur.length; i++) {
+              const findData = await fakturkl.findByPk(findFaktur[i].id)
+              if (findData) {
+                await findData.destroy()
+                cekFaktur.push(findData)
+              }
+            }
+            if (cekFaktur.length > 0) {
+              await findKlaim.destroy()
+              return response(res, 'success delete cart klaim', { result: findKlaim })
+            } else {
+              await findKlaim.destroy()
+              return response(res, 'success delete cart klaim', { result: findKlaim })
+            }
           } else {
             await findKlaim.destroy()
             return response(res, 'success delete cart klaim', { result: findKlaim })
           }
         } else {
-          await findKlaim.destroy()
-          return response(res, 'success delete cart klaim', { result: findKlaim })
+          if (findFaktur.length > 0) {
+            const cek = []
+            for (let i = 0; i < findFaktur.length; i++) {
+              const findData = await fakturkl.findByPk(findFaktur[i].id)
+              if (findData) {
+                await findData.destroy()
+                cek.push(findData)
+              }
+            }
+            if (cek.length > 0) {
+              await findKlaim.destroy()
+              return response(res, 'success delete cart klaim', { result: findKlaim })
+            } else {
+              await findKlaim.destroy()
+              return response(res, 'success delete cart klaim', { result: findKlaim })
+            }
+          } else {
+            await findKlaim.destroy()
+            return response(res, 'success delete cart klaim', { result: findKlaim })
+          }
         }
       } else {
         return response(res, 'failed get cart', {}, 404, false)
@@ -3495,6 +3531,193 @@ module.exports = {
         return response(res, 'success download form verif', { cek })
       } else {
         return response(res, 'failed download form verif', { cek })
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  uploadFaktur: async (req, res) => {
+    try {
+      const schema = joi.object({
+        id: joi.number().required(),
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const list = results.list
+        if (list.length > 0) {
+          const temp = []
+          for (let i = 0; i < list.length; i++) {
+            const val = list[i]
+            const findFaktur = await fakturkl.findAll({
+              where: {
+                klaimId: results.id
+              }
+            })
+            const data = {
+              klaimId: results.id,
+              no_faktur: val.no_faktur,
+              date_faktur: val.date_faktur,
+              val: val.value
+            }
+            if (findFaktur.length > 0) {
+              const cekData = findFaktur.find(({no_faktur}) => (data.no_faktur !== '' && no_faktur === data.no_faktur)) // eslint-disable-line
+              // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+              console.log(cekData)
+              if (cekData !== undefined) {
+                const findData = await fakturkl.findByPk(cekData.id)
+                if (findData) {
+                  const creFaktur = await findData.update(data)
+                  temp.push(creFaktur)
+                }
+              } else {
+                const creFaktur = await fakturkl.create(data)
+                temp.push(creFaktur)
+              }
+            } else {
+              const creFaktur = await fakturkl.create(data)
+              temp.push(creFaktur)
+            }
+          }
+          if (temp.length > 0) {
+            return response(res, 'success upload faktur klaim', { list })
+          } else {
+            return response(res, 'failed upload faktur klaim', { list })
+          }
+        } else {
+          return response(res, 'failed upload faktur klaim', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  addFaktur: async (req, res) => {
+    try {
+      const schema = joi.object({
+        id: joi.number().required(),
+        idFaktur: joi.number().required(),
+        no_faktur: joi.string().required(),
+        date_faktur: joi.date().required(),
+        value: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const temp = []
+        for (let i = 0; i < 1; i++) {
+          const findFaktur = await fakturkl.findAll({
+            where: {
+              klaimId: results.id
+            }
+          })
+          const data = {
+            klaimId: results.id,
+            no_faktur: results.no_faktur,
+            date_faktur: results.date_faktur,
+            val: results.value
+          }
+          if (findFaktur.length > 0) {
+              const cekData = findFaktur.find(({no_faktur}) => (data.no_faktur !== '' && no_faktur === data.no_faktur)) // eslint-disable-line
+            // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+            if (cekData !== undefined) {
+              temp.push()
+            } else {
+              const creFaktur = await fakturkl.create(data)
+              temp.push(creFaktur)
+            }
+          } else {
+            const creFaktur = await fakturkl.create(data)
+            temp.push(creFaktur)
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, 'success add faktur klaim', { temp })
+        } else {
+          return response(res, 'failed add faktur klaim', { temp })
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  updateFaktur: async (req, res) => {
+    try {
+      const schema = joi.object({
+        id: joi.number().required(),
+        idFaktur: joi.number().required(),
+        no_faktur: joi.string().required(),
+        date_faktur: joi.date().required(),
+        value: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const temp = []
+        for (let i = 0; i < 1; i++) {
+          const findFaktur = await fakturkl.findAll({
+            where: {
+              klaimId: results.id
+            }
+          })
+          const data = {
+            klaimId: results.id,
+            no_faktur: results.no_faktur,
+            date_faktur: results.date_faktur,
+            val: results.value
+          }
+          if (findFaktur.length > 0) {
+              const cekData = findFaktur.find(({no_faktur}) => (data.no_faktur !== '' && no_faktur === data.no_faktur)) // eslint-disable-line
+            // const resData = level === 2 && cekData === 'ya' ? 5 : 4
+            if (cekData !== undefined) {
+              temp.push()
+            } else {
+              const findData = await fakturkl.findByPk(results.idFaktur)
+              const upFaktur = await findData.update(data)
+              temp.push(upFaktur)
+            }
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, 'success update faktur klaim', { temp })
+        } else {
+          return response(res, 'failed update faktur klaim', { temp })
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  deleteFaktur: async (req, res) => {
+    try {
+      const id = req.params.id
+      const findFaktur = await fakturkl.findByPk(id)
+      if (findFaktur) {
+        await findFaktur.destroy()
+        return response(res, 'success delete faktur klaim', { result: findFaktur })
+      } else {
+        return response(res, 'failed get cart', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getFaktur: async (req, res) => {
+    try {
+      const id = req.params.id
+      const findFaktur = await fakturkl.findAll({
+        where: {
+          klaimId: id
+        }
+      })
+      if (findFaktur.length > 0) {
+        return response(res, 'success get faktur klaim', { result: findFaktur })
+      } else {
+        return response(res, 'failed get faktur klaim', { result: findFaktur })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
