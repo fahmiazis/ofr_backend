@@ -1251,6 +1251,7 @@ module.exports = {
           const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
           const cekPph = findOps.find((item) => item.jenis_pph !== nonPph)
           const cekRek = findOps.find((item) => item.tiperek !== spend)
+          const cekIndi = findOps.find((item) => item.sub_coa !== 'Pembayaran Tagihan Internet (Indihome)')
           const cekVendor = findOps.find((item) => item.tujuan_tf === 'Vendor')
           const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
           const cekDoc = []
@@ -1283,11 +1284,14 @@ module.exports = {
             //   }
             // } else {
             const nameDoc = findMaster[i].name
+            console.log(cekIndi)
             const statDoc = nameDoc === 'KWITANSI' && cekKasbon !== undefined
               ? 0
               : nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && (cekPph === undefined && cekRek === undefined)
                 ? 0
-                : findMaster[i].stat_upload
+                : nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && cekIndi === undefined
+                  ? 0
+                  : findMaster[i].stat_upload
 
             const data = {
               desc: findMaster[i].name,
@@ -1314,12 +1318,12 @@ module.exports = {
               }
             })
             if (findFinDoc.length > 0) {
-              return response(res, 'success get dokumen flowles', { result: findFinDoc })
+              return response(res, 'success get dokumen flowles', { result: findFinDoc, cekIndi })
             } else {
-              return response(res, 'success get dokumen gagl', { result: findDoc })
+              return response(res, 'success get dokumen gagl', { result: findDoc, cekIndi })
             }
           } else {
-            return response(res, 'success get dokumen ggl', { result: findDoc })
+            return response(res, 'success get dokumen ggl', { result: findDoc, cekIndi })
           }
         } else {
           return response(res, 'success get dokumen gtl', { result: findDoc })
@@ -1348,6 +1352,7 @@ module.exports = {
             // const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
             const resData = cek === 'ya' ? findMaster.length : findMaster.length
             const cekVendor = findOps.find((item) => item.tujuan_tf === 'Vendor')
+            const cekIndi = findOps.find((item) => item.sub_coa !== 'Pembayaran Tagihan Internet (Indihome)')
             for (let i = 0; i < resData; i++) {
               // if (cek === 'no') {
               //   if (i === resData - 1) {
@@ -1381,7 +1386,9 @@ module.exports = {
                 ? 0
                 : nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && (cekPph === undefined && cekRek === undefined)
                   ? 0
-                  : findMaster[i].stat_upload
+                  : nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && cekIndi === undefined
+                    ? 0
+                    : findMaster[i].stat_upload
 
               const data = {
                 desc: findMaster[i].name,
@@ -1408,7 +1415,7 @@ module.exports = {
                 }
               })
               if (findDocCre.length > 0) {
-                return response(res, 'success get dokumen', { result: findDocCre })
+                return response(res, 'success get dokumen', { result: findDocCre, cekIndi })
               } else {
                 return response(res, 'failed get dokumen', { result: [] })
               }
