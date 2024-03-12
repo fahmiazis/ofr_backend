@@ -1011,9 +1011,9 @@ module.exports = {
           } else if (month === 12) {
             rome = 'XII'
           }
-          const cekTipe = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
-          const tipe = cekTipe === 'ya' ? 'OPS' : 'OPSX'
-          const tempData = findOps.find(({no_transaksi}) => no_transaksi !== null) // eslint-disable-line
+          const cekTipe = findOps.find((item) => item.jenis_pph !== 'Non PPh')
+          const tipe = cekTipe === undefined ? 'OPS' : 'OPSX'
+          const tempData = findOps.find((item) => item.no_transaksi !== null)
           const cekData = tempData === undefined ? 'ya' : 'no'
           const noNow = `${notrans}/${kode}/${rome}/${year}-${tipe}`
           const noTrans = noNow
@@ -3459,7 +3459,7 @@ module.exports = {
               timeVal1 === 'all'
                 ? { [Op.not]: { id: null } }
                 : {
-                    start_ops: {
+                    tanggal_transfer: {
                       [Op.gte]: timeV1,
                       [Op.lt]: timeV2
                     }
@@ -3584,7 +3584,7 @@ module.exports = {
                 ]
               },
               order: [
-                ['id', 'ASC'],
+                ['id', 'DESC'],
                 [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
                 [{ model: ttd, as: 'appList' }, 'id', 'DESC']
               ],
@@ -3646,7 +3646,7 @@ module.exports = {
               timeVal1 === 'all'
                 ? { [Op.not]: { id: null } }
                 : {
-                    start_ops: {
+                    tanggal_transfer: {
                       [Op.gte]: timeV1,
                       [Op.lt]: timeV2
                     }
@@ -3674,7 +3674,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['id', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
@@ -3690,7 +3690,7 @@ module.exports = {
             {
               model: finance,
               as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
             },
             {
               model: veriftax,
