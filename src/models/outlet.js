@@ -25,7 +25,8 @@ module.exports = (sequelize, DataTypes) => {
     no_ktp: DataTypes.STRING,
     no_dn: DataTypes.STRING,
     status: DataTypes.INTEGER,
-    history: DataTypes.TEXT
+    history: DataTypes.TEXT,
+    keterangan: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'outlet'

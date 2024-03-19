@@ -3221,7 +3221,8 @@ module.exports = {
               nama_npwp: val.nama_npwp,
               no_npwp: val.no_npwp,
               nama_ktp: val.nama_ktp,
-              no_ktp: val.no_ktp
+              no_ktp: val.no_ktp,
+              keterangan: val.keterangan
             }
             if (findOutlet.length > 0) {
               const cekData = findOutlet.find(({no_ktp, no_npwp}) => (data.no_ktp !== '' && no_ktp === data.no_ktp) || (data.no_npwp !== '' && no_npwp === data.no_npwp)) // eslint-disable-line
@@ -3263,7 +3264,8 @@ module.exports = {
         no_ktp: joi.string().allow(''),
         no_npwp: joi.string().allow(''),
         nama_ktp: joi.string().allow(''),
-        nama_npwp: joi.string().allow('')
+        nama_npwp: joi.string().allow(''),
+        keterangan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -3283,7 +3285,8 @@ module.exports = {
             nama_npwp: results.nama_npwp,
             no_npwp: results.no_npwp,
             nama_ktp: results.nama_ktp,
-            no_ktp: results.no_ktp
+            no_ktp: results.no_ktp,
+            keterangan: results.keterangan
           }
           if (findOutlet.length > 0) {
               const cekData = findOutlet.find(({no_ktp, no_npwp}) => (data.no_ktp !== '' && no_ktp === data.no_ktp) || (data.no_npwp !== '' && no_npwp === data.no_npwp)) // eslint-disable-line
@@ -3319,7 +3322,8 @@ module.exports = {
         no_ktp: joi.string().allow(''),
         no_npwp: joi.string().allow(''),
         nama_ktp: joi.string().allow(''),
-        nama_npwp: joi.string().allow('')
+        nama_npwp: joi.string().allow(''),
+        keterangan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -3339,7 +3343,8 @@ module.exports = {
             nama_npwp: results.nama_npwp,
             no_npwp: results.no_npwp,
             nama_ktp: results.nama_ktp,
-            no_ktp: results.no_ktp
+            no_ktp: results.no_ktp,
+            keterangan: results.keterangan
           }
           if (findOutlet.length > 0) {
               const cekData = findOutlet.find(({no_ktp, no_npwp, id}) => (data.no_ktp !== '' && no_ktp === data.no_ktp && id !== results.idOutlet) || (data.no_npwp !== '' && no_npwp === data.no_npwp && id !== results.idOutlet)) // eslint-disable-line
@@ -3560,7 +3565,8 @@ module.exports = {
               klaimId: results.id,
               no_faktur: val.no_faktur,
               date_faktur: val.date_faktur,
-              val: val.value
+              val: val.val,
+              keterangan: val.keterangan
             }
             if (findFaktur.length > 0) {
               const cekData = findFaktur.find(({no_faktur}) => (data.no_faktur !== '' && no_faktur === data.no_faktur)) // eslint-disable-line
@@ -3601,7 +3607,8 @@ module.exports = {
         idFaktur: joi.number().required(),
         no_faktur: joi.string().required(),
         date_faktur: joi.date().required(),
-        value: joi.string().required()
+        val: joi.string().required(),
+        keterangan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -3618,7 +3625,8 @@ module.exports = {
             klaimId: results.id,
             no_faktur: results.no_faktur,
             date_faktur: results.date_faktur,
-            val: results.value
+            val: results.val,
+            keterangan: results.keterangan
           }
           if (findFaktur.length > 0) {
               const cekData = findFaktur.find(({no_faktur}) => (data.no_faktur !== '' && no_faktur === data.no_faktur)) // eslint-disable-line
@@ -3651,7 +3659,8 @@ module.exports = {
         idFaktur: joi.number().required(),
         no_faktur: joi.string().required(),
         date_faktur: joi.date().required(),
-        value: joi.string().required()
+        val: joi.string().required(),
+        keterangan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -3668,7 +3677,8 @@ module.exports = {
             klaimId: results.id,
             no_faktur: results.no_faktur,
             date_faktur: results.date_faktur,
-            val: results.value
+            val: results.val,
+            keterangan: results.keterangan
           }
           if (findFaktur.length > 0) {
               const cekData = findFaktur.find(({no_faktur}) => (data.no_faktur !== '' && no_faktur === data.no_faktur)) // eslint-disable-line

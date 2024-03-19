@@ -20,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
     no_transaksi: DataTypes.STRING,
     status: DataTypes.INTEGER,
     history: DataTypes.TEXT,
-    klaimId: DataTypes.INTEGER
+    klaimId: DataTypes.INTEGER,
+    keterangan: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'fakturkl'

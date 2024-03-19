@@ -152,7 +152,7 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
-        const cek = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM']
+        const cek = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM', 'CHANNEL']
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
           console.log(valid[i], cek[i])
@@ -223,7 +223,8 @@ module.exports = {
                 rom: dataFinance[20],
                 bm: dataFinance[21],
                 nom: dataFinance[22],
-                rbm: dataFinance[23]
+                rbm: dataFinance[23],
+                channel: dataFinance[24]
               }
               if (select) {
                 const upbank = await select.update(data)
@@ -432,7 +433,7 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM']
+        const header = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM', 'CHANNEL']
         const key = [
           'kode_plant',
           'profit_center',
@@ -457,7 +458,8 @@ module.exports = {
           'rom',
           'bm',
           'nom',
-          'rbm'
+          'rbm',
+          'channel'
         ]
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
@@ -517,6 +519,53 @@ module.exports = {
         }
       } else {
         return response(res, 'failed delete all', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  updateChannel: async (req, res) => {
+    try {
+      const findFin = await finance.findAll({
+        include: [
+          {
+            model: depo,
+            as: 'depo'
+          }
+        ]
+      })
+      if (findFin.length > 0) {
+        const cek = []
+        for (let i = 0; i < findFin.length; i++) {
+          const data = findFin[i]
+          const cekCan = data.area.split(' ')[data.area.split(' ').length - 1]
+          if (data.depo !== undefined && data.depo !== null) {
+            const findData = await finance.findByPk(data.id)
+            const send = {
+              channel: data.depo.channel === undefined || data.depo.channel === null ? null : data.depo.channel
+            }
+            if (findData) {
+              await findData.update(send)
+              cek.push(findData)
+            }
+          } else {
+            const findData = await finance.findByPk(data.id)
+            const send = {
+              channel: cekCan === 'MT' ? 'MT' : 'GT'
+            }
+            if (findData) {
+              await findData.update(send)
+              cek.push(findData)
+            }
+          }
+        }
+        if (cek.length > 0) {
+          return response(res, 'success update channel', { result: cek })
+        } else {
+          return response(res, 'failed update channel', { result: cek }, 400, false)
+        }
+      } else {
+        return response(res, 'failed update channel', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

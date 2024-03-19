@@ -12,4 +12,6 @@ route.delete('/delall', finance.deleteAll)
 route.get('/export', finance.exportSqlFinance)
 route.get('/rek', finance.getAllRek)
 
+route.patch('/channel', finance.updateChannel)
+
 module.exports = route

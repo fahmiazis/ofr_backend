@@ -64,7 +64,8 @@ module.exports = (sequelize, DataTypes) => {
     rom: DataTypes.STRING,
     bm: DataTypes.STRING,
     nom: DataTypes.STRING,
-    rbm: DataTypes.STRING
+    rbm: DataTypes.STRING,
+    channel: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'finance'
