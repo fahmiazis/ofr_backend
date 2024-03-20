@@ -181,7 +181,7 @@ module.exports = {
       const kode = req.user.kode
       const schema = joi.object({
         nama: joi.string().required(),
-        no_npwp: joi.string().required(),
+        no_npwp: joi.string().allow(''),
         no_ktp: joi.string().allow(''),
         alamat: joi.string().required(),
         no: joi.string().required(),
@@ -199,9 +199,10 @@ module.exports = {
         const findNameVendor = await vendor.findOne({
           where: {
             [Op.or]: [
-              { nama: { [Op.like]: `%${results.nama}` } },
-              { no_npwp: { [Op.like]: `%${results.no_npwp}%` } },
-              results.no_ktp === '' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } }
+              // { nama: { [Op.like]: `%${results.nama}` } },
+              // { no_npwp: { [Op.like]: `%${results.no_npwp}%` } },
+              results.no_ktp === '' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
+              results.no_npwp === '' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
           }
@@ -209,9 +210,10 @@ module.exports = {
         const findAjuanVendor = await vervendor.findOne({
           where: {
             [Op.or]: [
-              { nama: { [Op.like]: `%${results.nama}` } },
-              { npwp: { [Op.like]: `%${results.no_npwp}%` } },
-              results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } }
+              // { nama: { [Op.like]: `%${results.nama}` } },
+              // { npwp: { [Op.like]: `%${results.no_npwp}%` } },
+              results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
+              results.no_npwp === '' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
           }
@@ -1083,8 +1085,8 @@ module.exports = {
       const id = req.params.id
       const schema = joi.object({
         nama: joi.string().required(),
-        no_npwp: joi.string().required(),
-        no_ktp: joi.string().required(),
+        no_npwp: joi.string().allow(''),
+        no_ktp: joi.string().allow(''),
         alamat: joi.string().required(),
         type_skb: joi.string().required(),
         no_skb: joi.string().allow(''),
@@ -1099,18 +1101,31 @@ module.exports = {
         const findAjuanVendor = await vervendor.findOne({
           where: {
             [Op.or]: [
-              { nama: { [Op.like]: `%${results.nama}` } },
-              { npwp: { [Op.like]: `%${results.no_npwp}%` } },
-              { nik: { [Op.like]: `%${results.no_ktp}%` } },
-              { alamat: { [Op.like]: `%${results.alamat}%` } }
+              // { nama: { [Op.like]: `%${results.nama}` } },
+              // { npwp: { [Op.like]: `%${results.no_npwp}%` } },
+              // { nik: { [Op.like]: `%${results.no_ktp}%` } },
+              // { alamat: { [Op.like]: `%${results.alamat}%` } }
+              results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
+              results.no_npwp === '' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
             ],
             [Op.not]: {
               id: id
             }
           }
         })
-        if (findAjuanVendor) {
-          return response(res, 'nama vendor telah terdftar', {}, 404, false)
+        const findNameVendor = await vendor.findOne({
+          where: {
+            [Op.or]: [
+              // { nama: { [Op.like]: `%${results.nama}` } },
+              // { no_npwp: { [Op.like]: `%${results.no_npwp}%` } },
+              results.no_ktp === '' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
+              results.no_npwp === '' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
+              // { alamat: { [Op.like]: `%${results.alamat}%` } }
+            ]
+          }
+        })
+        if (findNameVendor || findAjuanVendor) {
+          return response(res, 'vendor telah terdftar', {}, 404, false)
         } else {
           const tipe = results.type_skb
           const findVendor = await vervendor.findByPk(id)
