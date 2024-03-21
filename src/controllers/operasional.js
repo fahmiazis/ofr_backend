@@ -1465,7 +1465,7 @@ module.exports = {
       const statRej = reject === 'undefined' ? 'all' : reject
       const statMenu = menu === 'undefined' ? 'all' : menu
       const statData = data === 'undefined' ? 'all' : data
-      const statKasbon = kasbon === 'undefined' ? 'all' : kasbon
+      const statKasbon = kasbon === 'undefined' || kasbon === undefined || kasbon === null || kasbon === 'null' || kasbon === '' ? 'all' : kasbon
       const timeVal1 = time1 === 'undefined' ? 'all' : time1
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
