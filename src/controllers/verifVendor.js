@@ -213,7 +213,7 @@ module.exports = {
               // { nama: { [Op.like]: `%${results.nama}` } },
               // { npwp: { [Op.like]: `%${results.no_npwp}%` } },
               results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
-              results.no_npwp === '' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
+              results.no_npwp === '' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
           }
