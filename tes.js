@@ -1,6 +1,7 @@
-const str = '30305,PLN,515401633879,,,IDR,,UBP,,,,,,E'
+const str = '664312139608000'
 
-const tes = '30305,PLN,888790564322,,,IDR,,UBP,,,,,,E'
+const tes = str.replace(/[^a-z0-9 -]/g, '')
+const tes2 = tes.replace('-', '')
 
-console.log(str.length)
-console.log(tes.length)
+console.log(tes2)
+console.log(tes2.length)

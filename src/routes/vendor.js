@@ -10,5 +10,6 @@ route.post('/master', vendor.uploadMasterVendor)
 route.delete('/del/:id', vendor.deleteVendor)
 route.delete('/delall', vendor.deleteAll)
 route.get('/export', vendor.exportSqlVendor)
+route.patch('/upspar', vendor.updateSpar)
 
 module.exports = route

@@ -390,5 +390,62 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  updateSpar: async (req, res) => {
+    try {
+      const findVendor = await vendor.findAll()
+      if (findVendor.length > 0) {
+        const cek = []
+        for (let i = 0; i < findVendor.length; i++) {
+          const dataNik = findVendor[i].no_ktp
+          const dataNpwp = findVendor[i].no_npwp
+
+          const nikFin = dataNik.replace(/[^a-z0-9-]/g, '')
+          const npwpRep = dataNpwp.replace(/[^a-z0-9-]/g, '')
+          const npwpFin = npwpRep.replace('-', '')
+
+          if (dataNik === 'TIDAK ADA') {
+            const data = {
+              no_ktp: dataNik,
+              no_npwp: npwpFin
+            }
+            const findData = await vendor.findByPk(findVendor[i].id)
+            if (findData) {
+              await findData.update(data)
+              cek.push(findData)
+            }
+          } else if (dataNpwp === 'TIDAK ADA') {
+            const data = {
+              no_ktp: nikFin,
+              no_npwp: dataNpwp
+            }
+            const findData = await vendor.findByPk(findVendor[i].id)
+            if (findData) {
+              await findData.update(data)
+              cek.push(findData)
+            }
+          } else {
+            const data = {
+              no_ktp: nikFin,
+              no_npwp: npwpFin
+            }
+            const findData = await vendor.findByPk(findVendor[i].id)
+            if (findData) {
+              await findData.update(data)
+              cek.push(findData)
+            }
+          }
+        }
+        if (cek.length) {
+          return response(res, 'success update sparator all', { cek })
+        } else {
+          return response(res, 'failed update sparator all', {}, 404, false)
+        }
+      } else {
+        return response(res, 'failed update sparator all', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }
