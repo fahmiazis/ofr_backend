@@ -1106,7 +1106,7 @@ module.exports = {
               // { nik: { [Op.like]: `%${results.no_ktp}%` } },
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
               results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
-              results.no_npwp === '' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
+              results.no_npwp === '' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
             ],
             [Op.not]: {
               id: id
