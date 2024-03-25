@@ -24,21 +24,23 @@ module.exports = {
         })
         if (findData) {
           if (jenis === 'ajuan') {
+            console.log('ajuan bayar king')
             const cekData = []
             const dataTo = draft.to !== undefined && draft.to.length !== undefined && draft.to.length > 0 ? draft.to : [{ username: nameTo }]
+            console.log(dataTo)
             for (let i = 0; i < dataTo.length; i++) {
               const findNotif = await notif.findOne({
                 where: {
                   [Op.and]: [
-                    { user: { [Op.like]: `%${dataTo[i].username}%` } },
-                    { no_transaksi: { [Op.like]: `%${no}%` } },
+                    { user: { [Op.like]: `%${dataTo[i].username}` } },
+                    { no_transaksi: { [Op.like]: `%${no}` } },
                     { proses: { [Op.like]: `%${menu}%` } },
                     { tipe: { [Op.like]: `%${proses}%` } }
                   ]
                 }
               })
               if (findNotif) {
-                return response(res, 'success create notif', { findNotif })
+                return response(res, 'success create notif', { findNotif, dataTo, tipe: 'ajuan bayar' })
               } else {
                 const data = {
                   user: dataTo[i].username,
@@ -56,9 +58,9 @@ module.exports = {
               }
             }
             if (cekData.length) {
-              return response(res, 'success create notif', { cekData })
+              return response(res, 'success create notif', { cekData, dataTo, tipe: 'ajuan bayar' })
             } else {
-              return response(res, 'failed create notif', { cekData })
+              return response(res, 'failed create notif', { cekData, dataTo, tipe: 'ajuan bayar' })
             }
           } else {
             const findNotif = await notif.findOne({
@@ -125,11 +127,17 @@ module.exports = {
   getAllNotif: async (req, res) => {
     try {
       const name = req.user.name
+      const fullname = req.user.fullname
       const { tipe } = req.query
       const findNotif = await notif.findAll({
         where: {
           [Op.and]: [
-            { user: { [Op.like]: `%${name}%` } },
+            {
+              [Op.or]: [
+                { user: { [Op.like]: `%${name}%` } },
+                { user: { [Op.like]: `%${fullname}%` } }
+              ]
+            },
             tipe === 'read' ? { [Op.not]: { status: null } } : tipe === 'unread' ? { status: null } : { [Op.not]: { id: null } }
           ]
         },
