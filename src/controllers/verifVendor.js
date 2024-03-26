@@ -202,7 +202,7 @@ module.exports = {
               // { nama: { [Op.like]: `%${results.nama}` } },
               // { no_npwp: { [Op.like]: `%${results.no_npwp}%` } },
               results.no_ktp === '' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
-              results.no_npwp === '' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
+              results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
           }
@@ -213,7 +213,7 @@ module.exports = {
               // { nama: { [Op.like]: `%${results.nama}` } },
               // { npwp: { [Op.like]: `%${results.no_npwp}%` } },
               results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
-              results.no_npwp === '' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
+              results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
           }
@@ -1106,7 +1106,7 @@ module.exports = {
               // { nik: { [Op.like]: `%${results.no_ktp}%` } },
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
               results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
-              results.no_npwp === '' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
+              results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
             ],
             [Op.not]: {
               id: id
@@ -1119,7 +1119,7 @@ module.exports = {
               // { nama: { [Op.like]: `%${results.nama}` } },
               // { no_npwp: { [Op.like]: `%${results.no_npwp}%` } },
               results.no_ktp === '' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
-              results.no_npwp === '' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
+              results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
           }
