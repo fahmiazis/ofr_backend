@@ -679,13 +679,15 @@ module.exports = {
         })
         if (findMaster.length > 0) {
           const temp = []
-          const tiperek = (findKlaim[0].tiperek === 'Rekening ZBA' || findKlaim[0].tiperek === 'Rekening Bank Coll') && findKlaim[0].tujuan_tf === 'PMA' ? 'ya' : 'tidak'
+          const tiperek = (findKlaim[0].tiperek === 'Rekening ZBA' || findKlaim[0].tiperek === 'Rekening Bank Coll' || findKlaim[0].tiperek === 'Rekening Spending Card') && findKlaim[0].tujuan_tf === 'PMA' ? 'ya' : 'tidak'
           console.log(tiperek)
           for (let i = 0; i < findMaster.length; i++) {
             const nameDoc = findMaster[i].name
             const statDoc = nameDoc === 'IDENTITAS PENERIMA DANA (NPWP/KTP)' && tiperek === 'ya'
               ? 0
-              : findMaster[i].stat_upload
+              : nameDoc === 'HALAMAN DEPAN BUKU TABUNGAN/RK' && tiperek === 'ya'
+                ? 0
+                : findMaster[i].stat_upload
             const data = {
               desc: findMaster[i].name,
               jenis_form: findMaster[i].jenis,
