@@ -3550,7 +3550,7 @@ module.exports = {
               where: {
                 kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
-                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : statTrans === 8 ? { status_transaksi: { [Op.gte]: 7 } } : { status_transaksi: statTrans },
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : statTrans === '8' ? { status_transaksi: { [Op.gte]: 7 } } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                   statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                   timeVal1 === 'all'
@@ -3640,7 +3640,7 @@ module.exports = {
         const findOps = await ops.findAll({
           where: {
             [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : statTrans === 8 ? { status_transaksi: { [Op.gte]: 7 } } : { status_transaksi: statTrans },
+              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : statTrans === '8' ? { status_transaksi: { [Op.gte]: 7 } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
               statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
               timeVal1 === 'all'
