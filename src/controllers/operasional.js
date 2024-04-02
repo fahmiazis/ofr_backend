@@ -9,6 +9,8 @@ const { filterApp, filter, filterBayar } = require('../helpers/pagination')
 const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34]
 const nonPph = 'Non PPh'
 const spend = 'Rekening Spending Card'
+const zba = 'Rekening ZBA'
+const bankcoll = 'Rekening Bank Coll'
 
 module.exports = {
   addCart: async (req, res) => {
@@ -1250,7 +1252,7 @@ module.exports = {
           const cek = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
           const cekKasbon = findOps.find(({type_kasbon}) => type_kasbon === 'kasbon') // eslint-disable-line
           const cekPph = findOps.find((item) => item.jenis_pph !== nonPph)
-          const cekRek = findOps.find((item) => item.tiperek !== spend)
+          const cekRek = findOps.find((item) => item.tiperek !== spend && item.tiperek !== zba && item.tiperek !== bankcoll)
           const cekIndi = findOps.find((item) => item.sub_coa !== 'Pembayaran Tagihan Internet (Indihome)')
           const cekVendor = findOps.find((item) => item.tujuan_tf === 'Vendor')
           const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
@@ -1348,7 +1350,7 @@ module.exports = {
             const cek = findOps.find((item) => item.stat_skb === 'ya') === undefined ? 'ya' : 'no'
             const cekKasbon = findOps.find((item) => item.type_kasbon === 'kasbon')
             const cekPph = findOps.find((item) => item.jenis_pph !== nonPph)
-            const cekRek = findOps.find((item) => item.tiperek !== spend)
+            const cekRek = findOps.find((item) => item.tiperek !== spend && item.tiperek !== zba && item.tiperek !== bankcoll)
             // const resData = cek === 'ya' ? findMaster.length : findMaster.length + 1
             const resData = cek === 'ya' ? findMaster.length : findMaster.length
             const cekVendor = findOps.find((item) => item.tujuan_tf === 'Vendor')
