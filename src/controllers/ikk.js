@@ -987,7 +987,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['start_ikk', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
           ],
           include: [
@@ -1045,87 +1045,95 @@ module.exports = {
           }
         })
         if (findDepo) {
-          const hasil = []
+          // const hasil = []
+          const dataDepo = []
           for (let i = 0; i < findDepo.length; i++) {
-            const result = await ikk.findAll({
-              where: {
-                kode_plant: findDepo[i].kode_plant,
-                [Op.and]: [
-                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-                  statRej === 'all' ? { [Op.not]: { start_ikk: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { start_ikk: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                  category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
-                  timeVal1 === 'all'
-                    ? { [Op.not]: { id: null } }
-                    : {
-                        start_ikk: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
-                        }
-                      }
-                ],
-                [Op.or]: [
-                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
-                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
-                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
-                  { no_bpkk: { [Op.like]: `%${searchValue}%` } },
-                  { user_jabatan: { [Op.like]: `%${searchValue}%` } },
-                  { area: { [Op.like]: `%${searchValue}%` } },
-                  { cost_center: { [Op.like]: `%${searchValue}%` } },
-                  { no_coa: { [Op.like]: `%${searchValue}%` } },
-                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
-                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
-                  { uraian: { [Op.like]: `%${searchValue}%` } },
-                  { no_faktur: { [Op.like]: `%${searchValue}%` } },
-                  { nama_vendor: { [Op.like]: `%${searchValue}%` } },
-                  { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
-                  { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
-                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-                ]
-              },
-              order: [
-                ['id', 'ASC'],
-                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-              ],
-              include: [
-                {
-                  model: ttd,
-                  as: 'appForm'
-                },
-                {
-                  model: ttd,
-                  as: 'appList'
-                },
-                {
-                  model: finance,
-                  as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-                },
-                {
-                  model: veriftax,
-                  as: 'veriftax'
-                },
-                {
-                  model: kliring,
-                  as: 'kliring'
-                },
-                {
-                  model: taxcode,
-                  as: 'taxcode'
-                }
-              ]
-            })
-            if (result.length > 0) {
-              for (let j = 0; j < result.length; j++) {
-                hasil.push(result[j])
-              }
-            }
+            const data = { kode_plant: findDepo[i].kode_plant }
+            dataDepo.push(data)
           }
+          // for (let i = 0; i < findDepo.length; i++) {
+          const hasil = await ikk.findAll({
+            where: {
+              // kode_plant: findDepo[i].kode_plant,
+              [Op.and]: [
+                {
+                  [Op.or]: dataDepo
+                },
+                statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                statRej === 'all' ? { [Op.not]: { start_ikk: null } } : { status_reject: statRej },
+                statMenu === 'all' ? { [Op.not]: { start_ikk: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                timeVal1 === 'all'
+                  ? { [Op.not]: { id: null } }
+                  : {
+                      start_ikk: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                    }
+              ],
+              [Op.or]: [
+                { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_bpkk: { [Op.like]: `%${searchValue}%` } },
+                { user_jabatan: { [Op.like]: `%${searchValue}%` } },
+                { area: { [Op.like]: `%${searchValue}%` } },
+                { cost_center: { [Op.like]: `%${searchValue}%` } },
+                { no_coa: { [Op.like]: `%${searchValue}%` } },
+                // { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                { uraian: { [Op.like]: `%${searchValue}%` } },
+                { no_faktur: { [Op.like]: `%${searchValue}%` } },
+                { nama_vendor: { [Op.like]: `%${searchValue}%` } },
+                { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
+                // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
+                { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+              ]
+            },
+            order: [
+              ['start_ikk', 'DESC'],
+              [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+              [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+            ],
+            include: [
+              {
+                model: ttd,
+                as: 'appForm'
+              },
+              {
+                model: ttd,
+                as: 'appList'
+              },
+              {
+                model: finance,
+                as: 'depo',
+                include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+              },
+              {
+                model: veriftax,
+                as: 'veriftax'
+              },
+              {
+                model: kliring,
+                as: 'kliring'
+              },
+              {
+                model: taxcode,
+                as: 'taxcode'
+              }
+            ]
+          })
+          //   if (result.length > 0) {
+          //     for (let j = 0; j < result.length; j++) {
+          //       hasil.push(result[j])
+          //     }
+          //   }
+          // }
           if (hasil.length > 0) {
             const data = []
             hasil.map(x => {
@@ -1186,7 +1194,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['start_ikk', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
@@ -1246,7 +1254,7 @@ module.exports = {
             no_pembayaran: no
           },
           order: [
-            ['id', 'ASC'],
+            ['start_ikk', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
@@ -3073,7 +3081,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['start_ikk', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
           ],
           include: [
@@ -3131,97 +3139,105 @@ module.exports = {
           }
         })
         if (findDepo) {
-          const hasil = []
-          for (let i = 0; i < findDepo.length > 0 ? 1 : 0; i++) {
-            const result = await ikk.findAll({
-              where: {
-                kode_plant: findDepo[i].kode_plant,
-                [Op.and]: [
-                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                  type === 'reject' ? { [Op.not]: { status_reject: null } } : { [Op.not]: { id: null } },
-                  type === 'reject' ? { [Op.not]: { status_reject: 0 } } : { [Op.not]: { id: null } },
-                  timeVal1 === 'all'
-                    ? { [Op.not]: { id: null } }
-                    : {
-                        tanggal_transfer: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
-                        }
-                      }
-                ],
-                [Op.or]: [
-                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
-                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
-                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
-                  { no_bpkk: { [Op.like]: `%${searchValue}%` } },
-                  { user_jabatan: { [Op.like]: `%${searchValue}%` } },
-                  { area: { [Op.like]: `%${searchValue}%` } },
-                  { cost_center: { [Op.like]: `%${searchValue}%` } },
-                  { no_coa: { [Op.like]: `%${searchValue}%` } },
-                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
-                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
-                  { uraian: { [Op.like]: `%${searchValue}%` } },
-                  { no_faktur: { [Op.like]: `%${searchValue}%` } },
-                  { nama_vendor: { [Op.like]: `%${searchValue}%` } },
-                  { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
-                  { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
-                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-                ]
-              },
-              order: [
-                ['id', 'ASC'],
-                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-              ],
-              include: [
-                {
-                  model: ttd,
-                  as: 'appForm'
-                },
-                {
-                  model: ttd,
-                  as: 'appList'
-                },
-                {
-                  model: finance,
-                  as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-                },
-                {
-                  model: veriftax,
-                  as: 'veriftax'
-                },
-                {
-                  model: finance,
-                  as: 'finance'
-                },
-                {
-                  model: finance,
-                  as: 'spending'
-                },
-                {
-                  model: kliring,
-                  as: 'kliring'
-                },
-                {
-                  model: taxcode,
-                  as: 'taxcode'
-                }
-              ],
-              group: ['no_transaksi']
-            })
-            if (result.length > 0) {
-              for (let j = 0; j < result.length; j++) {
-                hasil.push(result[j])
-              }
-            }
+          // const hasil = []
+          const dataDepo = []
+          for (let i = 0; i < findDepo.length; i++) {
+            const data = { kode_plant: findDepo[i].kode_plant }
+            dataDepo.push(data)
           }
+          // for (let i = 0; i < findDepo.length > 0 ? 1 : 0; i++) {
+          const hasil = await ikk.findAll({
+            where: {
+              // kode_plant: findDepo[i].kode_plant,
+              [Op.and]: [
+                {
+                  [Op.or]: dataDepo
+                },
+                statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                type === 'reject' ? { [Op.not]: { status_reject: null } } : { [Op.not]: { id: null } },
+                type === 'reject' ? { [Op.not]: { status_reject: 0 } } : { [Op.not]: { id: null } },
+                timeVal1 === 'all'
+                  ? { [Op.not]: { id: null } }
+                  : {
+                      tanggal_transfer: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                    }
+              ],
+              [Op.or]: [
+                { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_bpkk: { [Op.like]: `%${searchValue}%` } },
+                { user_jabatan: { [Op.like]: `%${searchValue}%` } },
+                { area: { [Op.like]: `%${searchValue}%` } },
+                { cost_center: { [Op.like]: `%${searchValue}%` } },
+                { no_coa: { [Op.like]: `%${searchValue}%` } },
+                { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                { uraian: { [Op.like]: `%${searchValue}%` } },
+                { no_faktur: { [Op.like]: `%${searchValue}%` } },
+                { nama_vendor: { [Op.like]: `%${searchValue}%` } },
+                { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
+                { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
+                { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+              ]
+            },
+            order: [
+              ['start_ikk', 'DESC'],
+              [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+              [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+            ],
+            include: [
+              {
+                model: ttd,
+                as: 'appForm'
+              },
+              {
+                model: ttd,
+                as: 'appList'
+              },
+              {
+                model: finance,
+                as: 'depo',
+                include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+              },
+              {
+                model: veriftax,
+                as: 'veriftax'
+              },
+              {
+                model: finance,
+                as: 'finance'
+              },
+              {
+                model: finance,
+                as: 'spending'
+              },
+              {
+                model: kliring,
+                as: 'kliring'
+              },
+              {
+                model: taxcode,
+                as: 'taxcode'
+              }
+            ],
+            group: ['no_transaksi']
+          })
+          //   if (result.length > 0) {
+          //     for (let j = 0; j < result.length; j++) {
+          //       hasil.push(result[j])
+          //     }
+          //   }
+          // }
           if (hasil.length > 0) {
             const result = hasil
             return response(res, 'success get ikk', { result })
@@ -3274,7 +3290,7 @@ module.exports = {
             ]
           },
           order: [
-            ['id', 'ASC'],
+            ['start_ikk', 'DESC'],
             [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
             [{ model: ttd, as: 'appList' }, 'id', 'DESC']
           ],
