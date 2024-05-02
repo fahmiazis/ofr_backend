@@ -1565,9 +1565,9 @@ module.exports = {
         const noDis = [...set]
         if (findOps) {
           const newOps = category === 'verif' ? filter(type, findOps, noDis, statData, role) : filterApp(type, findOps, noDis, role)
-          return response(res, 'success get data ops', { result: findOps, noDis, newOps })
+          return response(res, 'success get data ops', { result: findOps, noDis, newOps, findDepo: [] })
         } else {
-          return response(res, 'success get data ops', { result: findOps, noDis, newOps: [] })
+          return response(res, 'success get data ops', { result: findOps, noDis, newOps: [], findDepo: [] })
         }
       } else if (access.find(item => item === level) !== undefined) {
         const findDepo = await finance.findAll({
@@ -1719,6 +1719,7 @@ module.exports = {
           return response(res, 'failed get ops', {}, 400, false)
         }
       } else {
+        const findDepo = await finance.findAll()
         const findOps = await ops.findAll({
           where: {
             [Op.and]: [
@@ -1814,9 +1815,9 @@ module.exports = {
         const noDis = [...set]
         if (findOps) {
           const newOps = category === 'verif' ? filter(type, findOps, noDis, statData, role) : filterApp(type, findOps, noDis, role)
-          return response(res, 'success get data ops', { result: findOps, noDis, newOps })
+          return response(res, 'success get data ops', { result: findOps, findDepo, noDis, newOps })
         } else {
-          return response(res, 'success get data ops', { result: findOps, noDis })
+          return response(res, 'success get data ops', { result: findOps, findDepo, noDis, newOps: [] })
         }
       }
     } catch (error) {

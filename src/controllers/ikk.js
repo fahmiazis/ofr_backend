@@ -1024,9 +1024,9 @@ module.exports = {
         const noDis = [...set]
         if (findIkk) {
           const newIkk = category === 'verif' ? filter(type, findIkk, noDis, statData, role) : filterApp(type, findIkk, noDis, role)
-          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk })
+          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk, findDepo: [] })
         } else {
-          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk: [] })
+          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk: [], findDepo: [] })
         }
       } else if (access.find(item => item === level) !== undefined) {
         const findDepo = await finance.findAll({
@@ -1155,6 +1155,7 @@ module.exports = {
           return response(res, 'failed get ikk', {}, 400, false)
         }
       } else {
+        const findDepo = await finance.findAll()
         const findIkk = await ikk.findAll({
           where: {
             [Op.and]: [
@@ -1236,9 +1237,9 @@ module.exports = {
         const noDis = [...set]
         if (findIkk) {
           const newIkk = category === 'verif' ? filter(type, findIkk, noDis, statData, role) : filterApp(type, findIkk, noDis, role)
-          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk })
+          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk, findDepo })
         } else {
-          return response(res, 'success get data ikk', { result: findIkk, noDis })
+          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk: [], findDepo })
         }
       }
     } catch (error) {

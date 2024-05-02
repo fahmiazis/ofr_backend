@@ -748,6 +748,7 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.fullname
       const role = req.user.role
+      const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
       const { status, reject, menu, type, category, data, time1, time2, search } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 2 : status
@@ -836,9 +837,9 @@ module.exports = {
         const noDis = [...set]
         if (findKlaim) {
           const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
-          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim })
+          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim, findDepo: [] })
         } else {
-          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [] })
+          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [], findDepo: [] })
         }
       } else if (access.find(item => item === level)) {
         const findDepo = await finance.findAll({
@@ -858,8 +859,16 @@ module.exports = {
           // const hasil = []
           const dataDepo = []
           for (let i = 0; i < findDepo.length; i++) {
-            const data = { kode_plant: findDepo[i].kode_plant }
-            dataDepo.push(data)
+            if (listDepo !== 'all') {
+              const depoArr = listDepo.split(',')
+              if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
+                const data = { kode_plant: findDepo[i].kode_plant }
+                dataDepo.push(data)
+              }
+            } else {
+              const data = { kode_plant: findDepo[i].kode_plant }
+              dataDepo.push(data)
+            }
           }
           // for (let i = 0; i < findDepo.length; i++) {
           const hasil = await klaim.findAll({
@@ -1107,6 +1116,7 @@ module.exports = {
           return response(res, 'failed get klaim', {}, 400, false)
         }
       } else {
+        const findDepo = await finance.findAll()
         const findKlaim = await klaim.findAll({
           where: {
             [Op.and]: [
@@ -1183,9 +1193,9 @@ module.exports = {
         const noDis = [...set]
         if (findKlaim) {
           const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
-          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim })
+          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim, findDepo })
         } else {
-          return response(res, 'success get data klaim', { result: findKlaim, noDis })
+          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [], findDepo })
         }
       }
     } catch (error) {
