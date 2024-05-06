@@ -933,6 +933,7 @@ module.exports = {
       const kode = req.user.kode
       const name = req.user.fullname
       const role = req.user.role
+      const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
       const { status, reject, menu, type, category, data, time1, time2, search } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 2 : status
@@ -1048,8 +1049,16 @@ module.exports = {
           // const hasil = []
           const dataDepo = []
           for (let i = 0; i < findDepo.length; i++) {
-            const data = { kode_plant: findDepo[i].kode_plant }
-            dataDepo.push(data)
+            if (listDepo !== 'all') {
+              const depoArr = listDepo.split(',')
+              if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
+                const data = { kode_plant: findDepo[i].kode_plant }
+                dataDepo.push(data)
+              }
+            } else {
+              const data = { kode_plant: findDepo[i].kode_plant }
+              dataDepo.push(data)
+            }
           }
           // for (let i = 0; i < findDepo.length; i++) {
           const hasil = await ikk.findAll({
@@ -1156,90 +1165,110 @@ module.exports = {
         }
       } else {
         const findDepo = await finance.findAll()
-        const findIkk = await ikk.findAll({
-          where: {
-            [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-              timeVal1 === 'all'
-                ? { [Op.not]: { id: null } }
-                : {
-                    start_ikk: {
-                      [Op.gte]: timeV1,
-                      [Op.lt]: timeV2
-                    }
-                  }
-            ],
-            [Op.or]: [
-              { kode_plant: { [Op.like]: `%${searchValue}%` } },
-              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_ktp: { [Op.like]: `%${searchValue}%` } },
-              { no_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_bpkk: { [Op.like]: `%${searchValue}%` } },
-              { user_jabatan: { [Op.like]: `%${searchValue}%` } },
-              { area: { [Op.like]: `%${searchValue}%` } },
-              { cost_center: { [Op.like]: `%${searchValue}%` } },
-              { no_coa: { [Op.like]: `%${searchValue}%` } },
-              { sub_coa: { [Op.like]: `%${searchValue}%` } },
-              { nama_coa: { [Op.like]: `%${searchValue}%` } },
-              { uraian: { [Op.like]: `%${searchValue}%` } },
-              { no_faktur: { [Op.like]: `%${searchValue}%` } },
-              { nama_vendor: { [Op.like]: `%${searchValue}%` } },
-              { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
-              { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
-              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-            ]
-          },
-          order: [
-            ['start_ikk', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
-            },
-            {
-              model: ttd,
-              as: 'appList'
-            },
-            {
-              model: finance,
-              as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-            },
-            {
-              model: veriftax,
-              as: 'veriftax'
-            },
-            {
-              model: kliring,
-              as: 'kliring'
-            },
-            {
-              model: taxcode,
-              as: 'taxcode'
+        const dataDepo = []
+        for (let i = 0; i < findDepo.length; i++) {
+          if (listDepo !== 'all') {
+            const depoArr = listDepo.split(',')
+            if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
+              const data = { kode_plant: findDepo[i].kode_plant }
+              dataDepo.push(data)
             }
-          ]
-        })
-        const data = []
-        findIkk.map(x => {
-          return (
-            data.push(x.no_transaksi)
-          )
-        })
-        const set = new Set(data)
-        const noDis = [...set]
-        if (findIkk) {
-          const newIkk = category === 'verif' ? filter(type, findIkk, noDis, statData, role) : filterApp(type, findIkk, noDis, role)
-          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk, findDepo })
+          } else {
+            const data = { kode_plant: findDepo[i].kode_plant }
+            dataDepo.push(data)
+          }
+        }
+        if (dataDepo.length > 0) {
+          const findIkk = await ikk.findAll({
+            where: {
+              [Op.and]: [
+                {
+                  [Op.or]: dataDepo
+                },
+                statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                timeVal1 === 'all'
+                  ? { [Op.not]: { id: null } }
+                  : {
+                      start_ikk: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                    }
+              ],
+              [Op.or]: [
+                { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_bpkk: { [Op.like]: `%${searchValue}%` } },
+                { user_jabatan: { [Op.like]: `%${searchValue}%` } },
+                { area: { [Op.like]: `%${searchValue}%` } },
+                { cost_center: { [Op.like]: `%${searchValue}%` } },
+                { no_coa: { [Op.like]: `%${searchValue}%` } },
+                { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                { uraian: { [Op.like]: `%${searchValue}%` } },
+                { no_faktur: { [Op.like]: `%${searchValue}%` } },
+                { nama_vendor: { [Op.like]: `%${searchValue}%` } },
+                { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
+                { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
+                { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+              ]
+            },
+            order: [
+              ['start_ikk', 'DESC'],
+              [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+              [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+            ],
+            include: [
+              {
+                model: ttd,
+                as: 'appForm'
+              },
+              {
+                model: ttd,
+                as: 'appList'
+              },
+              {
+                model: finance,
+                as: 'depo',
+                include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+              },
+              {
+                model: veriftax,
+                as: 'veriftax'
+              },
+              {
+                model: kliring,
+                as: 'kliring'
+              },
+              {
+                model: taxcode,
+                as: 'taxcode'
+              }
+            ]
+          })
+          const data = []
+          findIkk.map(x => {
+            return (
+              data.push(x.no_transaksi)
+            )
+          })
+          const set = new Set(data)
+          const noDis = [...set]
+          if (findIkk) {
+            const newIkk = category === 'verif' ? filter(type, findIkk, noDis, statData, role) : filterApp(type, findIkk, noDis, role)
+            return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk, findDepo })
+          } else {
+            return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk: [], findDepo })
+          }
         } else {
-          return response(res, 'success get data ikk', { result: findIkk, noDis, newIkk: [], findDepo })
+          return response(res, 'Failed get data ikk', {}, 404, false)
         }
       }
     } catch (error) {
