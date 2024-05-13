@@ -2944,19 +2944,8 @@ module.exports = {
                                   reason: results.alasan,
                                   menu_rev: results.menu,
                                   people_reject: level,
-                                  history: `${findOps[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
-                                }
-                                const findRes = await ops.findByPk(findOps[i].id)
-                                if (findRes) {
-                                  await findRes.update(send)
-                                  temp.push(1)
-                                }
-                              } else {
-                                const send = {
-                                  status_reject: 1,
-                                  reason: results.alasan,
-                                  menu_rev: results.menu,
-                                  people_reject: level,
+                                  status_transaksi: 5,
+                                  no_pembayaran: null,
                                   history: `${findOps[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await ops.findByPk(findOps[i].id)
@@ -2965,6 +2954,20 @@ module.exports = {
                                   temp.push(1)
                                 }
                               }
+                              // else {
+                              //   const send = {
+                              //     status_reject: 1,
+                              //     reason: results.alasan,
+                              //     menu_rev: results.menu,
+                              //     people_reject: level,
+                              //     history: `${findOps[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+                              //   }
+                              //   const findRes = await ops.findByPk(findOps[i].id)
+                              //   if (findRes) {
+                              //     await findRes.update(send)
+                              //     temp.push(1)
+                              //   }
+                              // }
                             }
                             if (temp.length) {
                               return response(res, 'success reject ops', {})
