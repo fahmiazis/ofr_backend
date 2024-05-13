@@ -330,6 +330,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await finance.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }

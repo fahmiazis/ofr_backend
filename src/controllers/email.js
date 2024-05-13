@@ -1083,13 +1083,13 @@ module.exports = {
                     if (findDraft) {
                       return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
                     } else {
-                      return response(res, 'failed get email', { toMail }, 404, false)
+                      return response(res, 'failed get email1', { toMail }, 404, false)
                     }
                   } else {
-                    return response(res, 'failed get email', { toMail }, 404, false)
+                    return response(res, 'failed get email2', { toMail }, 404, false)
                   }
                 } else {
-                  return response(res, 'failed get email', { findUser }, 404, false)
+                  return response(res, 'failed get email3', { findUser }, 404, false)
                 }
               } else {
                 const findUser = await user.findOne({
@@ -1106,17 +1106,17 @@ module.exports = {
                 if (findUser) {
                   return response(res, 'success get draft email', { from: name, to: findUser, cc: temp, result: findDraft })
                 } else {
-                  return response(res, 'failed get email', { findUser }, 404, false)
+                  return response(res, 'failed get email1s', { findUser }, 404, false)
                 }
               }
             } else {
-              return response(res, 'failed get email', { temp }, 404, false)
+              return response(res, 'failed get email2s', { temp }, 404, false)
             }
           } else {
-            return response(res, 'failed get email', { findDraft }, 404, false)
+            return response(res, 'failed get email3s', { findDraft }, 404, false)
           }
         } else {
-          return response(res, 'failed get email', { findApp }, 404, false)
+          return response(res, 'failed get email4s', { findApp }, 404, false)
         }
       } else if (tipe === 'submit') {
         const findDraft = await email.findOne({
@@ -1216,12 +1216,12 @@ module.exports = {
                   }
                 }
                 if (dataTo.length > 0) {
-                  return response(res, 'success get draft email', { from: name, to: dataTo, cc: temp, result: findDraft })
+                  return response(res, 'success get draft email1s', { from: name, to: dataTo, cc: temp, result: findDraft })
                 } else {
-                  return response(res, 'failed get email 0', { dataTo }, 404, false)
+                  return response(res, 'failed get email2s 0', { dataTo }, 404, false)
                 }
               } else {
-                return response(res, 'failed get email 0', { tempDepo }, 404, false)
+                return response(res, 'failed get email3s 0', { tempDepo }, 404, false)
               }
             } else {
               if (noLevel.type === 'area') {
@@ -1248,13 +1248,13 @@ module.exports = {
                     if (findDraft) {
                       return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
                     } else {
-                      return response(res, 'failed get email 2', { toMail }, 404, false)
+                      return response(res, 'failed get email 2k', { toMail }, 404, false)
                     }
                   } else {
                     return response(res, 'failed get email 14 king', { toMail, findUser, listName }, 404, false)
                   }
                 } else {
-                  return response(res, 'failed get email 0', { findUser }, 404, false)
+                  return response(res, 'failed get email 0k', { findUser }, 404, false)
                 }
               } else {
                 const findUser = await user.findOne({
@@ -1271,15 +1271,15 @@ module.exports = {
                 if (findUser) {
                   return response(res, 'success get draft email', { from: name, to: findUser, cc: temp, result: findDraft })
                 } else {
-                  return response(res, 'failed get email5', { findUser }, 404, false)
+                  return response(res, 'failed get email5b', { findUser }, 404, false)
                 }
               }
             }
           } else {
-            return response(res, 'failed get email4', { temp }, 404, false)
+            return response(res, 'failed get email4b', { temp }, 404, false)
           }
         } else {
-          return response(res, 'failed get email3', { findDraft }, 404, false)
+          return response(res, 'failed get email3b', { findDraft }, 404, false)
         }
       } else if (tipe === 'full approve') {
         const findDraft = await email.findOne({
@@ -1377,13 +1377,13 @@ module.exports = {
                   if (findDraft) {
                     return response(res, 'success get draft email', { from: name, to: toMail, cc: temp, result: findDraft })
                   } else {
-                    return response(res, 'failed get email 2', { toMail }, 404, false)
+                    return response(res, 'failed get email 2v', { toMail }, 404, false)
                   }
                 } else {
-                  return response(res, 'failed get email 15 king', { toMail, findUser, listName }, 404, false)
+                  return response(res, 'failed get email 15v king', { toMail, findUser, listName }, 404, false)
                 }
               } else {
-                return response(res, 'failed get email 0', { findUser }, 404, false)
+                return response(res, 'failed get email 0v', { findUser }, 404, false)
               }
             } else {
               const findUser = await user.findOne({
@@ -1508,10 +1508,10 @@ module.exports = {
                 if (dataTo.length > 0) {
                   return response(res, 'success get draft email', { from: name, to: dataTo, cc: temp, result: findDraft })
                 } else {
-                  return response(res, 'failed get email 0', { dataTo }, 404, false)
+                  return response(res, 'failed get email 0c', { dataTo }, 404, false)
                 }
               } else {
-                return response(res, 'failed get email 0', { tempDepo }, 404, false)
+                return response(res, 'failed get email 01c', { tempDepo }, 404, false)
               }
             } else {
               const findUser = await user.findOne({
@@ -1528,18 +1528,18 @@ module.exports = {
               if (findUser) {
                 return response(res, 'success get draft email', { from: name, to: findUser, cc: temp, result: findDraft })
               } else {
-                return response(res, 'failed get email5', { findUser }, 404, false)
+                return response(res, 'failed get email5m', { findUser }, 404, false)
               }
             }
           } else {
-            return response(res, 'failed get email4', { temp }, 404, false)
+            return response(res, 'failed get email4m', { temp }, 404, false)
           }
         } else {
-          return response(res, 'failed get email3', { findDraft }, 404, false)
+          return response(res, 'failed get email3m', { findDraft }, 404, false)
         }
       }
     } else {
-      return response(res, 'failed get email 1', { findRole, findDepo }, 404, false)
+      return response(res, 'failed get email 1m', { findRole, findDepo }, 404, false)
     }
     // } catch (error) {
     //   return response(res, error.message, {}, 500, false)
