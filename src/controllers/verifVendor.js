@@ -201,7 +201,7 @@ module.exports = {
             [Op.or]: [
               // { nama: { [Op.like]: `%${results.nama}` } },
               // { no_npwp: { [Op.like]: `%${results.no_npwp}%` } },
-              results.no_ktp === '' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
+              results.no_ktp === '' || results.no_ktp === '0000000000000000' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
               results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
@@ -212,7 +212,7 @@ module.exports = {
             [Op.or]: [
               // { nama: { [Op.like]: `%${results.nama}` } },
               // { npwp: { [Op.like]: `%${results.no_npwp}%` } },
-              results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
+              results.no_ktp === '' || results.no_ktp === '0000000000000000' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
               results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
@@ -1105,7 +1105,7 @@ module.exports = {
               // { npwp: { [Op.like]: `%${results.no_npwp}%` } },
               // { nik: { [Op.like]: `%${results.no_ktp}%` } },
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
-              results.no_ktp === '' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
+              results.no_ktp === '' || results.no_ktp === '0000000000000000' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
               results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
             ],
             [Op.not]: {
@@ -1118,7 +1118,7 @@ module.exports = {
             [Op.or]: [
               // { nama: { [Op.like]: `%${results.nama}` } },
               // { no_npwp: { [Op.like]: `%${results.no_npwp}%` } },
-              results.no_ktp === '' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
+              results.no_ktp === '' || results.no_ktp === '0000000000000000' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
               results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
             ]
