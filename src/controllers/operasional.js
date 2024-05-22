@@ -3304,7 +3304,8 @@ module.exports = {
             if (findOps.length > 0) {
               const temp = []
               const cekData = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
-              const resData = level === 2 && cekData === 'ya' ? 11 : 10
+              // const resData = level === 2 && cekData === 'ya' ? 11 : 10
+              const resData = 10
               for (let j = 0; j < findOps.length; j++) {
                 const findRes = await ops.findByPk(findOps[j].id)
                 if (findRes) {
@@ -3334,7 +3335,8 @@ module.exports = {
           if (findOps.length > 0) {
             const temp = []
             const cekData = findOps.find(({jenis_pph}) => jenis_pph !== 'Non PPh') === undefined ? 'ya' : 'no' // eslint-disable-line
-            const resData = level === 2 && cekData === 'ya' ? 11 : 10
+            // const resData = level === 2 && cekData === 'ya' ? 11 : 10
+            const resData = 10
             for (let i = 0; i < findOps.length; i++) {
               const findRes = await ops.findByPk(findOps[i].id)
               if (findRes) {

@@ -1,7 +1,7 @@
-const str = '664312139608000'
+const str = '66,43'
 
-const tes = str.replace(/[^a-z0-9 -]/g, '')
-const tes2 = tes.replace('-', '')
+const tes = str.toString().split('').filter((item) => item !== '.' && item !== ',' && isNaN(parseFloat(item))).length > 0
+const tes2 = parseFloat(str)
 
+console.log(tes)
 console.log(tes2)
-console.log(tes2.length)

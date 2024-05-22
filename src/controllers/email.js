@@ -161,7 +161,11 @@ module.exports = {
         ? 4
         : jenis === 'klaim' && level === 2
           ? 3
-          : jenis === 'vendor' && level === 5 ? 4 : jenis === 'vendor' && level !== 5 ? 5 : 2
+          : jenis === 'vendor' && level === 5
+            ? 4
+            : jenis === 'vendor' && level !== 5
+              ? 5
+              : jenis === 'kasbon' && level === 2 ? 24 : 2
 
       const findRole = await role.findOne({
         where: {
