@@ -125,7 +125,7 @@ module.exports = {
                 if (results.fullname !== '' || results.fullname) {
                   const result = await user.findAll({
                     where: {
-                      fullname: results.fullname,
+                      username: results.username,
                       [Op.not]: { id: id }
                     }
                   })
@@ -186,7 +186,7 @@ module.exports = {
               if (results.fullname !== '' || results.fullname) {
                 const result = await user.findAll({
                   where: {
-                    fullname: results.fullname,
+                    username: results.username,
                     [Op.not]: { id: id }
                   }
                 })
