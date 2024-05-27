@@ -782,6 +782,7 @@ module.exports = {
             [Op.or]: [
               { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
               { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+              { dn_area: { [Op.like]: `%${searchValue}%` } },
               { nama_npwp: { [Op.like]: `%${searchValue}%` } },
               { no_ktp: { [Op.like]: `%${searchValue}%` } },
               { no_npwp: { [Op.like]: `%${searchValue}%` } },
@@ -905,6 +906,7 @@ module.exports = {
               [Op.or]: [
                 { kode_plant: { [Op.like]: `%${searchValue}%` } },
                 { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                { dn_area: { [Op.like]: `%${searchValue}%` } },
                 { nama_ktp: { [Op.like]: `%${searchValue}%` } },
                 { nama_npwp: { [Op.like]: `%${searchValue}%` } },
                 { no_ktp: { [Op.like]: `%${searchValue}%` } },
@@ -1056,6 +1058,7 @@ module.exports = {
                 [Op.or]: [
                   { kode_plant: { [Op.like]: `%${searchValue}%` } },
                   { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                  { dn_area: { [Op.like]: `%${searchValue}%` } },
                   { nama_ktp: { [Op.like]: `%${searchValue}%` } },
                   { nama_npwp: { [Op.like]: `%${searchValue}%` } },
                   { no_ktp: { [Op.like]: `%${searchValue}%` } },
@@ -1173,6 +1176,7 @@ module.exports = {
                 { kode_plant: { [Op.like]: `%${searchValue}%` } },
                 { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
                 { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                { dn_area: { [Op.like]: `%${searchValue}%` } },
                 { nama_npwp: { [Op.like]: `%${searchValue}%` } },
                 { no_ktp: { [Op.like]: `%${searchValue}%` } },
                 { no_npwp: { [Op.like]: `%${searchValue}%` } },
