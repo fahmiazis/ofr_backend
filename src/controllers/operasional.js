@@ -1557,11 +1557,14 @@ module.exports = {
           ]
         })
         const data = []
-        findOps.map(x => {
-          return (
-            data.push(x.no_transaksi)
-          )
-        })
+        for (let i = 0; i < findOps.length; i++) {
+          data.push(findOps[i].no_transaksi)
+        }
+        // findOps.map(x => {
+        //   return (
+        //     data.push(x.no_transaksi)
+        //   )
+        // })
         const set = new Set(data)
         const noDis = [...set]
         if (findOps) {
@@ -1611,10 +1614,16 @@ module.exports = {
                 {
                   [Op.or]: dataDepo
                 },
-                statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                statTrans === 'all'
+                  ? { [Op.not]: { status_transaksi: null } }
+                  : category === 'verif' && level === 2
+                    ? { [Op.or]: [{ status_transaksi: statTrans }, { status_transaksi: 5 }] }
+                    : { status_transaksi: statTrans },
                 statRej === 'all' ? { [Op.not]: { start_ops: null } } : { status_reject: statRej },
                 statMenu === 'all' ? { [Op.not]: { start_ops: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                category === 'ajuan bayar'
+                  ? { [Op.not]: { no_pembayaran: null } }
+                  : { [Op.not]: { id: null } },
                 statKasbon === 'kasbon'
                   ? { type_kasbon: statKasbon }
                   : statKasbon === 'non kasbon'
@@ -1707,15 +1716,18 @@ module.exports = {
           // }
           if (hasil.length > 0) {
             const data = []
-            hasil.map(x => {
-              return (
-                data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
-              )
-            })
+            for (let i = 0; i < hasil.length; i++) {
+              data.push(category === 'ajuan bayar' ? hasil[i].no_pembayaran : hasil[i].no_transaksi)
+            }
+            // hasil.map(x => {
+            //   return (
+            //     data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
+            //   )
+            // })
             const set = new Set(data)
             const noDis = [...set]
             const result = hasil
-            const newOps = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
+            const newOps = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role, level) : filterApp(type, result, noDis, role)
             console.log(moment(timeV1).format('DD MMMM YYYY'))
             return response(res, 'success get ops', { result, noDis, findDepo, newOps, dataDepo })
           } else {
@@ -1832,11 +1844,14 @@ module.exports = {
             ]
           })
           const data = []
-          findOps.map(x => {
-            return (
-              data.push(x.no_transaksi)
-            )
-          })
+          for (let i = 0; i < findOps.length; i++) {
+            data.push(findOps[i].no_transaksi)
+          }
+          // findOps.map(x => {
+          //   return (
+          //     data.push(x.no_transaksi)
+          //   )
+          // })
           const set = new Set(data)
           const noDis = [...set]
           if (findOps) {
@@ -3579,6 +3594,7 @@ module.exports = {
               { nom: level === 12 ? name : 'undefined' },
               { pic_finance: level === 2 ? name : 'undefined' },
               { spv_finance: level === 7 ? name : 'undefined' },
+              { spv2_finance: level === 17 ? name : 'undefined' },
               { asman_finance: level === 8 ? name : 'undefined' },
               { manager_finance: level === 9 ? name : 'undefined' },
               { pic_tax: level === 4 ? name : 'undefined' },
@@ -4047,6 +4063,9 @@ module.exports = {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
         const list = results.list
+        const cekUn = []
+        const cekNun = []
+        const cekBun = []
         if (list.length > 0) {
           const temp = []
           for (let i = 0; i < list.length; i++) {
@@ -4062,30 +4081,34 @@ module.exports = {
               no_pol: val.no_pol,
               nominal: val.nominal,
               liter: val.liter,
-              km: val.km
+              km: val.km,
+              date_bbm: val.date_bbm
             }
             if (findBbm.length > 0) {
-              const cekData = findBbm.find(({no_pol}) => (data.no_pol !== '' && no_pol === data.no_pol)) // eslint-disable-line
+              const cekData = findBbm.find((item) => (data.no_pol !== '' && item.no_pol === data.no_pol && parseFloat(item.km) === parseFloat(data.km)))
               // const resData = level === 2 && cekData === 'ya' ? 5 : 4
               if (cekData !== undefined) {
                 const findData = await bbm.findByPk(cekData.id)
                 if (findData) {
                   const creBbm = await findData.update(data)
+                  cekUn.push(creBbm)
                   temp.push(creBbm)
                 }
               } else {
                 const creBbm = await bbm.create(data)
+                cekNun.push(creBbm)
                 temp.push(creBbm)
               }
             } else {
               const creBbm = await bbm.create(data)
+              cekBun.push(creBbm)
               temp.push(creBbm)
             }
           }
           if (temp.length > 0) {
-            return response(res, 'success upload bbm', { list })
+            return response(res, 'success upload bbm', { list, cekUn, cekBun, cekNun })
           } else {
-            return response(res, 'failed upload bbm', { list })
+            return response(res, 'failed upload bbm', { list, cekUn, cekBun, cekNun })
           }
         } else {
           return response(res, 'failed upload bbm', {}, 404, false)
@@ -4102,7 +4125,8 @@ module.exports = {
         no_pol: joi.string().required(),
         nominal: joi.number().required(),
         liter: joi.number().required(),
-        km: joi.number().required()
+        km: joi.number().required(),
+        date_bbm: joi.date().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -4120,10 +4144,11 @@ module.exports = {
             no_pol: results.no_pol,
             nominal: results.nominal,
             liter: results.liter,
-            km: results.km
+            km: results.km,
+            date_bbm: results.date_bbm
           }
           if (findBbm.length > 0) {
-              const cekData = findBbm.find(({no_pol}) => (data.no_pol !== '' && no_pol === data.no_pol)) // eslint-disable-line
+            const cekData = findBbm.find((item) => (data.no_pol !== '' && item.no_pol === data.no_pol && parseFloat(item.km) === parseFloat(data.km)))
             // const resData = level === 2 && cekData === 'ya' ? 5 : 4
             if (cekData !== undefined) {
               temp.push()
@@ -4154,7 +4179,8 @@ module.exports = {
         no_pol: joi.string().required(),
         nominal: joi.number().required(),
         liter: joi.number().required(),
-        km: joi.number().required()
+        km: joi.number().required(),
+        date_bbm: joi.date().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -4172,10 +4198,11 @@ module.exports = {
             no_pol: results.no_pol,
             nominal: results.nominal,
             liter: results.liter,
-            km: results.km
+            km: results.km,
+            date_bbm: results.date_bbm
           }
           if (findBbm.length > 0) {
-              const cekData = findBbm.find(({no_pol, id}) => (data.no_pol !== '' && no_pol === data.no_pol && id !== results.idBbm)) // eslint-disable-line
+            const cekData = findBbm.find((item) => (data.no_pol !== '' && item.no_pol === data.no_pol && parseFloat(item.km) === parseFloat(data.km)))
             // const resData = level === 2 && cekData === 'ya' ? 5 : 4
             if (cekData !== undefined) {
               temp.push()

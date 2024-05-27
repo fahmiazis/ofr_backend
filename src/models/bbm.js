@@ -22,7 +22,8 @@ module.exports = (sequelize, DataTypes) => {
     kode_plant: DataTypes.STRING,
     status: DataTypes.INTEGER,
     history: DataTypes.TEXT,
-    transId: DataTypes.STRING
+    transId: DataTypes.STRING,
+    date_bbm: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'bbm'
