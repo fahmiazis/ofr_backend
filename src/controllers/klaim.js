@@ -878,7 +878,11 @@ module.exports = {
                 {
                   [Op.or]: dataDepo
                 },
-                statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                statTrans === 'all'
+                  ? { [Op.not]: { status_transaksi: null } }
+                  : category === 'verif' && level === 2
+                    ? { [Op.or]: [{ status_transaksi: statTrans }, { status_transaksi: 5 }] }
+                    : { status_transaksi: statTrans },
                 statRej === 'all' ? { [Op.not]: { start_klaim: null } } : { status_reject: statRej },
                 statMenu === 'all' ? { [Op.not]: { start_klaim: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                 category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
