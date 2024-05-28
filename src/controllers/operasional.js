@@ -1874,7 +1874,10 @@ module.exports = {
       if (tipe === 'ajuan bayar') {
         const findOps = await ops.findAll({
           where: {
-            no_pembayaran: no
+            no_pembayaran: no,
+            [Op.not]: {
+              status_transaksi: 5
+            }
           },
           order: [
             ['id', 'ASC'],
@@ -2960,7 +2963,7 @@ module.exports = {
                                   menu_rev: results.menu,
                                   people_reject: level,
                                   status_transaksi: 5,
-                                  no_pembayaran: null,
+                                  // no_pembayaran: null,
                                   history: `${findOps[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await ops.findByPk(findOps[i].id)

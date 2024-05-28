@@ -204,6 +204,18 @@ module.exports = {
               results.no_ktp === '' || results.no_ktp === '0000000000000000' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
               results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
+            ],
+            [Op.and]: [
+              results.type_skb === 'SKB'
+                ? { no_skb: { [Op.like]: `%${results.no_skb}%` } }
+                : results.type_skb === 'SKT'
+                  ? { no_skt: { [Op.like]: `%${results.no_skt}%` } }
+                  : {
+                      [Op.or]: [
+                        { type_skb: 'tidak' },
+                        { type_skb: null }
+                      ]
+                    }
             ]
           }
         })
@@ -215,11 +227,23 @@ module.exports = {
               results.no_ktp === '' || results.no_ktp === '0000000000000000' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
               results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
+            ],
+            [Op.and]: [
+              results.type_skb === 'SKB'
+                ? { no_skb: { [Op.like]: `%${results.no_skb}%` } }
+                : results.type_skb === 'SKT'
+                  ? { no_skt: { [Op.like]: `%${results.no_skt}%` } }
+                  : {
+                      [Op.or]: [
+                        { type_skb: 'tidak' },
+                        { type_skb: null }
+                      ]
+                    }
             ]
           }
         })
         if (findNameVendor || findAjuanVendor) {
-          return response(res, 'vendor telah terdftar', { findAjuanVendor, findNameVendor }, 404, false)
+          return response(res, 'vendor telah terdaftar', { findAjuanVendor, findNameVendor }, 404, false)
         } else {
           const noTrans = results.no
           const tipe = results.type_skb
@@ -1108,6 +1132,18 @@ module.exports = {
               results.no_ktp === '' || results.no_ktp === '0000000000000000' ? { id: 'undefined' } : { nik: { [Op.like]: `%${results.no_ktp}%` } },
               results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { npwp: { [Op.like]: `%${results.no_npwp}%` } }
             ],
+            [Op.and]: [
+              results.type_skb === 'SKB'
+                ? { no_skb: { [Op.like]: `%${results.no_skb}%` } }
+                : results.type_skb === 'SKT'
+                  ? { no_skt: { [Op.like]: `%${results.no_skt}%` } }
+                  : {
+                      [Op.or]: [
+                        { type_skb: 'tidak' },
+                        { type_skb: null }
+                      ]
+                    }
+            ],
             [Op.not]: {
               id: id
             }
@@ -1121,6 +1157,18 @@ module.exports = {
               results.no_ktp === '' || results.no_ktp === '0000000000000000' ? { id: 'undefined' } : { no_ktp: { [Op.like]: `%${results.no_ktp}%` } },
               results.no_npwp === '' || results.no_npwp === '000000000000000' ? { id: 'undefined' } : { no_npwp: { [Op.like]: `%${results.no_npwp}%` } }
               // { alamat: { [Op.like]: `%${results.alamat}%` } }
+            ],
+            [Op.and]: [
+              results.type_skb === 'SKB'
+                ? { no_skb: { [Op.like]: `%${results.no_skb}%` } }
+                : results.type_skb === 'SKT'
+                  ? { no_skt: { [Op.like]: `%${results.no_skt}%` } }
+                  : {
+                      [Op.or]: [
+                        { type_skb: 'tidak' },
+                        { type_skb: null }
+                      ]
+                    }
             ]
           }
         })

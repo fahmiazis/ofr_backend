@@ -1553,7 +1553,7 @@ module.exports = {
     try {
       const name = req.user.name
       const level = req.user.level
-      const { nameTo, to, cc, message, no, tipe, subject, jenis, draft } = req.body
+      const { nameTo, to, cc, message, no, tipe, subject, jenis, draft, listData, proses } = req.body
       const findRole = await role.findOne({
         where: {
           level: level
@@ -1624,13 +1624,31 @@ module.exports = {
             }
           }
           if (cekResmail.length > 0) {
+            const cekList = [proses, tipe, listData]
+            const cekNon = [proses, tipe, listData]
             let tableTd = ''
             const dataTo = nameTo === undefined ? '' : nameTo
             for (let i = 0; i < findData.length; i++) {
               const data = findData[i]
               const dateData = tipe === 'ikk' ? data.start_ikk : tipe === 'klaim' ? data.start_klaim : tipe === 'vendor' ? data.start_transaksi : data.start_ops
-              const element = tipe === 'vendor'
-                ? `
+              if (tipe !== 'vendor' && proses === 'reject perbaikan' && listData.length > 0) {
+                if (listData.find((item) => parseInt(item) === parseInt(data.id)) !== undefined) {
+                  const element = `
+                  <tr>
+                    <th>${findData[i].no_transaksi}</th>
+                    <th>${findData[i].cost_center}</th>
+                    <th>${findData[i].area}</th>
+                    <th>${findData[i].no_coa}</th>
+                    <th>${findData[i].sub_coa}</th>
+                    <th>${findData[i].keterangan || findData[i].uraian}</th>
+                    <th>${moment(dateData || moment()).format('DD MMMM YYYY')}</th>
+                  </tr>`
+                  tableTd = tableTd + element
+                  cekList.push(listData.find((item) => parseInt(item) === parseInt(data.id)))
+                }
+              } else {
+                const element = tipe === 'vendor'
+                  ? `
                     <tr>
                       <th>${i + 1}</th>
                       <th>${findData[i].no_transaksi}</th>
@@ -1640,9 +1658,8 @@ module.exports = {
                       <th>${findData[i].npwp}</th>
                       <th>${moment(dateData || moment()).format('DD MMMM YYYY')}</th>
                     </tr>`
-                : `
+                  : `
                     <tr>
-                      <th>${i + 1}</th>
                       <th>${findData[i].no_transaksi}</th>
                       <th>${findData[i].cost_center}</th>
                       <th>${findData[i].area}</th>
@@ -1651,7 +1668,9 @@ module.exports = {
                       <th>${findData[i].keterangan || findData[i].uraian}</th>
                       <th>${moment(dateData || moment()).format('DD MMMM YYYY')}</th>
                     </tr>`
-              tableTd = tableTd + element
+                tableTd = tableTd + element
+                cekNon.push(data)
+              }
             }
             const tabletr = tipe === 'vendor'
               ? `
@@ -1666,7 +1685,6 @@ module.exports = {
               </tr>`
               : `
                 <tr>
-                  <th>No</th>
                   <th>NO.AJUAN</th>
                   <th>COST CENTRE</th>
                   <th>AREA</th>
@@ -1797,18 +1815,18 @@ module.exports = {
             }
             const sendEmail = await wrapMail.wrapedSendMail(mailOptions)
             if (sendEmail) {
-              return response(res, 'success send email', { sendEmail })
+              return response(res, 'success send email', { sendEmail, cekList, cekNon })
             } else {
-              return response(res, 'gagal kirim email', { sendEmail })
+              return response(res, 'gagal kirim email', { sendEmail, cekList, cekNon })
             }
           } else {
-            return response(res, 'failed send email', { findData }, 404, false)
+            return response(res, 'failed send email1', { findData }, 404, false)
           }
         } else {
-          return response(res, 'failed send email', { findData }, 404, false)
+          return response(res, 'failed send email2', { findData }, 404, false)
         }
       } else {
-        return response(res, 'failed get email', { findRole }, 404, false)
+        return response(res, 'failed get email3', { findRole }, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
