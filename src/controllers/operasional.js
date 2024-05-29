@@ -2960,8 +2960,8 @@ module.exports = {
                               const listId = results.list
                               if (listId.find(e => e === findOps[i].id)) {
                                 const send = {
-                                  status_reject: 1,
-                                  isreject: 1,
+                                  status_reject: results.menu === 'Revisi PIC Finance' ? null : 1,
+                                  isreject: results.menu === 'Revisi PIC Finance' ? null : 1,
                                   reason: results.alasan,
                                   menu_rev: results.menu,
                                   people_reject: level,

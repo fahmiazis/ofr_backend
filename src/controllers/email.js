@@ -960,7 +960,7 @@ module.exports = {
     // try {
     const name = req.user.name
     const level = req.user.level
-    const { no, kode, tipe, menu, jenis } = req.body
+    const { no, kode, tipe, menu, jenis, datareject, listreject } = req.body
     const transaksi = jenis === 'ikk' ? ikk : jenis === 'klaim' ? klaim : ops
     const findRole = await role.findOne({
       where: {
@@ -974,7 +974,10 @@ module.exports = {
     })
     const findTrans = await transaksi.findAll({
       where: {
-        no_pembayaran: no
+        no_pembayaran: no,
+        [Op.not]: {
+          status_transaksi: 5
+        }
       }
     })
     if (findRole && findDepo && findTrans) {
@@ -1474,7 +1477,7 @@ module.exports = {
           }
           if (temp.length > 0) {
             let noLevel = null
-            const tipeStat = 5
+            const tipeStat = datareject === 'Revisi PIC Finance' ? 2 : 5
             for (let i = 0; i < 1; i++) {
               const findLevel = await role.findOne({
                 where: {
@@ -1488,15 +1491,17 @@ module.exports = {
             if (noLevel.type === 'area') {
               const tempDepo = []
               for (let i = 0; i < findTrans.length; i++) {
-                tempDepo.push(findTrans[i].kode_plant)
+                if (listreject !== undefined && listreject.find((item) => item === findTrans[i].id) !== undefined) {
+                  tempDepo.push(findTrans[i].kode_plant)
+                }
               }
               if (tempDepo.length) {
                 const uniqDepo = [...new Set(tempDepo)]
                 const dataTo = []
                 for (let i = 0; i < uniqDepo.length; i++) {
-                  const findUser = await user.findOne({
+                  const findUser = await user.findAll({
                     where: {
-                      kode_plant: uniqDepo[i]
+                      level: noLevel.level
                     },
                     include: [
                       {
@@ -1505,12 +1510,17 @@ module.exports = {
                       }
                     ]
                   })
-                  if (findUser) {
-                    dataTo.push(findUser)
+                  if (findUser.length > 0) {
+                    for (let i = 0; i < findUser.length; i++) {
+                      const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
+                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                        dataTo.push(findUser[i])
+                      }
+                    }
                   }
                 }
                 if (dataTo.length > 0) {
-                  return response(res, 'success get draft email', { from: name, to: dataTo, cc: temp, result: findDraft })
+                  return response(res, 'success get draft email', { from: name, to: dataTo, cc: temp, result: findDraft, datareject, tipeStat, listreject })
                 } else {
                   return response(res, 'failed get email 0c', { dataTo }, 404, false)
                 }

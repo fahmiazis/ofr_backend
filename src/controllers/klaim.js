@@ -1252,7 +1252,10 @@ module.exports = {
       if (tipe === 'ajuan bayar') {
         const findKlaim = await klaim.findAll({
           where: {
-            no_pembayaran: no
+            no_pembayaran: no,
+            [Op.not]: {
+              status_transaksi: 5
+            }
           },
           order: [
             ['start_klaim', 'DESC'],
@@ -1773,7 +1776,10 @@ module.exports = {
       const { no } = req.body
       const findKlaim = await klaim.findAll({
         where: {
-          no_pembayaran: no
+          no_pembayaran: no,
+          [Op.not]: {
+            status_transaksi: 5
+          }
         }
       })
       if (findKlaim.length > 0) {
@@ -2164,13 +2170,13 @@ module.exports = {
                               const listId = results.list
                               if (listId.find(e => e === findKlaim[i].id)) {
                                 const send = {
-                                  status_reject: 1,
-                                  isreject: 1,
+                                  status_reject: results.menu === 'Revisi PIC Finance' ? null : 1,
+                                  isreject: results.menu === 'Revisi PIC Finance' ? null : 1,
                                   reason: results.alasan,
                                   menu_rev: results.menu,
                                   people_reject: level,
                                   status_transaksi: 5,
-                                  no_pembayaran: null,
+                                  // no_pembayaran: null,
                                   history: `${findKlaim[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
                                 }
                                 const findRes = await klaim.findByPk(findKlaim[i].id)
@@ -2982,7 +2988,10 @@ module.exports = {
       const name = req.user.fullname
       const findKlaim = await klaim.findAll({
         where: {
-          no_pembayaran: no
+          no_pembayaran: no,
+          [Op.not]: {
+            status_transaksi: 5
+          }
         }
       })
       if (findKlaim.length > 0) {
