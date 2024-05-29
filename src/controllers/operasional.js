@@ -2408,7 +2408,10 @@ module.exports = {
       const { no } = req.body
       const findOps = await ops.findAll({
         where: {
-          no_pembayaran: no
+          no_pembayaran: no,
+          [Op.not]: {
+            status_transaksi: 5
+          }
         }
       })
       if (findOps.length > 0) {
@@ -3876,7 +3879,10 @@ module.exports = {
       const name = req.user.fullname
       const findOps = await ops.findAll({
         where: {
-          no_pembayaran: no
+          no_pembayaran: no,
+          [Op.not]: {
+            status_transaksi: 5
+          }
         }
       })
       if (findOps.length > 0) {
