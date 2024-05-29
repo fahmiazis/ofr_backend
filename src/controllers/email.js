@@ -1641,7 +1641,7 @@ module.exports = {
             for (let i = 0; i < findData.length; i++) {
               const data = findData[i]
               const dateData = tipe === 'ikk' ? data.start_ikk : tipe === 'klaim' ? data.start_klaim : tipe === 'vendor' ? data.start_transaksi : data.start_ops
-              if (tipe !== 'vendor' && proses === 'reject perbaikan' && listData.length > 0) {
+              if (tipe !== 'vendor' && proses === 'reject perbaikan' && listData !== undefined && listData.length > 0) {
                 if (listData.find((item) => parseInt(item) === parseInt(data.id)) !== undefined) {
                   const element = `
                   <tr>
