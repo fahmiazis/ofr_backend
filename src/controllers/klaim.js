@@ -159,8 +159,9 @@ module.exports = {
     }
   },
   editKlaim: async (req, res) => {
+    const kode = req.user.kode
     try {
-      const kode = req.user.kode
+      // const kode = req.user.kode
       const id = req.params.id
       // const name = req.user.fullname
       // const level = req.user.level
@@ -302,7 +303,7 @@ module.exports = {
         }
       }
     } catch (error) {
-      return response(res, error.message, {}, 500, false)
+      return response(res, error.message, { kode }, 500, false)
     }
   },
   getCartClaim: async (req, res) => {
