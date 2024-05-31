@@ -32,7 +32,7 @@ module.exports = {
   getRedpine: async (req, res) => {
     try {
       const { kode, notrans, time1, time2, tipe } = req.body.filters
-      const statTrans = 8
+      // const statTrans = 8
       const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' || kode === 'all' ? 'all' : kode
       const statNo = notrans === 'undefined' || notrans === undefined || notrans === null || notrans === '' ? 'all' : notrans
       const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time1 === 'all' || time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' ? 'all' : moment(time1).format('DD-MM-YYYY')
@@ -55,8 +55,13 @@ module.exports = {
       if (findScylla) {
         const findTrans = await transaksi.findAll({
           where: {
-            status_transaksi: { [Op.like]: `%${statTrans}%` },
             [Op.and]: [
+              {
+                [Op.or]: [
+                  { status_transaksi: 7 },
+                  { status_transaksi: 8 }
+                ]
+              },
               statKode === 'all' ? { [Op.not]: { id: null } } : { kode_plant: findScylla.kode_plant },
               statNo === 'all' ? { [Op.not]: { id: null } } : { no_transaksi: { [Op.like]: `%${statNo}%` } },
               timeVal1 === 'all'
@@ -1000,7 +1005,7 @@ module.exports = {
   postRedpine: async (req, res) => {
     try {
       const { kode, notrans, tipe } = req.body
-      const statTrans = 8
+      // const statTrans = 8
       const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' ? 'all' : kode
       const statNo = notrans === 'undefined' || notrans === undefined || notrans === null || notrans === '' ? 'all' : notrans
       const tipeVal = tipe === 'undefined' || tipe === undefined || tipe === null || tipe === '' ? 'ikk' : tipe
@@ -1008,7 +1013,12 @@ module.exports = {
       const findTrans = await transaksi.findAll({
         where: {
           [Op.and]: [
-            { status_transaksi: statTrans },
+            {
+              [Op.or]: [
+                { status_transaksi: 7 },
+                { status_transaksi: 8 }
+              ]
+            },
             statKode === 'all' ? { [Op.not]: { id: null } } : { kode_plant: statKode },
             statNo === 'all' ? { [Op.not]: { id: null } } : { no_transaksi: { [Op.like]: `%${statNo}%` } }
           ]
