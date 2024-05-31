@@ -239,7 +239,7 @@ module.exports = {
               dn_area: results.dn_area,
               no_faktur: results.no_faktur
             }
-            if (findDraft.kode_plant !== kode) {
+            if (findDraft !== null && findDraft.kode_plant !== kode) {
               return response(res, 'Maximal 1 data dalam satu ajuan klaim', {}, 400, false)
               // const month = moment(results.periode_awal).format('DD MMMM YYYY')
               // const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
