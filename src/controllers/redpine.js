@@ -503,7 +503,7 @@ module.exports = {
               }
             }
             if (temp.length > 0) {
-              return response(res, 'success get jurnal', { king: 'test1', time1: time1, time2: time2, result: dataJurnal })
+              return response(res, 'success get jurnal', { result: dataJurnal })
             } else {
               return response(res, 'data kosong', { time1: time1, time2: time2, result: dataJurnal })
             }
