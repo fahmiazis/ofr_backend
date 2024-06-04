@@ -28,6 +28,8 @@ const dataPphSc = {
   pc_ho: 'P01H000001'
 }
 
+moment.locale('id')
+
 module.exports = {
   getRedpine: async (req, res) => {
     try {
@@ -36,7 +38,7 @@ module.exports = {
       const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' || kode === 'all' ? 'all' : kode
       const statNo = notrans === 'undefined' || notrans === undefined || notrans === null || notrans === '' ? 'all' : notrans
       const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time1 === 'all' || time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' ? 'all' : moment(time1).format('DD-MM-YYYY')
-      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' ? 'all' : moment(time2).format('DD-MM-YYYY')
+      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' || time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time1 === 'all' ? 'all' : moment(time2).format('DD-MM-YYYY')
       const tipeVal = tipe === 'undefined' || tipe === undefined || tipe === null || tipe === '' ? 'ikk' : tipe
 
       console.log(timeVal1)
@@ -501,18 +503,18 @@ module.exports = {
               }
             }
             if (temp.length > 0) {
-              return response(res, 'success get jurnal', { result: dataJurnal })
+              return response(res, 'success get jurnal', { timeVal1, timeVal2, result: dataJurnal })
             } else {
-              return response(res, 'data kosong', { result: dataJurnal })
+              return response(res, 'data kosong1', { timeVal1, timeVal2, result: dataJurnal })
             }
           } else {
-            return response(res, 'data kosong', { result: findTrans })
+            return response(res, 'data kosong2', { timeVal1, timeVal2, result: findTrans })
           }
         } else {
-          return response(res, 'data kosong', { result: findTrans })
+          return response(res, 'data kosong3', { timeVal1, timeVal2, result: findTrans })
         }
       } else {
-        return response(res, 'data kosong', { result: [] })
+        return response(res, 'data kosong4', { timeVal1, timeVal2, result: [] })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
