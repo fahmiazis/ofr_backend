@@ -28,21 +28,21 @@ const dataPphSc = {
   pc_ho: 'P01H000001'
 }
 
-moment.locale('id')
+// moment.locale('id')
 
 module.exports = {
   getRedpine: async (req, res) => {
     try {
-      const { kode, notrans, time1, time2, tipe } = req.body.filters
+      const { kode, notrans, timeFirst, timeSecond, tipe } = req.body.filters
       // const statTrans = 8
       const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' || kode === 'all' ? 'all' : kode
       const statNo = notrans === 'undefined' || notrans === undefined || notrans === null || notrans === '' ? 'all' : notrans
-      const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time1 === 'all' || time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' ? 'all' : moment(time1).format('DD-MM-YYYY')
-      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' || time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time1 === 'all' ? 'all' : moment(time2).format('DD-MM-YYYY')
+      const timeVal1 = timeFirst === 'undefined' || timeFirst === undefined || timeFirst === null || timeFirst === '' || timeFirst === 'all' || timeSecond === 'undefined' || timeSecond === undefined || timeSecond === null || timeSecond === '' || timeSecond === 'all' ? 'all' : moment(timeFirst).format('MM-DD-YYYY')
+      const timeVal2 = timeSecond === 'undefined' || timeSecond === undefined || timeSecond === null || timeSecond === '' || timeSecond === 'all' || timeFirst === 'undefined' || timeFirst === undefined || timeFirst === null || timeFirst === '' || timeFirst === 'all' ? 'all' : moment(timeSecond).add(1, 'days').format('MM-DD-YYYY')
       const tipeVal = tipe === 'undefined' || tipe === undefined || tipe === null || tipe === '' ? 'ikk' : tipe
 
-      console.log(timeVal1)
-      console.log(timeVal2)
+      console.log(timeFirst)
+      console.log(timeSecond)
       // const timeV1 = new Date(timeVal1)
       // const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2) : moment(timeVal2))
       const transaksi = tipeVal === 'ikk' ? ikk : ops
@@ -71,7 +71,7 @@ module.exports = {
                 : {
                     [tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']: {
                       [Op.gte]: timeVal1,
-                      [Op.lte]: timeVal2
+                      [Op.lt]: timeVal2
                     }
                   }
             ]
