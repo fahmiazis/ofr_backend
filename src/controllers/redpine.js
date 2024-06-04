@@ -33,16 +33,16 @@ const dataPphSc = {
 module.exports = {
   getRedpine: async (req, res) => {
     try {
-      const { kode, notrans, timeFirst, timeSecond, tipe } = req.body.filters
+      const { kode, notrans, time1, time2, tipe } = req.body.filters
       // const statTrans = 8
       const statKode = kode === 'undefined' || kode === undefined || kode === null || kode === '' || kode === 'all' ? 'all' : kode
       const statNo = notrans === 'undefined' || notrans === undefined || notrans === null || notrans === '' ? 'all' : notrans
-      const timeVal1 = timeFirst === 'undefined' || timeFirst === undefined || timeFirst === null || timeFirst === '' || timeFirst === 'all' || timeSecond === 'undefined' || timeSecond === undefined || timeSecond === null || timeSecond === '' || timeSecond === 'all' ? 'all' : moment(timeFirst).format('MM-DD-YYYY')
-      const timeVal2 = timeSecond === 'undefined' || timeSecond === undefined || timeSecond === null || timeSecond === '' || timeSecond === 'all' || timeFirst === 'undefined' || timeFirst === undefined || timeFirst === null || timeFirst === '' || timeFirst === 'all' ? 'all' : moment(timeSecond).add(1, 'days').format('MM-DD-YYYY')
+      const timeVal1 = time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time1 === 'all' || time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' ? 'all' : moment(time1).format('MM-DD-YYYY')
+      const timeVal2 = time2 === 'undefined' || time2 === undefined || time2 === null || time2 === '' || time2 === 'all' || time1 === 'undefined' || time1 === undefined || time1 === null || time1 === '' || time1 === 'all' ? 'all' : moment(time2).add(1, 'days').format('MM-DD-YYYY')
       const tipeVal = tipe === 'undefined' || tipe === undefined || tipe === null || tipe === '' ? 'ikk' : tipe
 
-      console.log(timeFirst)
-      console.log(timeSecond)
+      console.log(time1)
+      console.log(time2)
       // const timeV1 = new Date(timeVal1)
       // const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2) : moment(timeVal2))
       const transaksi = tipeVal === 'ikk' ? ikk : ops
@@ -503,18 +503,18 @@ module.exports = {
               }
             }
             if (temp.length > 0) {
-              return response(res, 'success get jurnal', { timeVal1, timeVal2, result: dataJurnal })
+              return response(res, 'success get jurnal', { king: 'test1', time1: time1, time2: time2, result: dataJurnal })
             } else {
-              return response(res, 'data kosong1', { timeVal1, timeVal2, result: dataJurnal })
+              return response(res, 'data kosong', { time1: time1, time2: time2, result: dataJurnal })
             }
           } else {
-            return response(res, 'data kosong2', { timeVal1, timeVal2, result: findTrans })
+            return response(res, 'data kosong', { time1: time1, time2: time2, result: findTrans })
           }
         } else {
-          return response(res, 'data kosong3', { timeVal1, timeVal2, result: findTrans })
+          return response(res, 'data kosong', { time1: time1, time2: time2, result: findTrans })
         }
       } else {
-        return response(res, 'data kosong4', { timeVal1, timeVal2, result: [] })
+        return response(res, 'data kosong', { time1: time1, time2: time2, result: [] })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -987,7 +987,7 @@ module.exports = {
               }
             }
             if (temp.length > 0) {
-              return response(res, 'success get jurnal', { result: dataJurnal })
+              return response(res, 'success get jurnal', { king2: 'aghrhrhr', result: dataJurnal })
             } else {
               return response(res, 'data kosong', { result: dataJurnal })
             }
