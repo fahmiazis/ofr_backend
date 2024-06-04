@@ -43,8 +43,8 @@ module.exports = {
 
       console.log(timeVal1)
       console.log(timeVal2)
-      const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2) : moment(timeVal2))
+      // const timeV1 = new Date(timeVal1)
+      // const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2) : moment(timeVal2))
       const transaksi = tipeVal === 'ikk' ? ikk : ops
       const findScylla = await scylla.findOne({
         where: {
@@ -70,8 +70,8 @@ module.exports = {
                 ? { [Op.not]: { id: null } }
                 : {
                     [tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']: {
-                      [Op.gte]: timeV1,
-                      [Op.lte]: timeV2
+                      [Op.gte]: timeVal1,
+                      [Op.lte]: timeVal2
                     }
                   }
             ]
@@ -532,8 +532,8 @@ module.exports = {
 
       console.log(timeVal1)
       console.log(timeVal2)
-      const timeV1 = new Date(timeVal1)
-      const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2) : moment(timeVal2))
+      // const timeV1 = new Date(timeVal1)
+      // const timeV2 = new Date(timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2) : moment(timeVal2))
       const transaksi = tipeVal === 'ikk' ? ikk : ops
       const findScylla = await scylla.findOne({
         where: {
@@ -554,8 +554,8 @@ module.exports = {
                 ? { [Op.not]: { id: null } }
                 : {
                     [tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']: {
-                      [Op.gte]: timeV1,
-                      [Op.lte]: timeV2
+                      [Op.gte]: timeVal1,
+                      [Op.lte]: timeVal2
                     }
                   }
             ]
