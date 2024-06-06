@@ -882,8 +882,10 @@ module.exports = {
                           const namePic = findUser[i].fullname
                           const dataPic = findPic.dataValues
                           const dataSpv = findSpv.dataValues
-                          const agr0 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()).spv_klaim.toLowerCase() // eslint-disable-line
-                          const agr1 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()).manager_klaim.toLowerCase() // eslint-disable-line
+                          // const agr0 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()).spv_klaim.toLowerCase() // eslint-disable-line
+                          // const agr1 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()).manager_klaim.toLowerCase() // eslint-disable-line
+                          const agr0 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase()))].toLowerCase()).spv_klaim.toLowerCase() // eslint-disable-line
+                          const agr1 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase()))].toLowerCase()).manager_klaim.toLowerCase() // eslint-disable-line
                           const agrconv = level === 13 ? agr1 : agr0
                           const agr2 = namePic.toLowerCase()
                           if (agrconv === agr2) {
