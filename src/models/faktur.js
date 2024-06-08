@@ -20,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
     nama: DataTypes.STRING,
     jumlah_dpp: DataTypes.STRING,
     jumlah_ppn: DataTypes.STRING,
-    status: DataTypes.STRING
+    status: DataTypes.STRING,
+    force: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'faktur'

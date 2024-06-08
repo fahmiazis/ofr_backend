@@ -10,5 +10,6 @@ route.post('/master', faktur.uploadMasterFaktur)
 route.delete('/del/:id', faktur.deleteFaktur)
 route.delete('/delall', faktur.deleteAll)
 route.get('/export', faktur.exportSqlFaktur)
+route.get('/force', faktur.forceFaktur)
 
 module.exports = route

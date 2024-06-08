@@ -392,5 +392,31 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  forceFaktur: async (req, res) => {
+    try {
+      const id = req.params.id
+      const schema = joi.object({
+        force: joi.number().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findFaktur = await faktur.findByPk(id)
+        if (findFaktur) {
+          const updateFaktur = await findFaktur.update(results)
+          if (updateFaktur) {
+            return response(res, 'success force faktur')
+          } else {
+            return response(res, 'false force faktur', {}, 404, false)
+          }
+        } else {
+          return response(res, 'false force faktur', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }
