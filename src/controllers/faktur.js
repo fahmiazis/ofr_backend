@@ -10,6 +10,7 @@ const multer = require('multer')
 const excel = require('exceljs')
 const vs = require('fs-extra')
 const { APP_URL } = process.env
+const moment = require('moment')
 const borderStyles = {
   top: { style: 'thin' },
   left: { style: 'thin' },
@@ -233,7 +234,39 @@ module.exports = {
           }
         })
         if (findFaktur.length > 0) {
-          return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+          const date1 = moment(findFaktur[0].tgl_faktur).format('M')
+          const date2 = moment().format('M')
+          const diffTime = Math.abs(date2 - date1)
+          const diffMonth = Math.floor(diffTime)
+          if (diffMonth > 3) {
+            const findShel = await faktur.findAll({
+              where: {
+                [Op.and]: [
+                  dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}` } },
+                  { no_faktur: { [Op.like]: `%${noFaktur}` } }
+                ]
+              }
+            })
+            if (findShel.length > 0) {
+              return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+            } else {
+              const findApi = await faktur.findAll({
+                where: {
+                  [Op.and]: [
+                    dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}` } },
+                    { no_faktur: { [Op.like]: `%${noFaktur}` } }
+                  ]
+                }
+              })
+              if (findApi.length > 0) {
+                return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+              } else {
+                return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
+              }
+            }
+          } else {
+            return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+          }
         } else {
           return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
         }

@@ -18,6 +18,7 @@ route.patch('/reject', ops.rejectOps)
 route.patch('/apprev', ops.appRevisi)
 route.patch('/update/:id/:idtrans', ops.editOps)
 route.patch('/subrev', ops.submitRevisi)
+route.patch('/changeno', ops.changeNoTrans)
 route.patch('/verif', ops.submitVerif)
 
 route.patch('/realisasi', ops.submitRealisasi)

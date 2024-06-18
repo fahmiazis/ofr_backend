@@ -145,9 +145,9 @@ module.exports = {
                         ? (
                             headJurnal.push(
                               {
-                                no_gl: index === 0 ? findData[j].no_coa : glkk,
-                                nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                                tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'credit' : index === 0 ? 'debit' : 'debit',
+                                no_gl: findData[j].no_transaksi === '0268/P274/VI/2024-OPS' ? glkk : index === 0 ? findData[j].no_coa : glkk,
+                                nama_gl: findData[j].no_transaksi === '0268/P274/VI/2024-OPS' ? 'Kas Kecil' : index === 0 ? findData[j].nama_coa : 'Kas Kecil',
+                                tipe: findData[j].no_transaksi === '0268/P274/VI/2024-OPS' ? 'credit' : index === 0 ? 'debit' : 'debit',
                                 value: index === 0
                                   ? findData[j].nilai_buku !== null && findData[j].nilai_buku
                                   : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku : '',
@@ -158,9 +158,9 @@ module.exports = {
                         : (
                             detJurnal.push(
                               {
-                                no_gl: index === 0 ? findData[j].no_coa : glkk,
-                                nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                                tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'debit' : index === 0 ? 'debit' : 'credit',
+                                no_gl: findData[j].no_transaksi === '0268/P274/VI/2024-OPS' ? findData[j].no_coa : index === 0 ? findData[j].no_coa : glkk,
+                                nama_gl: findData[j].no_transaksi === '0268/P274/VI/2024-OPS' ? findData[j].nama_coa : index === 0 ? findData[j].nama_coa : 'Kas Kecil',
+                                tipe: findData[j].no_transaksi === '0268/P274/VI/2024-OPS' ? 'debit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
                                   ? findData[j].nilai_buku !== null && findData[j].nilai_buku
                                   : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku : '',
@@ -631,7 +631,7 @@ module.exports = {
                               {
                                 no_gl: index === 0 ? findData[j].no_coa : glkk,
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                                tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'credit' : index === 0 ? 'debit' : 'credit',
+                                tipe: findData[j].no_transaksi === '0268/P274/VI/2024-OPS' ? 'credit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
                                   ? findData[j].nilai_buku !== null && findData[j].nilai_buku
                                   : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku : '',
@@ -644,7 +644,7 @@ module.exports = {
                               {
                                 no_gl: index === 0 ? findData[j].no_coa : glkk,
                                 nama_gl: index === 0 ? findData[j].nama_coa : 'Kas Kecil',
-                                tipe: findData[j].no_transaksi === '0006/P199/V/2023-OPS' ? 'debit' : index === 0 ? 'debit' : 'credit',
+                                tipe: findData[j].no_transaksi === '0268/P274/VI/2024-OPS' ? 'debit' : index === 0 ? 'debit' : 'credit',
                                 value: index === 0
                                   ? findData[j].nilai_buku !== null && findData[j].nilai_buku
                                   : index === 1 ? findData[j].nilai_buku !== null && findData[j].nilai_buku : '',
