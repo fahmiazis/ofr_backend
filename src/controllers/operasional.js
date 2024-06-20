@@ -1013,7 +1013,7 @@ module.exports = {
           } else if (month === 12) {
             rome = 'XII'
           }
-          const cekTipe = findOps.find((item) => item.jenis_pph !== 'Non PPh')
+          const cekTipe = findOps.find((item) => item.jenis_pph !== 'Non PPh' || item.type_transaksi === 'Ya')
           const tipe = cekTipe === undefined ? 'OPS' : 'OPSX'
           const tempData = findOps.find((item) => item.no_transaksi !== null)
           const cekData = tempData === undefined ? 'ya' : 'no'
@@ -3108,95 +3108,188 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findOps = await ops.findAll({
-          where: {
-            no_transaksi: results.no
-          }
-        })
-        if (findOps.length > 0) {
-          const splitNo = results.no.split('-')
-          const cekTipe = findOps.find((item) => item.jenis_pph !== 'Non PPh')
-          const tipe = cekTipe === undefined ? 'OPS' : 'OPSX'
-          const revNo = `${splitNo[0]}-${tipe}`
-          if (revNo === results.no) {
-            return response(res, 'success change no transaksi ops', { noRev: revNo })
-          } else {
-            const temp = []
-            for (let i = 0; i < findOps.length; i++) {
-              const send = {
-                no_transaksi: revNo,
-                history: `${findOps[i].history}, change no transaksi from ${results.no} to ${revNo} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
-              }
-              const findRes = await ops.findByPk(findOps[i].id)
-              if (findRes) {
-                await findRes.update(send)
-                temp.push(1)
-              }
+        if (results.no === 'all') {
+          const findOps = await ops.findAll({
+            where: {
+              no_transaksi: results.no
             }
-            if (temp.length) {
-              const arrCek = []
-              const dataNo = {
-                no_transaksi: revNo
-              }
-              const findApp = await ttd.findAll({
-                where: {
-                  no_transaksi: results.no
+          })
+          if (findOps.length > 0) {
+            const splitNo = results.no.split('-')
+            const cekTipe = findOps.find((item) => item.jenis_pph !== 'Non PPh' || item.type_transaksi === 'Ya')
+            const tipe = cekTipe === undefined ? 'OPS' : 'OPSX'
+            const revNo = `${splitNo[0]}-${tipe}`
+            if (revNo === results.no) {
+              return response(res, 'success change no transaksi ops', { noRev: revNo })
+            } else {
+              const temp = []
+              for (let i = 0; i < findOps.length; i++) {
+                const send = {
+                  no_transaksi: revNo,
+                  history: `${findOps[i].history}, change no transaksi from ${results.no} to ${revNo} by system at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
                 }
-              })
-              const findDoc = await docuser.findAll({
-                where: {
-                  no_transaksi: results.no
-                }
-              })
-              const findResmail = await resmail.findAll({
-                where: {
-                  no_transaksi: results.no
-                }
-              })
-              const findReservoir = await reservoir.findAll({
-                where: {
-                  no_transaksi: results.no
-                }
-              })
-              for (let i = 0; i < findApp.length; i++) {
-                const findId = await ttd.findByPk(findApp[i].id)
-                if (findId) {
-                  await findId.update(dataNo)
-                  arrCek.push(findId)
+                const findRes = await ops.findByPk(findOps[i].id)
+                if (findRes) {
+                  await findRes.update(send)
+                  temp.push(1)
                 }
               }
-              for (let i = 0; i < findDoc.length; i++) {
-                const findId = await docuser.findByPk(findDoc[i].id)
-                if (findId) {
-                  await findId.update(dataNo)
-                  arrCek.push(findId)
+              if (temp.length) {
+                const arrCek = []
+                const dataNo = {
+                  no_transaksi: revNo
                 }
-              }
-              for (let i = 0; i < findResmail.length; i++) {
-                const findId = await resmail.findByPk(findResmail[i].id)
-                if (findId) {
-                  await findId.update(dataNo)
-                  arrCek.push(findId)
+                const findApp = await ttd.findAll({
+                  where: {
+                    no_transaksi: results.no
+                  }
+                })
+                const findDoc = await docuser.findAll({
+                  where: {
+                    no_transaksi: results.no
+                  }
+                })
+                const findResmail = await resmail.findAll({
+                  where: {
+                    no_transaksi: results.no
+                  }
+                })
+                const findReservoir = await reservoir.findAll({
+                  where: {
+                    no_transaksi: results.no
+                  }
+                })
+                for (let i = 0; i < findApp.length; i++) {
+                  const findId = await ttd.findByPk(findApp[i].id)
+                  if (findId) {
+                    await findId.update(dataNo)
+                    arrCek.push(findId)
+                  }
                 }
-              }
-              for (let i = 0; i < findReservoir.length; i++) {
-                const findId = await reservoir.findByPk(findReservoir[i].id)
-                if (findId) {
-                  await findId.update(dataNo)
-                  arrCek.push(findId)
+                for (let i = 0; i < findDoc.length; i++) {
+                  const findId = await docuser.findByPk(findDoc[i].id)
+                  if (findId) {
+                    await findId.update(dataNo)
+                    arrCek.push(findId)
+                  }
                 }
-              }
-              if (arrCek.length > 0) {
-                return response(res, 'success change no transaksi ops', { noRev: revNo })
+                for (let i = 0; i < findResmail.length; i++) {
+                  const findId = await resmail.findByPk(findResmail[i].id)
+                  if (findId) {
+                    await findId.update(dataNo)
+                    arrCek.push(findId)
+                  }
+                }
+                for (let i = 0; i < findReservoir.length; i++) {
+                  const findId = await reservoir.findByPk(findReservoir[i].id)
+                  if (findId) {
+                    await findId.update(dataNo)
+                    arrCek.push(findId)
+                  }
+                }
+                if (arrCek.length > 0) {
+                  return response(res, 'success change no transaksi ops', { noRev: revNo })
+                } else {
+                  return response(res, 'success change no transaksi ops', { noRev: revNo })
+                }
               } else {
                 return response(res, 'success change no transaksi ops', { noRev: revNo })
               }
-            } else {
-              return response(res, 'success change no transaksi ops', { noRev: revNo })
             }
+          } else {
+            return response(res, 'failed revisi ops', {}, 404, false)
           }
         } else {
-          return response(res, 'failed revisi ops', {}, 404, false)
+          const findOps = await ops.findAll({
+            where: {
+              no_transaksi: results.no
+            }
+          })
+          if (findOps.length > 0) {
+            const splitNo = results.no.split('-')
+            const cekTipe = findOps.find((item) => item.jenis_pph !== 'Non PPh' || item.type_transaksi === 'Ya')
+            const tipe = cekTipe === undefined ? 'OPS' : 'OPSX'
+            const revNo = `${splitNo[0]}-${tipe}`
+            if (revNo === results.no) {
+              return response(res, 'success change no transaksi ops', { noRev: revNo })
+            } else {
+              const temp = []
+              for (let i = 0; i < findOps.length; i++) {
+                const send = {
+                  no_transaksi: revNo,
+                  history: `${findOps[i].history}, change no transaksi from ${results.no} to ${revNo} by system at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                }
+                const findRes = await ops.findByPk(findOps[i].id)
+                if (findRes) {
+                  await findRes.update(send)
+                  temp.push(1)
+                }
+              }
+              if (temp.length) {
+                const arrCek = []
+                const dataNo = {
+                  no_transaksi: revNo
+                }
+                const findApp = await ttd.findAll({
+                  where: {
+                    no_transaksi: results.no
+                  }
+                })
+                const findDoc = await docuser.findAll({
+                  where: {
+                    no_transaksi: results.no
+                  }
+                })
+                const findResmail = await resmail.findAll({
+                  where: {
+                    no_transaksi: results.no
+                  }
+                })
+                const findReservoir = await reservoir.findAll({
+                  where: {
+                    no_transaksi: results.no
+                  }
+                })
+                for (let i = 0; i < findApp.length; i++) {
+                  const findId = await ttd.findByPk(findApp[i].id)
+                  if (findId) {
+                    await findId.update(dataNo)
+                    arrCek.push(findId)
+                  }
+                }
+                for (let i = 0; i < findDoc.length; i++) {
+                  const findId = await docuser.findByPk(findDoc[i].id)
+                  if (findId) {
+                    await findId.update(dataNo)
+                    arrCek.push(findId)
+                  }
+                }
+                for (let i = 0; i < findResmail.length; i++) {
+                  const findId = await resmail.findByPk(findResmail[i].id)
+                  if (findId) {
+                    await findId.update(dataNo)
+                    arrCek.push(findId)
+                  }
+                }
+                for (let i = 0; i < findReservoir.length; i++) {
+                  const findId = await reservoir.findByPk(findReservoir[i].id)
+                  if (findId) {
+                    await findId.update(dataNo)
+                    arrCek.push(findId)
+                  }
+                }
+                if (arrCek.length > 0) {
+                  return response(res, 'success change no transaksi ops', { noRev: revNo })
+                } else {
+                  return response(res, 'success change no transaksi ops', { noRev: revNo })
+                }
+              } else {
+                return response(res, 'success change no transaksi ops', { noRev: revNo })
+              }
+            }
+          } else {
+            return response(res, 'failed revisi ops', {}, 404, false)
+          }
         }
       }
     } catch (error) {

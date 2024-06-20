@@ -1,4 +1,4 @@
-const { faktur } = require('../models')
+const { faktur, shelFaktur } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -11,6 +11,7 @@ const excel = require('exceljs')
 const vs = require('fs-extra')
 const { APP_URL } = process.env
 const moment = require('moment')
+const axios = require('axios')
 const borderStyles = {
   top: { style: 'thin' },
   left: { style: 'thin' },
@@ -447,6 +448,97 @@ module.exports = {
         } else {
           return response(res, 'false force faktur', {}, 404, false)
         }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getShelFaktur: async (req, res) => {
+    try {
+      let { limit, page, search, sort } = req.query
+      let searchValue = ''
+      let sortValue = ''
+      if (typeof search === 'object') {
+        searchValue = Object.values(search)[0]
+      } else {
+        searchValue = search || ''
+      }
+      if (typeof sort === 'object') {
+        sortValue = Object.values(sort)[0]
+      } else {
+        sortValue = sort || 'id'
+      }
+      if (!limit) {
+        limit = 10
+      } else {
+        limit = parseInt(limit)
+      }
+      if (!page) {
+        page = 1
+      } else {
+        page = parseInt(page)
+      }
+      const findFaktur = await faktur.findAndCountAll({
+        where: {
+          [Op.or]: [
+            { nama: { [Op.like]: `%${searchValue}%` } },
+            { npwp: { [Op.like]: `%${searchValue}%` } },
+            { no_faktur: { [Op.like]: `%${searchValue}%` } },
+            { tgl_faktur: { [Op.like]: `%${searchValue}%` } }
+          ]
+        },
+        order: [[sortValue, 'ASC']],
+        limit: limit,
+        offset: (page - 1) * limit
+      })
+      const pageInfo = pagination('/faktur/get', req.query, page, limit, findFaktur.count)
+      if (findFaktur) {
+        return response(res, 'succes get faktur', { result: findFaktur, pageInfo })
+      } else {
+        return response(res, 'failed get faktur', { findFaktur }, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  syncFaktur: async (req, res) => {
+    try {
+      const getInvoice = await axios({
+        method: 'get',
+        url: 'https://e-invoice.pinusmerahabadi.co.id/api/invoice-ranges/2024-01-01/2024-06-20'
+      }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
+      if (getInvoice.status === 200) {
+        const temp = []
+        const dataInvoice = getInvoice.data
+        for (let i = 0; i < dataInvoice.length; i++) {
+          const findData = await shelFaktur.findOne({
+            where: {
+              no_faktur: dataInvoice[i].serial_number
+            }
+          })
+          if (findData) {
+            temp.push(findData)
+          } else {
+            const data = {
+              no_faktur: dataInvoice[i].serial_number,
+              nama: dataInvoice[i].seller,
+              jumlah_dpp: dataInvoice[i].dpp,
+              jumlah_ppn: dataInvoice[i].ppn,
+              tgl_faktur: dataInvoice[i].date_invoice
+            }
+            const createData = await findData.create(data)
+            if (createData) {
+              temp.push(createData)
+            }
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, getInvoice.message, { result: getInvoice.data })
+        } else {
+          return response(res, getInvoice.message, { result: getInvoice.data })
+        }
+      } else {
+        return response(res, 'gagal kirim ke redpine', { getInvoice }, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
