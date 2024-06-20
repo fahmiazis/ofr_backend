@@ -1,6 +1,7 @@
 const { notif, ikk, klaim, ops, role, vervendor } = require('../models')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
+const moment = require('moment')
 const { pagination } = require('../helpers/pagination')
 
 module.exports = {
@@ -128,6 +129,8 @@ module.exports = {
     try {
       const name = req.user.name
       const fullname = req.user.fullname
+      const timeV1 = moment().startOf('month')
+      const timeV2 = moment().endOf('month').add(1, 'd')
       const { tipe } = req.query
       const findNotif = await notif.findAll({
         where: {
@@ -136,7 +139,11 @@ module.exports = {
               [Op.or]: [
                 { user: { [Op.like]: `%${name}%` } },
                 { user: { [Op.like]: `%${fullname}%` } }
-              ]
+              ],
+              createdAt: {
+                [Op.gte]: timeV1,
+                [Op.lt]: timeV2
+              }
             },
             tipe === 'read' ? { [Op.not]: { status: null } } : tipe === 'unread' ? { status: null } : { [Op.not]: { id: null } }
           ]
