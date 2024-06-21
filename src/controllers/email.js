@@ -581,7 +581,8 @@ module.exports = {
                     if (accKlaim.find(item => item === noLevel.level)) {
                       const namePic = findUser[i].fullname
                       const dataPic = findPic.dataValues
-                      const agr1 = dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()
+                      const agr1 = dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase()) !== -1)].toLowerCase()
+                      // const agr1 = dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()
                       const agr2 = namePic.toLowerCase()
                       if (agr1 === agr2) {
                         toMail = findUser[i]
@@ -859,7 +860,8 @@ module.exports = {
                       for (let i = 0; i < findUser.length; i++) {
                         const namePic = findUser[i].fullname
                         const dataPic = findPic.dataValues
-                        const agr1 = dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()
+                        const agr1 = dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase()) !== -1)].toLowerCase()
+                        // const agr1 = dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()
                         const agr2 = namePic.toLowerCase()
                         if (agr1 === agr2) {
                           toMail = findUser[i]
