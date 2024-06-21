@@ -162,8 +162,8 @@ module.exports = {
                 tgl_faktur: dataFaktur[1],
                 npwp: dataFaktur[2],
                 nama: dataFaktur[3],
-                jumlah_dpp: dataFaktur[4].replace(/[^a-z0-9-]/g, ''),
-                jumlah_ppn: dataFaktur[5].replace(/[^a-z0-9-]/g, '')
+                jumlah_dpp: dataFaktur[4],
+                jumlah_ppn: dataFaktur[5]
               }
               if (select) {
                 const upbank = await select.update(data)
