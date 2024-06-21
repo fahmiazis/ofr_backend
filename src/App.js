@@ -3,6 +3,8 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const response = require('./helpers/response')
 const morgan = require('morgan')
+const cron = require('node-cron')
+const request = require('request')
 
 const app = express()
 const server = require('http').createServer(app)
@@ -117,8 +119,32 @@ app.use('/tesemail', emailRoute)
 // zarchive
 app.use('/zip', zarRoute)
 
+// cron update data faktur e-invices
+const options = {
+  method: 'GET',
+  url: 'http://ofr.pinusmerahabadi.co.id:8080/faktur/shelfaktur'
+}
+
+cron.schedule('0 0 0 * * *', () => {
+  request(options, function (error, response, body) {
+    if (error) {
+      console.log(error)
+    }
+  })
+}, {
+  scheduled: true,
+  timezone: 'Asia/Jakarta'
+})
+
 app.get('*', (req, res) => {
   response(res, 'Error route not found', {}, 404, false)
+})
+
+app.get('/', (req, res) => {
+  res.send({
+    success: true,
+    message: 'Backend is running'
+  })
 })
 
 server.listen(APP_PORT, () => {

@@ -1,4 +1,4 @@
-const { faktur, shelFaktur } = require('../models')
+const { faktur, shelfaktur } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -162,8 +162,8 @@ module.exports = {
                 tgl_faktur: dataFaktur[1],
                 npwp: dataFaktur[2],
                 nama: dataFaktur[3],
-                jumlah_dpp: dataFaktur[4],
-                jumlah_ppn: dataFaktur[5]
+                jumlah_dpp: dataFaktur[4].replace(/[^a-z0-9-]/g, ''),
+                jumlah_ppn: dataFaktur[5].replace(/[^a-z0-9-]/g, '')
               }
               if (select) {
                 const upbank = await select.update(data)
@@ -228,45 +228,136 @@ module.exports = {
         const findFaktur = await faktur.findAll({
           where: {
             [Op.and]: [
-              dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}` } },
+              // dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}` } },
               { no_faktur: { [Op.like]: `%${noFaktur}` } }
-            ],
-            status: null
+            ]
           }
         })
-        if (findFaktur.length > 0) {
+        if (findFaktur.length > 0 && findFaktur[0].status === null) {
           const date1 = moment(findFaktur[0].tgl_faktur).format('M')
           const date2 = moment().format('M')
           const diffTime = Math.abs(date2 - date1)
           const diffMonth = Math.floor(diffTime)
           if (diffMonth > 3) {
-            const findShel = await faktur.findAll({
+            const findShel = await shelfaktur.findAll({
               where: {
                 [Op.and]: [
-                  dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}` } },
                   { no_faktur: { [Op.like]: `%${noFaktur}` } }
                 ]
               }
             })
             if (findShel.length > 0) {
-              return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
-            } else {
-              const findApi = await faktur.findAll({
-                where: {
-                  [Op.and]: [
-                    dataFind === '' ? { [Op.not]: { id: null } } : { npwp: { [Op.like]: `%${dataFind}` } },
-                    { no_faktur: { [Op.like]: `%${noFaktur}` } }
-                  ]
+              const data = {
+                force: 1
+              }
+              const findData = await faktur.findByPk(findFaktur[0].id)
+              if (findData) {
+                const upFaktur = await findData.update(data)
+                if (upFaktur) {
+                  const findFinal = await faktur.findAll({
+                    where: {
+                      [Op.and]: [
+                        { no_faktur: { [Op.like]: `%${noFaktur}` } }
+                      ],
+                      status: null
+                    }
+                  })
+                  return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
                 }
-              })
-              if (findApi.length > 0) {
-                return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+              }
+            } else {
+              const findApi = await axios({
+                method: 'get',
+                url: `https://e-invoice.pinusmerahabadi.co.id/api/invoice/${noFaktur}`
+              }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
+              if (findApi.status === 200) {
+                const resdata = findApi.data.data
+                const data = {
+                  force: 1,
+                  no_faktur: resdata.serial_number,
+                  nama: resdata.seller,
+                  jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
+                  jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
+                  tgl_faktur: resdata.date_invoice
+                }
+                const creFaktur = await faktur.create(data)
+                if (creFaktur) {
+                  const findFinal = await faktur.findAll({
+                    where: {
+                      [Op.and]: [
+                        { no_faktur: { [Op.like]: `%${noFaktur}` } }
+                      ],
+                      status: null
+                    }
+                  })
+                  return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+                }
               } else {
                 return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
               }
             }
           } else {
             return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+          }
+        } else if (findFaktur.length === 0) {
+          const findShel = await shelfaktur.findAll({
+            where: {
+              [Op.and]: [
+                { no_faktur: { [Op.like]: `%${noFaktur}` } }
+              ]
+            }
+          })
+          if (findShel.length > 0) {
+            const data = {
+              force: 1,
+              no_faktur: findShel[0].no_faktur,
+              nama: findShel[0].nama,
+              jumlah_dpp: findShel[0].jumlah_dpp.replace(/[^a-z0-9-]/g, ''),
+              jumlah_ppn: findShel[0].jumlah_ppn.replace(/[^a-z0-9-]/g, ''),
+              tgl_faktur: findShel[0].tgl_faktur
+            }
+            const upFaktur = await faktur.create(data)
+            if (upFaktur) {
+              const findFinal = await faktur.findAll({
+                where: {
+                  [Op.and]: [
+                    { no_faktur: { [Op.like]: `%${noFaktur}` } }
+                  ],
+                  status: null
+                }
+              })
+              return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+            }
+          } else {
+            const findApi = await axios({
+              method: 'get',
+              url: `https://e-invoice.pinusmerahabadi.co.id/api/invoice/${noFaktur}`
+            }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
+            if (findApi.status === 200) {
+              const resdata = findApi.data.data
+              const data = {
+                force: 1,
+                no_faktur: resdata.serial_number,
+                nama: resdata.seller,
+                jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
+                jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
+                tgl_faktur: resdata.date_invoice
+              }
+              const creFaktur = await faktur.create(data)
+              if (creFaktur) {
+                const findFinal = await faktur.findAll({
+                  where: {
+                    [Op.and]: [
+                      { no_faktur: { [Op.like]: `%${noFaktur}` } }
+                    ],
+                    status: null
+                  }
+                })
+                return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+              }
+            } else {
+              return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
+            }
           }
         } else {
           return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
@@ -310,7 +401,7 @@ module.exports = {
             { tgl_faktur: { [Op.like]: `%${searchValue}%` } }
           ]
         },
-        order: [[sortValue, 'ASC']],
+        order: [[sortValue, 'DESC']],
         limit: limit,
         offset: (page - 1) * limit
       })
@@ -478,20 +569,20 @@ module.exports = {
       } else {
         page = parseInt(page)
       }
-      const findFaktur = await faktur.findAndCountAll({
+      const findFaktur = await shelfaktur.findAndCountAll({
         where: {
           [Op.or]: [
             { nama: { [Op.like]: `%${searchValue}%` } },
-            { npwp: { [Op.like]: `%${searchValue}%` } },
+            // { npwp: { [Op.like]: `%${searchValue}%` } },
             { no_faktur: { [Op.like]: `%${searchValue}%` } },
             { tgl_faktur: { [Op.like]: `%${searchValue}%` } }
           ]
         },
-        order: [[sortValue, 'ASC']],
+        order: [[sortValue, 'DESC']],
         limit: limit,
         offset: (page - 1) * limit
       })
-      const pageInfo = pagination('/faktur/get', req.query, page, limit, findFaktur.count)
+      const pageInfo = pagination('/faktur/shelfaktur', req.query, page, limit, findFaktur.count)
       if (findFaktur) {
         return response(res, 'succes get faktur', { result: findFaktur, pageInfo })
       } else {
@@ -503,15 +594,17 @@ module.exports = {
   },
   syncFaktur: async (req, res) => {
     try {
+      const time1 = moment().subtract(6, 'month').startOf('month').format('YYYY-MM-DD')
+      const time2 = moment().endOf('month').add(1, 'd').format('YYYY-MM-DD')
       const getInvoice = await axios({
         method: 'get',
-        url: 'https://e-invoice.pinusmerahabadi.co.id/api/invoice-ranges/2024-01-01/2024-06-20'
+        url: `https://e-invoice.pinusmerahabadi.co.id/api/invoice-ranges/${time1}/${time2}`
       }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
       if (getInvoice.status === 200) {
         const temp = []
-        const dataInvoice = getInvoice.data
+        const dataInvoice = getInvoice.data.data
         for (let i = 0; i < dataInvoice.length; i++) {
-          const findData = await shelFaktur.findOne({
+          const findData = await shelfaktur.findOne({
             where: {
               no_faktur: dataInvoice[i].serial_number
             }
@@ -522,11 +615,12 @@ module.exports = {
             const data = {
               no_faktur: dataInvoice[i].serial_number,
               nama: dataInvoice[i].seller,
-              jumlah_dpp: dataInvoice[i].dpp,
-              jumlah_ppn: dataInvoice[i].ppn,
-              tgl_faktur: dataInvoice[i].date_invoice
+              jumlah_dpp: dataInvoice[i].dpp.replace(/[^a-z0-9-]/g, ''),
+              jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, ''),
+              tgl_faktur: dataInvoice[i].date_invoice,
+              data: dataInvoice[i].toString()
             }
-            const createData = await findData.create(data)
+            const createData = await shelfaktur.create(data)
             if (createData) {
               temp.push(createData)
             }

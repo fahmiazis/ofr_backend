@@ -11,5 +11,7 @@ route.delete('/del/:id', faktur.deleteFaktur)
 route.delete('/delall', faktur.deleteAll)
 route.get('/export', faktur.exportSqlFaktur)
 route.patch('/force/:id', faktur.forceFaktur)
+route.get('/sync', faktur.syncFaktur)
+route.get('/shelfaktur', faktur.getShelFaktur)
 
 module.exports = route
