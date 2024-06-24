@@ -480,7 +480,7 @@ module.exports = {
             }
             const data = {
               flag_redpine: findTrans.find((item) => item.no_transaksi === noDis[i]).flag_redpine,
-              no_ofr: noDis[i] + 'king',
+              no_ofr: noDis[i],
               kode_plant: findTrans.find((item) => item.no_transaksi === noDis[i]).kode_plant,
               kode_depo: findTrans.find((item) => item.no_transaksi === noDis[i]).depo.scylla.kode_depo,
               area: findTrans.find((item) => item.no_transaksi === noDis[i]).depo.area,
