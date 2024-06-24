@@ -479,11 +479,12 @@ module.exports = {
               }
             }
             const data = {
-              no_ofr: noDis[i],
-              kode_plant: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).kode_plant,  // eslint-disable-line
-              kode_depo: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).depo.scylla.kode_depo,  // eslint-disable-line
-              area: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).depo.area,  // eslint-disable-line
-              tgl_ajuan: moment(findTrans.find(({no_transaksi}) => no_transaksi === noDis[i])[tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']).format('DD MMMM YYYY'), // eslint-disable-line
+              flag_redpine: findTrans.find((item) => item.no_transaksi === noDis[i]).flag_redpine,
+              no_ofr: noDis[i] + 'king',
+              kode_plant: findTrans.find((item) => item.no_transaksi === noDis[i]).kode_plant,
+              kode_depo: findTrans.find((item) => item.no_transaksi === noDis[i]).depo.scylla.kode_depo,
+              area: findTrans.find((item) => item.no_transaksi === noDis[i]).depo.area,
+              tgl_ajuan: moment(findTrans.find((item) => item.no_transaksi === noDis[i])[tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']).format('DD MMMM YYYY'),
               item: tempTrans
             }
             dataJurnal.push(data)
@@ -964,10 +965,11 @@ module.exports = {
             }
             const data = {
               no_ofr: noDis[i],
-              kode_plant: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).kode_plant,  // eslint-disable-line
-              kode_depo: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).depo.scylla.kode_depo,  // eslint-disable-line
-              area: findTrans.find(({no_transaksi}) => no_transaksi === noDis[i]).depo.area,  // eslint-disable-line
-              tgl_ajuan: moment(findTrans.find(({no_transaksi}) => no_transaksi === noDis[i])[tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']).format('DD MMMM YYYY'), // eslint-disable-line
+              kode_plant: findTrans.find((item) => item.no_transaksi === noDis[i]).kode_plant,
+              kode_depo: findTrans.find((item) => item.no_transaksi === noDis[i]).depo.scylla.kode_depo,
+              area: findTrans.find((item) => item.no_transaksi === noDis[i]).depo.area,
+              tgl_ajuan: moment(findTrans.find((item) => item.no_transaksi === noDis[i])[tipeVal === 'ikk' ? 'start_ikk' : 'start_ops']).format('DD MMMM YYYY'),
+              flag_redpine: findTrans.find((item) => item.no_transaksi === noDis[i]).flag_redpine,
               item: tempTrans
             }
             dataJurnal.push(data)
