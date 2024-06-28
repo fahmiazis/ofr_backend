@@ -268,7 +268,10 @@ module.exports = {
             } else {
               const findApi = await axios({
                 method: 'get',
-                url: `https://e-invoice.pinusmerahabadi.co.id/api/invoice/${noFaktur}`
+                url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice/${noFaktur}`,
+                headers: {
+                  'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
+                }
               }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
               if (findApi.status === 200) {
                 const resdata = findApi.data.data
@@ -331,7 +334,10 @@ module.exports = {
           } else {
             const findApi = await axios({
               method: 'get',
-              url: `https://e-invoice.pinusmerahabadi.co.id/api/invoice/${noFaktur}`
+              url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice/${noFaktur}`,
+              headers: {
+                'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
+              }
             }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
             if (findApi.status === 200) {
               const resdata = findApi.data.data
@@ -384,6 +390,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await faktur.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }
@@ -561,6 +570,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await shelfaktur.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }
@@ -594,45 +606,117 @@ module.exports = {
   },
   syncFaktur: async (req, res) => {
     try {
-      const time1 = moment().subtract(6, 'month').startOf('month').format('YYYY-MM-DD')
-      const time2 = moment().endOf('month').add(1, 'd').format('YYYY-MM-DD')
-      const getInvoice = await axios({
-        method: 'get',
-        url: `https://e-invoice.pinusmerahabadi.co.id/api/invoice-ranges/${time1}/${time2}`
-      }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
-      if (getInvoice.status === 200) {
-        const temp = []
-        const dataInvoice = getInvoice.data.data
-        for (let i = 0; i < dataInvoice.length; i++) {
-          const findData = await shelfaktur.findOne({
-            where: {
-              no_faktur: dataInvoice[i].serial_number
+      const { date1, date2, faktur, type } = req.query
+      const timeSync1 = moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD')
+      const timeSync2 = moment().endOf('month').add(1, 'd').format('YYYY-MM-DD')
+      const time1 = date1 === undefined || date1 === 'undefined' || date1 === null || date1 === 'null' ? timeSync1 : moment(date1).format('YYYY-MM-DD')
+      const time2 = date2 === undefined || date2 === 'undefined' || date2 === null || date2 === 'null' ? timeSync2 : moment(date2).format('YYYY-MM-DD')
+      // const cekfaktur = faktur === undefined || faktur === 'undefined' || faktur === null || faktur === 'null' || faktur === '' ? 'no' : 'yes'
+      if (type === 'no') {
+        const findApi = await axios({
+          method: 'get',
+          url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice/${faktur}`,
+          headers: {
+            'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
+          }
+        }).then(response => { console.log('response'); return (response) }).catch(err => { console.log('err'); return (err) })
+        console.log(findApi.status)
+        if (findApi.status === 200 && findApi.data.data !== null) {
+          const resdata = findApi.data.data
+          const data = {
+            no_faktur: resdata.serial_number,
+            nama: resdata.seller,
+            jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
+            jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
+            tgl_faktur: resdata.date_invoice
+          }
+          const creFaktur = await shelfaktur.create(data)
+          if (creFaktur) {
+            const findFinal = await shelfaktur.findAll({
+              where: {
+                [Op.and]: [
+                  { no_faktur: { [Op.like]: `%${faktur}` } }
+                ],
+                status: null
+              }
+            })
+            return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+          }
+        } else {
+          return response(res, 'failed get faktur', { result: findApi.data, length: 0 }, 400, false)
+        }
+      } else {
+        const getInvoice = await axios({
+          method: 'get',
+          url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice-ranges/${time1}/${time2}`,
+          headers: {
+            'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
+          }
+        }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
+        if (getInvoice.status === 200 && getInvoice.data.data.length > 0) {
+          const temp = []
+          const dataInvoice = getInvoice.data.data
+          for (let i = 0; i < dataInvoice.length; i++) {
+            const findData = await shelfaktur.findOne({
+              where: {
+                no_faktur: dataInvoice[i].serial_number
+              }
+            })
+            if (findData) {
+              temp.push(findData)
+            } else {
+              const data = {
+                no_faktur: dataInvoice[i].serial_number,
+                nama: dataInvoice[i].seller,
+                jumlah_dpp: dataInvoice[i].dpp.replace(/[^a-z0-9-]/g, ''),
+                jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, ''),
+                tgl_faktur: dataInvoice[i].date_invoice,
+                data: dataInvoice[i].toString()
+              }
+              const createData = await shelfaktur.create(data)
+              if (createData) {
+                temp.push(createData)
+              }
             }
-          })
-          if (findData) {
-            temp.push(findData)
+          }
+          if (temp.length > 0) {
+            return response(res, getInvoice.message, { result: getInvoice.data })
           } else {
-            const data = {
-              no_faktur: dataInvoice[i].serial_number,
-              nama: dataInvoice[i].seller,
-              jumlah_dpp: dataInvoice[i].dpp.replace(/[^a-z0-9-]/g, ''),
-              jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, ''),
-              tgl_faktur: dataInvoice[i].date_invoice,
-              data: dataInvoice[i].toString()
-            }
-            const createData = await shelfaktur.create(data)
-            if (createData) {
-              temp.push(createData)
+            return response(res, getInvoice.message, { result: getInvoice.data })
+          }
+        } else {
+          return response(res, 'failed get data', { getInvoice }, 400, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  deleteRawFaktur: async (req, res) => {
+    try {
+      const schema = joi.object({
+        list: joi.array()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const temp = []
+        const list = results.list
+        for (let i = 0; i < list.length; i++) {
+          const findId = await faktur.findByPk(list[i].id)
+          if (findId) {
+            const deleteId = await findId.destroy()
+            if (deleteId) {
+              temp.push(findId)
             }
           }
         }
         if (temp.length > 0) {
-          return response(res, getInvoice.message, { result: getInvoice.data })
+          return response(res, 'succes delete raw faktur', { temp })
         } else {
-          return response(res, getInvoice.message, { result: getInvoice.data })
+          return response(res, 'gagal delete raw faktur', { temp })
         }
-      } else {
-        return response(res, 'gagal kirim ke redpine', { getInvoice }, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
