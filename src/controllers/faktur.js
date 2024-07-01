@@ -267,8 +267,8 @@ module.exports = {
               }
             } else {
               const findApi = await axios({
-                method: 'get',
-                url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice/${noFaktur}`,
+                method: 'post',
+                url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice?serial_number=${noFaktur}`,
                 headers: {
                   'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
                 }
@@ -333,8 +333,8 @@ module.exports = {
             }
           } else {
             const findApi = await axios({
-              method: 'get',
-              url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice/${noFaktur}`,
+              method: 'post',
+              url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice?serial_number=${noFaktur}`,
               headers: {
                 'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
               }
@@ -614,8 +614,8 @@ module.exports = {
       // const cekfaktur = faktur === undefined || faktur === 'undefined' || faktur === null || faktur === 'null' || faktur === '' ? 'no' : 'yes'
       if (type === 'no') {
         const findApi = await axios({
-          method: 'get',
-          url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice/${faktur}`,
+          method: 'post',
+          url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice?serial_number=${faktur}`,
           headers: {
             'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
           }
@@ -623,32 +623,37 @@ module.exports = {
         console.log(findApi.status)
         if (findApi.status === 200 && findApi.data.data !== null) {
           const resdata = findApi.data.data
-          const data = {
-            no_faktur: resdata.serial_number,
-            nama: resdata.seller,
-            jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
-            jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
-            tgl_faktur: resdata.date_invoice
-          }
-          const creFaktur = await shelfaktur.create(data)
-          if (creFaktur) {
-            const findFinal = await shelfaktur.findAll({
-              where: {
-                [Op.and]: [
-                  { no_faktur: { [Op.like]: `%${faktur}` } }
-                ],
-                status: null
-              }
-            })
-            return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+          if (resdata.approval_status === 1) {
+            const data = {
+              no_faktur: resdata.serial_number,
+              nama: resdata.seller,
+              jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
+              jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
+              tgl_faktur: resdata.date_invoice,
+              status: resdata.approval_status
+            }
+            const creFaktur = await shelfaktur.create(data)
+            if (creFaktur) {
+              const findFinal = await shelfaktur.findAll({
+                where: {
+                  [Op.and]: [
+                    { no_faktur: { [Op.like]: `%${faktur}` } }
+                  ],
+                  status: null
+                }
+              })
+              return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+            }
+          } else {
+            return response(res, 'nomor faktur belum full approve', { result: findApi.data.data, length: 0 }, 400, false)
           }
         } else {
-          return response(res, 'failed get faktur', { result: findApi.data, length: 0 }, 400, false)
+          return response(res, 'failed get faktur', { result: findApi.data.data, length: 0 }, 400, false)
         }
       } else {
         const getInvoice = await axios({
-          method: 'get',
-          url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice-ranges/${time1}/${time2}`,
+          method: 'post',
+          url: `https://e-invoice.pinusmerahabadi.co.id/api/v1/invoice-ranges?date_from=${time1}&date_to=${time2}`,
           headers: {
             'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
           }
@@ -664,14 +669,15 @@ module.exports = {
             })
             if (findData) {
               temp.push(findData)
-            } else {
+            } else if (dataInvoice[i].approval_status === 1) {
               const data = {
                 no_faktur: dataInvoice[i].serial_number,
                 nama: dataInvoice[i].seller,
                 jumlah_dpp: dataInvoice[i].dpp.replace(/[^a-z0-9-]/g, ''),
                 jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, ''),
                 tgl_faktur: dataInvoice[i].date_invoice,
-                data: dataInvoice[i].toString()
+                data: dataInvoice[i].toString(),
+                status: dataInvoice[i].approval_status
               }
               const createData = await shelfaktur.create(data)
               if (createData) {
@@ -680,12 +686,12 @@ module.exports = {
             }
           }
           if (temp.length > 0) {
-            return response(res, getInvoice.message, { result: getInvoice.data })
+            return response(res, getInvoice.message, { result: getInvoice.data.data })
           } else {
-            return response(res, getInvoice.message, { result: getInvoice.data })
+            return response(res, getInvoice.message, { result: getInvoice.data.data })
           }
         } else {
-          return response(res, 'failed get data', { getInvoice }, 400, false)
+          return response(res, 'failed get data', { result: getInvoice.data.data }, 400, false)
         }
       }
     } catch (error) {
