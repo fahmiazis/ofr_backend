@@ -1710,10 +1710,10 @@ module.exports = {
             const mailOptions = {
               from: 'noreply_ofr@pinusmerahabadi.co.id',
               replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
-              to: `${to}`,
-              cc: cc.split(','),
-              // to: 'fahmiazis797@gmail.com',
-              // cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
+              // to: `${to}`,
+              // cc: cc.split(','),
+              to: 'fahmi_aziz@pinusmerahabadi.co.id',
+              cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
               subject: `${subject}`,
               html: `
                   <head>

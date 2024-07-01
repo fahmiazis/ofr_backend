@@ -632,8 +632,12 @@ module.exports = {
               tgl_faktur: resdata.date_invoice,
               status: resdata.approval_status
             }
-            const creFaktur = await shelfaktur.create(data)
-            if (creFaktur) {
+            const findData = await shelfaktur.findOne({
+              where: {
+                no_faktur: resdata.serial_number
+              }
+            })
+            if (findData) {
               const findFinal = await shelfaktur.findAll({
                 where: {
                   [Op.and]: [
@@ -643,6 +647,19 @@ module.exports = {
                 }
               })
               return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+            } else {
+              const creFaktur = await shelfaktur.create(data)
+              if (creFaktur) {
+                const findFinal = await shelfaktur.findAll({
+                  where: {
+                    [Op.and]: [
+                      { no_faktur: { [Op.like]: `%${faktur}` } }
+                    ],
+                    status: null
+                  }
+                })
+                return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+              }
             }
           } else {
             return response(res, 'nomor faktur belum full approve', { result: findApi.data.data, length: 0 }, 400, false)
