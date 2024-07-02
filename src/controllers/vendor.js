@@ -24,7 +24,8 @@ module.exports = {
         nama: joi.string().required(),
         no_npwp: joi.string().required(),
         no_ktp: joi.string().required(),
-        alamat: joi.string().required()
+        alamat: joi.string().required(),
+        jenis_vendor: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -108,7 +109,7 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
-        const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT']
+        const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT', 'JENIS VENDOR']
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
           console.log(valid[i] === cek[i])
@@ -156,24 +157,19 @@ module.exports = {
                   ]
                 }
               })
+              const data = {
+                nama: dataVendor[0],
+                no_npwp: dataVendor[1],
+                no_ktp: dataVendor[2],
+                alamat: dataVendor[3],
+                jenis_vendor: dataVendor[4]
+              }
               if (select) {
-                const data = {
-                  nama: dataVendor[0],
-                  no_npwp: dataVendor[1],
-                  no_ktp: dataVendor[2],
-                  alamat: dataVendor[3]
-                }
                 const upbank = await select.update(data)
                 if (upbank) {
                   arr.push(1)
                 }
               } else {
-                const data = {
-                  nama: dataVendor[0],
-                  no_npwp: dataVendor[1],
-                  no_ktp: dataVendor[2],
-                  alamat: dataVendor[3]
-                }
                 const createVendor = await vendor.create(data)
                 if (createVendor) {
                   arr.push(1)
@@ -274,7 +270,7 @@ module.exports = {
             { alamat: { [Op.like]: `%${searchValue}%` } }
           ]
         },
-        order: [[sortValue, 'ASC']],
+        order: [[sortValue, 'DESC']],
         limit: limit,
         offset: (page - 1) * limit
       })
@@ -326,8 +322,8 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT']
-        const key = ['nama', 'no_npwp', 'no_ktp', 'alamat']
+        const header = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT', 'JENIS VENDOR']
+        const key = ['nama', 'no_npwp', 'no_ktp', 'alamat', 'jenis_vendor']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)

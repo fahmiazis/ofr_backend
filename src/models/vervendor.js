@@ -36,7 +36,8 @@ module.exports = (sequelize, DataTypes) => {
     datel_skb: DataTypes.DATE,
     no_skb: DataTypes.TEXT,
     no_skt: DataTypes.STRING,
-    type_skb: DataTypes.STRING
+    type_skb: DataTypes.STRING,
+    jenis_vendor: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'vervendor'
