@@ -378,7 +378,7 @@ module.exports = {
           }
         }
       })
-      if (findVendor) {
+      if (findVendor.length > 0) {
         const temp = []
         for (let i = 0; i < findVendor.length; i++) {
           const findDel = await vendor.findByPk(findVendor[i].id)
@@ -388,12 +388,12 @@ module.exports = {
           }
         }
         if (temp.length > 0) {
-          return response(res, 'success delete all', {}, 404, false)
+          return response(res, 'success delete all', { findVendor })
         } else {
-          return response(res, 'failed delete all 1', {}, 404, false)
+          return response(res, 'failed delete all 1', { findVendor }, 404, false)
         }
       } else {
-        return response(res, 'failed delete all 2', {}, 404, false)
+        return response(res, 'failed delete all 2', { findVendor }, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
