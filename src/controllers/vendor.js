@@ -390,10 +390,10 @@ module.exports = {
         if (temp.length > 0) {
           return response(res, 'success delete all', {}, 404, false)
         } else {
-          return response(res, 'failed delete all', {}, 404, false)
+          return response(res, 'failed delete all 1', {}, 404, false)
         }
       } else {
-        return response(res, 'failed delete all', {}, 404, false)
+        return response(res, 'failed delete all 2', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
