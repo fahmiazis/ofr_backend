@@ -1,4 +1,4 @@
-const { klaim, coa, depo, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet, fakturkl } = require('../models')
+const { klaim, coa, depo, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet, fakturkl, user } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -11,6 +11,7 @@ const uploadMaster = require('../helpers/uploadMaster')
 const fs = require('fs')
 const access = [10, 11, 12, 2, 7, 8, 9]
 const accKlaim = [3, 13, 23]
+const accarea = [10, 11]
 
 module.exports = {
   addCart: async (req, res) => {
@@ -747,7 +748,7 @@ module.exports = {
     try {
       const level = req.user.level
       const kode = req.user.kode
-      const name = req.user.fullname
+      const idUser = req.user.id
       const role = req.user.role
       const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
       const { status, reject, menu, type, category, data, time1, time2, search } = req.query
@@ -760,155 +761,34 @@ module.exports = {
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd')
-      if (level === 5) {
-        const findKlaim = await klaim.findAll({
-          where: {
-            kode_plant: kode,
-            [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-              timeVal1 === 'all'
-                ? { [Op.not]: { id: null } }
-                : {
-                    start_klaim: {
-                      [Op.gte]: timeV1,
-                      [Op.lt]: timeV2
-                    }
-                  },
-              { [Op.not]: { status_transaksi: null } },
-              { [Op.not]: { status_transaksi: 1 } },
-              category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
-            ],
-            [Op.or]: [
-              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-              { dn_area: { [Op.like]: `%${searchValue}%` } },
-              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_ktp: { [Op.like]: `%${searchValue}%` } },
-              { no_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_surkom: { [Op.like]: `%${searchValue}%` } },
-              { nama_program: { [Op.like]: `%${searchValue}%` } },
-              { area: { [Op.like]: `%${searchValue}%` } },
-              { cost_center: { [Op.like]: `%${searchValue}%` } },
-              { no_coa: { [Op.like]: `%${searchValue}%` } },
-              { sub_coa: { [Op.like]: `%${searchValue}%` } },
-              { nama_coa: { [Op.like]: `%${searchValue}%` } },
-              { keterangan: { [Op.like]: `%${searchValue}%` } },
-              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-            ],
-            [Op.not]: [
-              { status_transaksi: 1 }
-            ]
-          },
-          order: [
-            ['start_klaim', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
-            },
-            {
-              model: finance,
-              as: 'depo'
-            },
-            {
-              model: depo,
-              as: 'scarea'
-            },
-            {
-              model: picklaim,
-              as: 'picklaim'
-            },
-            {
-              model: kliring,
-              as: 'kliring'
-            }
-          ]
-        })
-        const data = []
-        findKlaim.map(x => {
-          return (
-            data.push(x.no_transaksi)
-          )
-        })
-        const set = new Set(data)
-        const noDis = [...set]
-        if (findKlaim) {
-          const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
-          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim, findDepo: [] })
-        } else {
-          return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [], findDepo: [] })
-        }
-      } else if (access.find(item => item === level)) {
-        const findDepo = await finance.findAll({
-          where: {
-            [Op.or]: [
-              { bm: level === 10 ? name : 'undefined' },
-              { rom: level === 11 ? name : 'undefined' },
-              { nom: level === 12 ? name : 'undefined' },
-              { pic_finance: level === 2 ? name : 'undefined' },
-              { spv_finance: level === 7 ? name : 'undefined' },
-              { asman_finance: level === 8 ? name : 'undefined' },
-              { manager_finance: level === 9 ? name : 'undefined' }
-            ]
-          }
-        })
-        if (findDepo) {
-          // const hasil = []
-          const dataDepo = []
-          for (let i = 0; i < findDepo.length; i++) {
-            if (listDepo !== 'all') {
-              const depoArr = listDepo.split(',')
-              if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
-                const data = { kode_plant: findDepo[i].kode_plant }
-                dataDepo.push(data)
-              }
-            } else {
-              const data = { kode_plant: findDepo[i].kode_plant }
-              dataDepo.push(data)
-            }
-          }
-          // for (let i = 0; i < findDepo.length; i++) {
-          const hasil = await klaim.findAll({
+      const findUser = await user.findByPk(idUser)
+      if (findUser) {
+        const name = findUser.fullname
+        const email = findUser.email
+        if (level === 5) {
+          const findKlaim = await klaim.findAll({
             where: {
-              // kode_plant: findDepo[i].kode_plant,
+              kode_plant: kode,
               [Op.and]: [
-                {
-                  [Op.or]: dataDepo
-                },
-                statTrans === 'all'
-                  ? { [Op.not]: { status_transaksi: null } }
-                  : category === 'verif' && level === 2
-                    ? { [Op.or]: [{ status_transaksi: statTrans }, { status_transaksi: 5 }] }
-                    : { status_transaksi: statTrans },
-                statRej === 'all' ? { [Op.not]: { start_klaim: null } } : { status_reject: statRej },
-                statMenu === 'all' ? { [Op.not]: { start_klaim: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
+                statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                 timeVal1 === 'all'
                   ? { [Op.not]: { id: null } }
-                  : category === 'ajuan bayar'
-                    ? {
-                        tgl_sublist: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
-                        }
+                  : {
+                      start_klaim: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
                       }
-                    : {
-                        start_klaim: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
-                        }
-                      }
+                    },
+                { [Op.not]: { status_transaksi: null } },
+                { [Op.not]: { status_transaksi: 1 } },
+                category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
               ],
               [Op.or]: [
-                { kode_plant: { [Op.like]: `%${searchValue}%` } },
                 { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-                { dn_area: { [Op.like]: `%${searchValue}%` } },
                 { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                { dn_area: { [Op.like]: `%${searchValue}%` } },
                 { nama_npwp: { [Op.like]: `%${searchValue}%` } },
                 { no_ktp: { [Op.like]: `%${searchValue}%` } },
                 { no_npwp: { [Op.like]: `%${searchValue}%` } },
@@ -922,21 +802,19 @@ module.exports = {
                 { keterangan: { [Op.like]: `%${searchValue}%` } },
                 { no_transaksi: { [Op.like]: `%${searchValue}%` } },
                 { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+              ],
+              [Op.not]: [
+                { status_transaksi: 1 }
               ]
             },
             order: [
               ['start_klaim', 'DESC'],
-              [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-              [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+              [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
             ],
             include: [
               {
                 model: ttd,
                 as: 'appForm'
-              },
-              {
-                model: ttd,
-                as: 'appList'
               },
               {
                 model: finance,
@@ -956,71 +834,38 @@ module.exports = {
               }
             ]
           })
-          //   if (result.length > 0) {
-          //     for (let j = 0; j < result.length; j++) {
-          //       hasil.push(result[j])
-          //     }
-          //   }
-          // }
-          if (hasil.length > 0) {
-            const data = []
-            hasil.map(x => {
-              return (
-                data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
-              )
-            })
-            const set = new Set(data)
-            const noDis = [...set]
-            const result = hasil
-            const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
-            return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
+          const data = []
+          findKlaim.map(x => {
+            return (
+              data.push(x.no_transaksi)
+            )
+          })
+          const set = new Set(data)
+          const noDis = [...set]
+          if (findKlaim) {
+            const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
+            return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim, findDepo: [] })
           } else {
-            const result = hasil
-            const noDis = []
-            return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+            return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [], findDepo: [] })
           }
-        } else {
-          return response(res, 'failed get klaim', {}, 400, false)
-        }
-      } else if (accKlaim.find(item => item === level)) {
-        const findPic = await spvklaim.findAll({
-          where: {
-            [Op.or]: [
-              { pic_klaim: level === 3 ? name : 'undefined' },
-              { spv_klaim: level === 23 ? name : 'undefined' },
-              { manager_klaim: level === 13 ? name : 'undefined' }
-            ]
-          }
-        })
-        if (findPic.length > 0) {
-          const tempDepo = []
-          for (let i = 0; i < findPic.length; i++) {
-            const findData = await picklaim.findAll({
-              where: {
-                [Op.or]: [
-                  { ksni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { nni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { nsi: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { mas: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { mcp: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { simba: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { lotte: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { mun: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { eiti: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { edot: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { meiji: { [Op.like]: `%${findPic[i].pic_klaim}%` } }
-                ]
-              }
-            })
-            if (findData.length > 0) {
-              for (let j = 0; j < findData.length; j++) {
-                tempDepo.push(findData[j])
-              }
+        } else if (access.find(item => item === level)) {
+          const findDepo = await finance.findAll({
+            where: {
+              [Op.or]: [
+                { bm: level === 10 ? name : 'undefined' },
+                { rom: level === 11 ? name : 'undefined' },
+                { nom: level === 12 ? name : 'undefined' },
+                { pic_finance: level === 2 ? name : 'undefined' },
+                { spv_finance: level === 7 ? name : 'undefined' },
+                { asman_finance: level === 8 ? name : 'undefined' },
+                { manager_finance: level === 9 ? name : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+              ]
             }
-          }
-          const cekDepo = new Set(tempDepo)
-          const findDepo = [...cekDepo]
-          if (findDepo.length > 0) {
+          })
+          if (findDepo) {
+            // const hasil = []
             const dataDepo = []
             for (let i = 0; i < findDepo.length; i++) {
               if (listDepo !== 'all') {
@@ -1034,7 +879,6 @@ module.exports = {
                 dataDepo.push(data)
               }
             }
-            // const hasil = []
             // for (let i = 0; i < findDepo.length; i++) {
             const hasil = await klaim.findAll({
               where: {
@@ -1043,18 +887,29 @@ module.exports = {
                   {
                     [Op.or]: dataDepo
                   },
-                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                  statTrans === 'all'
+                    ? { [Op.not]: { status_transaksi: null } }
+                    : category === 'verif' && level === 2
+                      ? { [Op.or]: [{ status_transaksi: statTrans }, { status_transaksi: 5 }] }
+                      : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { start_klaim: null } } : { status_reject: statRej },
                   statMenu === 'all' ? { [Op.not]: { start_klaim: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                   category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
-                    : {
-                        start_klaim: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
+                    : category === 'ajuan bayar'
+                      ? {
+                          tgl_sublist: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
                         }
-                      }
+                      : {
+                          start_klaim: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        }
                 ],
                 [Op.or]: [
                   { kode_plant: { [Op.like]: `%${searchValue}%` } },
@@ -1108,11 +963,11 @@ module.exports = {
                 }
               ]
             })
-            // if (result.length > 0) {
-            //   for (let j = 0; j < result.length; j++) {
-            //     hasil.push(result[j])
+            //   if (result.length > 0) {
+            //     for (let j = 0; j < result.length; j++) {
+            //       hasil.push(result[j])
+            //     }
             //   }
-            // }
             // }
             if (hasil.length > 0) {
               const data = []
@@ -1132,116 +987,271 @@ module.exports = {
               return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
             }
           } else {
-            const result = []
-            const noDis = []
-            return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+            return response(res, 'failed get klaim', {}, 400, false)
+          }
+        } else if (accKlaim.find(item => item === level)) {
+          const findPic = await spvklaim.findAll({
+            where: {
+              [Op.or]: [
+                { pic_klaim: level === 3 ? name : 'undefined' },
+                { spv_klaim: level === 23 ? name : 'undefined' },
+                { manager_klaim: level === 13 ? name : 'undefined' }
+              ]
+            }
+          })
+          if (findPic.length > 0) {
+            const tempDepo = []
+            for (let i = 0; i < findPic.length; i++) {
+              const findData = await picklaim.findAll({
+                where: {
+                  [Op.or]: [
+                    { ksni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { nni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { nsi: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { mas: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { mcp: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { simba: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { lotte: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { mun: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { eiti: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { edot: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { meiji: { [Op.like]: `%${findPic[i].pic_klaim}%` } }
+                  ]
+                }
+              })
+              if (findData.length > 0) {
+                for (let j = 0; j < findData.length; j++) {
+                  tempDepo.push(findData[j])
+                }
+              }
+            }
+            const cekDepo = new Set(tempDepo)
+            const findDepo = [...cekDepo]
+            if (findDepo.length > 0) {
+              const dataDepo = []
+              for (let i = 0; i < findDepo.length; i++) {
+                if (listDepo !== 'all') {
+                  const depoArr = listDepo.split(',')
+                  if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
+                    const data = { kode_plant: findDepo[i].kode_plant }
+                    dataDepo.push(data)
+                  }
+                } else {
+                  const data = { kode_plant: findDepo[i].kode_plant }
+                  dataDepo.push(data)
+                }
+              }
+              // const hasil = []
+              // for (let i = 0; i < findDepo.length; i++) {
+              const hasil = await klaim.findAll({
+                where: {
+                  // kode_plant: findDepo[i].kode_plant,
+                  [Op.and]: [
+                    {
+                      [Op.or]: dataDepo
+                    },
+                    statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                    statRej === 'all' ? { [Op.not]: { start_klaim: null } } : { status_reject: statRej },
+                    statMenu === 'all' ? { [Op.not]: { start_klaim: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                    category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
+                    timeVal1 === 'all'
+                      ? { [Op.not]: { id: null } }
+                      : {
+                          start_klaim: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        }
+                  ],
+                  [Op.or]: [
+                    { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                    { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                    { dn_area: { [Op.like]: `%${searchValue}%` } },
+                    { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                    { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                    { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                    { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                    { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                    { nama_program: { [Op.like]: `%${searchValue}%` } },
+                    { area: { [Op.like]: `%${searchValue}%` } },
+                    { cost_center: { [Op.like]: `%${searchValue}%` } },
+                    { no_coa: { [Op.like]: `%${searchValue}%` } },
+                    { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                    { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                    { keterangan: { [Op.like]: `%${searchValue}%` } },
+                    { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                    { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                  ]
+                },
+                order: [
+                  ['start_klaim', 'DESC'],
+                  [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                  [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                ],
+                include: [
+                  {
+                    model: ttd,
+                    as: 'appForm'
+                  },
+                  {
+                    model: ttd,
+                    as: 'appList'
+                  },
+                  {
+                    model: finance,
+                    as: 'depo'
+                  },
+                  {
+                    model: depo,
+                    as: 'scarea'
+                  },
+                  {
+                    model: picklaim,
+                    as: 'picklaim'
+                  },
+                  {
+                    model: kliring,
+                    as: 'kliring'
+                  }
+                ]
+              })
+              // if (result.length > 0) {
+              //   for (let j = 0; j < result.length; j++) {
+              //     hasil.push(result[j])
+              //   }
+              // }
+              // }
+              if (hasil.length > 0) {
+                const data = []
+                hasil.map(x => {
+                  return (
+                    data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
+                  )
+                })
+                const set = new Set(data)
+                const noDis = [...set]
+                const result = hasil
+                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
+                return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
+              } else {
+                const result = hasil
+                const noDis = []
+                return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+              }
+            } else {
+              const result = []
+              const noDis = []
+              return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+            }
+          } else {
+            return response(res, 'failed get klaim', {}, 400, false)
           }
         } else {
-          return response(res, 'failed get klaim', {}, 400, false)
-        }
-      } else {
-        const findDepo = await finance.findAll()
-        const dataDepo = []
-        for (let i = 0; i < findDepo.length; i++) {
-          if (listDepo !== 'all') {
-            const depoArr = listDepo.split(',')
-            if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
+          const findDepo = await finance.findAll()
+          const dataDepo = []
+          for (let i = 0; i < findDepo.length; i++) {
+            if (listDepo !== 'all') {
+              const depoArr = listDepo.split(',')
+              if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
+                const data = { kode_plant: findDepo[i].kode_plant }
+                dataDepo.push(data)
+              }
+            } else {
               const data = { kode_plant: findDepo[i].kode_plant }
               dataDepo.push(data)
             }
-          } else {
-            const data = { kode_plant: findDepo[i].kode_plant }
-            dataDepo.push(data)
           }
-        }
-        if (dataDepo.length > 0) {
-          const findKlaim = await klaim.findAll({
-            where: {
-              [Op.and]: [
-                {
-                  [Op.or]: dataDepo
-                },
-                statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-                statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                timeVal1 === 'all'
-                  ? { [Op.not]: { id: null } }
-                  : {
-                      start_klaim: {
-                        [Op.gte]: timeV1,
-                        [Op.lt]: timeV2
+          if (dataDepo.length > 0) {
+            const findKlaim = await klaim.findAll({
+              where: {
+                [Op.and]: [
+                  {
+                    [Op.or]: dataDepo
+                  },
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        start_klaim: {
+                          [Op.gte]: timeV1,
+                          [Op.lt]: timeV2
+                        }
                       }
-                    }
+                ],
+                [Op.or]: [
+                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { dn_area: { [Op.like]: `%${searchValue}%` } },
+                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                  { nama_program: { [Op.like]: `%${searchValue}%` } },
+                  { area: { [Op.like]: `%${searchValue}%` } },
+                  { cost_center: { [Op.like]: `%${searchValue}%` } },
+                  { no_coa: { [Op.like]: `%${searchValue}%` } },
+                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                  { keterangan: { [Op.like]: `%${searchValue}%` } },
+                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                ]
+              },
+              order: [
+                ['start_klaim', 'DESC'],
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
               ],
-              [Op.or]: [
-                { kode_plant: { [Op.like]: `%${searchValue}%` } },
-                { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-                { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-                { dn_area: { [Op.like]: `%${searchValue}%` } },
-                { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-                { no_ktp: { [Op.like]: `%${searchValue}%` } },
-                { no_npwp: { [Op.like]: `%${searchValue}%` } },
-                { no_surkom: { [Op.like]: `%${searchValue}%` } },
-                { nama_program: { [Op.like]: `%${searchValue}%` } },
-                { area: { [Op.like]: `%${searchValue}%` } },
-                { cost_center: { [Op.like]: `%${searchValue}%` } },
-                { no_coa: { [Op.like]: `%${searchValue}%` } },
-                { sub_coa: { [Op.like]: `%${searchValue}%` } },
-                { nama_coa: { [Op.like]: `%${searchValue}%` } },
-                { keterangan: { [Op.like]: `%${searchValue}%` } },
-                { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-                { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+              include: [
+                {
+                  model: ttd,
+                  as: 'appForm'
+                },
+                {
+                  model: ttd,
+                  as: 'appList'
+                },
+                {
+                  model: finance,
+                  as: 'depo'
+                },
+                {
+                  model: depo,
+                  as: 'scarea'
+                },
+                {
+                  model: picklaim,
+                  as: 'picklaim'
+                },
+                {
+                  model: kliring,
+                  as: 'kliring'
+                }
               ]
-            },
-            order: [
-              ['start_klaim', 'DESC'],
-              [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-              [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-            ],
-            include: [
-              {
-                model: ttd,
-                as: 'appForm'
-              },
-              {
-                model: ttd,
-                as: 'appList'
-              },
-              {
-                model: finance,
-                as: 'depo'
-              },
-              {
-                model: depo,
-                as: 'scarea'
-              },
-              {
-                model: picklaim,
-                as: 'picklaim'
-              },
-              {
-                model: kliring,
-                as: 'kliring'
-              }
-            ]
-          })
-          const data = []
-          findKlaim.map(x => {
-            return (
-              data.push(x.no_transaksi)
-            )
-          })
-          const set = new Set(data)
-          const noDis = [...set]
-          if (findKlaim) {
-            const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
-            return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim, findDepo })
+            })
+            const data = []
+            findKlaim.map(x => {
+              return (
+                data.push(x.no_transaksi)
+              )
+            })
+            const set = new Set(data)
+            const noDis = [...set]
+            if (findKlaim) {
+              const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
+              return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim, findDepo })
+            } else {
+              return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [], findDepo })
+            }
           } else {
-            return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [], findDepo })
+            return response(res, 'Failed get data klaim', {}, 404, false)
           }
-        } else {
-          return response(res, 'Failed get data klaim', {}, 404, false)
         }
+      } else {
+        return response(res, 'Failed get data klaim', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -2506,7 +2516,7 @@ module.exports = {
     try {
       const level = req.user.level
       const kode = req.user.kode
-      const name = req.user.fullname
+      const idUser = req.user.id
       const { status, reject, menu, time1, time2, type, search } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 8 : status
@@ -2516,117 +2526,335 @@ module.exports = {
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
-      if (level === 5) {
-        const findKlaim = await klaim.findAll({
-          where: {
-            kode_plant: kode,
-            [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-              type === 'reject' ? { [Op.not]: { status_reject: null } } : { [Op.not]: { id: null } },
-              type === 'reject' ? { [Op.not]: { status_reject: 0 } } : { [Op.not]: { id: null } },
-              timeVal1 === 'all'
-                ? { [Op.not]: { id: null } }
-                : {
-                    start_klaim: {
-                      [Op.gte]: timeV1,
-                      [Op.lt]: timeV2
-                    }
-                  },
-              { [Op.not]: { status_transaksi: null } },
-              { [Op.not]: { status_transaksi: 1 } }
-            ],
-            [Op.or]: [
-              { kode_plant: { [Op.like]: `%${searchValue}%` } },
-              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_ktp: { [Op.like]: `%${searchValue}%` } },
-              { no_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_surkom: { [Op.like]: `%${searchValue}%` } },
-              { nama_program: { [Op.like]: `%${searchValue}%` } },
-              { area: { [Op.like]: `%${searchValue}%` } },
-              { cost_center: { [Op.like]: `%${searchValue}%` } },
-              { no_coa: { [Op.like]: `%${searchValue}%` } },
-              { sub_coa: { [Op.like]: `%${searchValue}%` } },
-              { nama_coa: { [Op.like]: `%${searchValue}%` } },
-              { keterangan: { [Op.like]: `%${searchValue}%` } },
-              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-            ],
-            [Op.not]: [
-              { status_transaksi: 1 }
-            ]
-          },
-          order: [
-            ['start_klaim', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
-            },
-            {
-              model: finance,
-              as: 'depo'
-            },
-            {
-              model: depo,
-              as: 'scarea'
-            },
-            {
-              model: picklaim,
-              as: 'picklaim'
-            },
-            {
-              model: finance,
-              as: 'finance'
-            }
-          ]
-        })
-        if (findKlaim) {
-          return response(res, 'success get data klaim', { result: findKlaim })
-        } else {
-          return response(res, 'success get data klaim', { result: findKlaim })
-        }
-      } else if (access.find(item => item === level)) {
-        const findDepo = await finance.findAll({
-          where: {
-            [Op.or]: [
-              { bm: level === 10 ? name : 'undefined' },
-              { rom: level === 11 ? name : 'undefined' },
-              { nom: level === 12 ? name : 'undefined' },
-              { pic_finance: level === 2 ? name : 'undefined' },
-              { spv_finance: level === 7 ? name : 'undefined' },
-              { asman_finance: level === 8 ? name : 'undefined' },
-              { manager_finance: level === 9 ? name : 'undefined' }
-            ]
-          }
-        })
-        if (findDepo) {
-          // const hasil = []
-          const dataDepo = []
-          for (let i = 0; i < findDepo.length; i++) {
-            const data = { kode_plant: findDepo[i].kode_plant }
-            dataDepo.push(data)
-          }
-          // for (let i = 0; i < findDepo.length; i++) {
-          const hasil = await klaim.findAll({
+      const findUser = await user.findByPk(idUser)
+      if (findUser) {
+        const name = findUser.fullname
+        const email = findUser.email
+        if (level === 5) {
+          const findKlaim = await klaim.findAll({
             where: {
-              // kode_plant: findDepo[i].kode_plant,
+              kode_plant: kode,
               [Op.and]: [
+                statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
+                statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                type === 'reject' ? { [Op.not]: { status_reject: null } } : { [Op.not]: { id: null } },
+                type === 'reject' ? { [Op.not]: { status_reject: 0 } } : { [Op.not]: { id: null } },
+                timeVal1 === 'all'
+                  ? { [Op.not]: { id: null } }
+                  : {
+                      start_klaim: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                    },
+                { [Op.not]: { status_transaksi: null } },
+                { [Op.not]: { status_transaksi: 1 } }
+              ],
+              [Op.or]: [
+                { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                { nama_program: { [Op.like]: `%${searchValue}%` } },
+                { area: { [Op.like]: `%${searchValue}%` } },
+                { cost_center: { [Op.like]: `%${searchValue}%` } },
+                { no_coa: { [Op.like]: `%${searchValue}%` } },
+                { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                { keterangan: { [Op.like]: `%${searchValue}%` } },
+                { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+              ],
+              [Op.not]: [
+                { status_transaksi: 1 }
+              ]
+            },
+            order: [
+              ['start_klaim', 'DESC'],
+              [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            ],
+            include: [
+              {
+                model: ttd,
+                as: 'appForm'
+              },
+              {
+                model: finance,
+                as: 'depo'
+              },
+              {
+                model: depo,
+                as: 'scarea'
+              },
+              {
+                model: picklaim,
+                as: 'picklaim'
+              },
+              {
+                model: finance,
+                as: 'finance'
+              }
+            ]
+          })
+          if (findKlaim) {
+            return response(res, 'success get data klaim', { result: findKlaim })
+          } else {
+            return response(res, 'success get data klaim', { result: findKlaim })
+          }
+        } else if (access.find(item => item === level)) {
+          const findDepo = await finance.findAll({
+            where: {
+              [Op.or]: [
+                { bm: level === 10 ? name : 'undefined' },
+                { rom: level === 11 ? name : 'undefined' },
+                { nom: level === 12 ? name : 'undefined' },
+                { pic_finance: level === 2 ? name : 'undefined' },
+                { spv_finance: level === 7 ? name : 'undefined' },
+                { asman_finance: level === 8 ? name : 'undefined' },
+                { manager_finance: level === 9 ? name : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+              ]
+            }
+          })
+          if (findDepo) {
+            // const hasil = []
+            const dataDepo = []
+            for (let i = 0; i < findDepo.length; i++) {
+              const data = { kode_plant: findDepo[i].kode_plant }
+              dataDepo.push(data)
+            }
+            // for (let i = 0; i < findDepo.length; i++) {
+            const hasil = await klaim.findAll({
+              where: {
+                // kode_plant: findDepo[i].kode_plant,
+                [Op.and]: [
+                  {
+                    [Op.or]: dataDepo
+                  },
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        tanggal_transfer: {
+                          [Op.gte]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
+                ],
+                [Op.or]: [
+                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                  { nama_program: { [Op.like]: `%${searchValue}%` } },
+                  { area: { [Op.like]: `%${searchValue}%` } },
+                  { cost_center: { [Op.like]: `%${searchValue}%` } },
+                  { no_coa: { [Op.like]: `%${searchValue}%` } },
+                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                  { keterangan: { [Op.like]: `%${searchValue}%` } },
+                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                ]
+              },
+              order: [
+                ['start_klaim', 'DESC'],
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+              ],
+              include: [
                 {
-                  [Op.or]: dataDepo
+                  model: ttd,
+                  as: 'appForm'
                 },
+                {
+                  model: ttd,
+                  as: 'appList'
+                },
+                {
+                  model: finance,
+                  as: 'depo'
+                },
+                {
+                  model: depo,
+                  as: 'scarea'
+                },
+                {
+                  model: picklaim,
+                  as: 'picklaim'
+                },
+                {
+                  model: finance,
+                  as: 'finance'
+                }
+              ]
+            })
+            // if (result.length > 0) {
+            //   for (let j = 0; j < result.length; j++) {
+            //     hasil.push(result[j])
+            //   }
+            // }
+            // }
+            if (hasil.length > 0) {
+              const result = hasil
+              return response(res, 'success get klaim', { result })
+            } else {
+              const result = hasil
+              return response(res, 'success get klaim', { result })
+            }
+          } else {
+            return response(res, 'failed get klaim', {}, 400, false)
+          }
+        } else if (accKlaim.find(item => item === level)) {
+          const findPic = await spvklaim.findAll({
+            where: {
+              [Op.or]: [
+                { pic_klaim: level === 3 ? name : 'undefined' },
+                { spv_klaim: level === 23 ? name : 'undefined' },
+                { manager_klaim: level === 13 ? name : 'undefined' }
+              ]
+            }
+          })
+          if (findPic.length > 0) {
+            const tempDepo = []
+            for (let i = 0; i < findPic.length; i++) {
+              const findData = await picklaim.findAll({
+                where: {
+                  [Op.or]: [
+                    { ksni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { nni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { nsi: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { mas: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { mcp: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { simba: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { lotte: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { mun: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { eiti: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { edot: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
+                    { meiji: { [Op.like]: `%${findPic[i].pic_klaim}%` } }
+                  ]
+                }
+              })
+              if (findData.length > 0) {
+                for (let j = 0; j < findData.length; j++) {
+                  tempDepo.push(findData[j].kode_plant)
+                }
+              }
+            }
+            const cekDepo = new Set(tempDepo)
+            const findDepo = [...cekDepo]
+            if (findDepo.length > 0) {
+              const hasil = []
+              for (let i = 0; i < findDepo.length; i++) {
+                const result = await klaim.findAll({
+                  where: {
+                    kode_plant: findDepo[i],
+                    [Op.and]: [
+                      statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                      statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                      statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                      timeVal1 === 'all'
+                        ? { [Op.not]: { id: null } }
+                        : {
+                            tanggal_transfer: {
+                              [Op.gte]: timeV1,
+                              [Op.lt]: timeV2
+                            }
+                          }
+                    ],
+                    [Op.or]: [
+                      { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                      { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                      { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                      { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                      { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                      { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                      { no_surkom: { [Op.like]: `%${searchValue}%` } },
+                      { nama_program: { [Op.like]: `%${searchValue}%` } },
+                      { area: { [Op.like]: `%${searchValue}%` } },
+                      { cost_center: { [Op.like]: `%${searchValue}%` } },
+                      { no_coa: { [Op.like]: `%${searchValue}%` } },
+                      { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                      { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                      { keterangan: { [Op.like]: `%${searchValue}%` } },
+                      { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                      { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                    ]
+                  },
+                  order: [
+                    ['start_klaim', 'DESC'],
+                    [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                    [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                  ],
+                  include: [
+                    {
+                      model: ttd,
+                      as: 'appForm'
+                    },
+                    {
+                      model: ttd,
+                      as: 'appList'
+                    },
+                    {
+                      model: finance,
+                      as: 'depo'
+                    },
+                    {
+                      model: depo,
+                      as: 'scarea'
+                    },
+                    {
+                      model: picklaim,
+                      as: 'picklaim'
+                    },
+                    {
+                      model: finance,
+                      as: 'finance'
+                    }
+                  ]
+                })
+                if (result.length > 0) {
+                  for (let j = 0; j < result.length; j++) {
+                    hasil.push(result[j])
+                  }
+                }
+              }
+              // const cekHasil = new Set(hasil)
+              // const findHasil = [...cekHasil]
+              if (hasil.length > 0) {
+                const result = hasil
+                return response(res, 'success get klaim', { result, findDepo })
+              } else {
+                const result = hasil
+                return response(res, 'success get klaim', { result, findDepo })
+              }
+            } else {
+              return response(res, 'success get klaim', { result: [] })
+            }
+          } else {
+            return response(res, 'failed get klaim', {}, 400, false)
+          }
+        } else {
+          const findKlaim = await klaim.findAll({
+            where: {
+              [Op.and]: [
                 statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                 statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                 statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                 timeVal1 === 'all'
                   ? { [Op.not]: { id: null } }
                   : {
-                      tanggal_transfer: {
+                      start_klaim: {
                         [Op.gte]: timeV1,
                         [Op.lt]: timeV2
                       }
@@ -2683,223 +2911,14 @@ module.exports = {
               }
             ]
           })
-          // if (result.length > 0) {
-          //   for (let j = 0; j < result.length; j++) {
-          //     hasil.push(result[j])
-          //   }
-          // }
-          // }
-          if (hasil.length > 0) {
-            const result = hasil
-            return response(res, 'success get klaim', { result })
+          if (findKlaim) {
+            return response(res, 'success get data klaim', { result: findKlaim })
           } else {
-            const result = hasil
-            return response(res, 'success get klaim', { result })
+            return response(res, 'success get data klaim', { result: findKlaim })
           }
-        } else {
-          return response(res, 'failed get klaim', {}, 400, false)
-        }
-      } else if (accKlaim.find(item => item === level)) {
-        const findPic = await spvklaim.findAll({
-          where: {
-            [Op.or]: [
-              { pic_klaim: level === 3 ? name : 'undefined' },
-              { spv_klaim: level === 23 ? name : 'undefined' },
-              { manager_klaim: level === 13 ? name : 'undefined' }
-            ]
-          }
-        })
-        if (findPic.length > 0) {
-          const tempDepo = []
-          for (let i = 0; i < findPic.length; i++) {
-            const findData = await picklaim.findAll({
-              where: {
-                [Op.or]: [
-                  { ksni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { nni: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { nsi: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { mas: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { mcp: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { simba: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { lotte: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { mun: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { eiti: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { edot: { [Op.like]: `%${findPic[i].pic_klaim}%` } },
-                  { meiji: { [Op.like]: `%${findPic[i].pic_klaim}%` } }
-                ]
-              }
-            })
-            if (findData.length > 0) {
-              for (let j = 0; j < findData.length; j++) {
-                tempDepo.push(findData[j].kode_plant)
-              }
-            }
-          }
-          const cekDepo = new Set(tempDepo)
-          const findDepo = [...cekDepo]
-          if (findDepo.length > 0) {
-            const hasil = []
-            for (let i = 0; i < findDepo.length; i++) {
-              const result = await klaim.findAll({
-                where: {
-                  kode_plant: findDepo[i],
-                  [Op.and]: [
-                    statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-                    statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-                    statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                    timeVal1 === 'all'
-                      ? { [Op.not]: { id: null } }
-                      : {
-                          tanggal_transfer: {
-                            [Op.gte]: timeV1,
-                            [Op.lt]: timeV2
-                          }
-                        }
-                  ],
-                  [Op.or]: [
-                    { kode_plant: { [Op.like]: `%${searchValue}%` } },
-                    { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-                    { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-                    { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-                    { no_ktp: { [Op.like]: `%${searchValue}%` } },
-                    { no_npwp: { [Op.like]: `%${searchValue}%` } },
-                    { no_surkom: { [Op.like]: `%${searchValue}%` } },
-                    { nama_program: { [Op.like]: `%${searchValue}%` } },
-                    { area: { [Op.like]: `%${searchValue}%` } },
-                    { cost_center: { [Op.like]: `%${searchValue}%` } },
-                    { no_coa: { [Op.like]: `%${searchValue}%` } },
-                    { sub_coa: { [Op.like]: `%${searchValue}%` } },
-                    { nama_coa: { [Op.like]: `%${searchValue}%` } },
-                    { keterangan: { [Op.like]: `%${searchValue}%` } },
-                    { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-                    { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-                  ]
-                },
-                order: [
-                  ['start_klaim', 'DESC'],
-                  [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                  [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-                ],
-                include: [
-                  {
-                    model: ttd,
-                    as: 'appForm'
-                  },
-                  {
-                    model: ttd,
-                    as: 'appList'
-                  },
-                  {
-                    model: finance,
-                    as: 'depo'
-                  },
-                  {
-                    model: depo,
-                    as: 'scarea'
-                  },
-                  {
-                    model: picklaim,
-                    as: 'picklaim'
-                  },
-                  {
-                    model: finance,
-                    as: 'finance'
-                  }
-                ]
-              })
-              if (result.length > 0) {
-                for (let j = 0; j < result.length; j++) {
-                  hasil.push(result[j])
-                }
-              }
-            }
-            // const cekHasil = new Set(hasil)
-            // const findHasil = [...cekHasil]
-            if (hasil.length > 0) {
-              const result = hasil
-              return response(res, 'success get klaim', { result, findDepo })
-            } else {
-              const result = hasil
-              return response(res, 'success get klaim', { result, findDepo })
-            }
-          } else {
-            return response(res, 'success get klaim', { result: [] })
-          }
-        } else {
-          return response(res, 'failed get klaim', {}, 400, false)
         }
       } else {
-        const findKlaim = await klaim.findAll({
-          where: {
-            [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-              timeVal1 === 'all'
-                ? { [Op.not]: { id: null } }
-                : {
-                    start_klaim: {
-                      [Op.gte]: timeV1,
-                      [Op.lt]: timeV2
-                    }
-                  }
-            ],
-            [Op.or]: [
-              { kode_plant: { [Op.like]: `%${searchValue}%` } },
-              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_ktp: { [Op.like]: `%${searchValue}%` } },
-              { no_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_surkom: { [Op.like]: `%${searchValue}%` } },
-              { nama_program: { [Op.like]: `%${searchValue}%` } },
-              { area: { [Op.like]: `%${searchValue}%` } },
-              { cost_center: { [Op.like]: `%${searchValue}%` } },
-              { no_coa: { [Op.like]: `%${searchValue}%` } },
-              { sub_coa: { [Op.like]: `%${searchValue}%` } },
-              { nama_coa: { [Op.like]: `%${searchValue}%` } },
-              { keterangan: { [Op.like]: `%${searchValue}%` } },
-              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-            ]
-          },
-          order: [
-            ['start_klaim', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
-            },
-            {
-              model: ttd,
-              as: 'appList'
-            },
-            {
-              model: finance,
-              as: 'depo'
-            },
-            {
-              model: depo,
-              as: 'scarea'
-            },
-            {
-              model: picklaim,
-              as: 'picklaim'
-            },
-            {
-              model: finance,
-              as: 'finance'
-            }
-          ]
-        })
-        if (findKlaim) {
-          return response(res, 'success get data klaim', { result: findKlaim })
-        } else {
-          return response(res, 'success get data klaim', { result: findKlaim })
-        }
+        return response(res, 'Failed get data klaim', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

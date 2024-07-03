@@ -11,6 +11,7 @@ const nonPph = 'Non PPh'
 const spend = 'Rekening Spending Card'
 const zba = 'Rekening ZBA'
 const bankcoll = 'Rekening Bank Coll'
+const accarea = [10, 11]
 
 module.exports = {
   addCart: async (req, res) => {
@@ -1459,7 +1460,7 @@ module.exports = {
     try {
       const level = req.user.level
       const kode = req.user.kode
-      const name = req.user.fullname
+      const idUser = req.user.id
       const role = req.user.role
       const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
       const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi, search, jentrans, desttf } = req.query
@@ -1473,295 +1474,16 @@ module.exports = {
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = timeVal1 !== 'all' ? moment(timeVal1) : moment()
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal1 === 'all' ? moment() : moment(timeVal2).add(1, 'd')
-      if (level === 5) {
-        const findOps = await ops.findAll({
-          where: {
-            kode_plant: kode,
-            [Op.and]: [
-              statTrans === 'all' && realisasi === 'realisasi' ? { status_transaksi: { [Op.gte]: 8 } } : statTrans === 'all' && realisasi !== 'realisasi' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-              statKasbon === 'kasbon'
-                ? { type_kasbon: statKasbon }
-                : statKasbon === 'non kasbon'
-                  ? {
-                      [Op.or]: [
-                        { [Op.not]: { type_kasbon: 'kasbon' } },
-                        { type_kasbon: null }
-                      ]
-                    }
-                  : {
-                      [Op.not]: { id: null }
-                    },
-              timeVal1 === 'all'
-                ? { [Op.not]: { id: null } }
-                : {
-                    start_ops: {
-                      [Op.gte]: timeV1,
-                      [Op.lt]: timeV2
-                    }
-                  },
-              { [Op.not]: { status_transaksi: null } },
-              { [Op.not]: { status_transaksi: 1 } },
-              category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
-            ],
-            [Op.or]: [
-              { no_coa: { [Op.like]: `%${searchValue}%` } },
-              { sub_coa: { [Op.like]: `%${searchValue}%` } },
-              { nama_coa: { [Op.like]: `%${searchValue}%` } },
-              { keterangan: { [Op.like]: `%${searchValue}%` } },
-              { no_faktur: { [Op.like]: `%${searchValue}%` } },
-              { nama_vendor: { [Op.like]: `%${searchValue}%` } },
-              { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
-              // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
-              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_ktp: { [Op.like]: `%${searchValue}%` } },
-              { no_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-            ]
-          },
-          order: [
-            ['start_ops', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
-            },
-            {
-              model: ttd,
-              as: 'appList'
-            },
-            {
-              model: finance,
-              as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-            },
-            {
-              model: veriftax,
-              as: 'veriftax'
-            },
-            {
-              model: kliring,
-              as: 'kliring'
-            },
-            {
-              model: bbm,
-              as: 'bbm'
-            }
-          ]
-        })
-        const data = []
-        for (let i = 0; i < findOps.length; i++) {
-          data.push(findOps[i].no_transaksi)
-        }
-        // findOps.map(x => {
-        //   return (
-        //     data.push(x.no_transaksi)
-        //   )
-        // })
-        const set = new Set(data)
-        const noDis = [...set]
-        if (findOps) {
-          const newOps = category === 'verif' ? filter(type, findOps, noDis, statData, role) : filterApp(type, findOps, noDis, role)
-          return response(res, 'success get data ops', { result: findOps, noDis, newOps, findDepo: [] })
-        } else {
-          return response(res, 'success get data ops', { result: findOps, noDis, newOps: [], findDepo: [] })
-        }
-      } else if (access.find(item => item === level) !== undefined) {
-        const findDepo = await finance.findAll({
-          where: {
-            [Op.or]: [
-              { bm: level === 10 ? name : 'undefined' },
-              { rom: level === 11 ? name : 'undefined' },
-              { nom: level === 12 ? name : 'undefined' },
-              { pic_finance: level === 2 ? name : 'undefined' },
-              { spv_finance: level === 7 ? name : 'undefined' },
-              { asman_finance: level === 8 ? name : 'undefined' },
-              { manager_finance: level === 9 ? name : 'undefined' },
-              { pic_tax: level === 4 ? name : 'undefined' },
-              { manager_tax: level === 14 ? name : 'undefined' },
-              { spv_tax: level === 24 ? name : 'undefined' },
-              { asman_tax: level === 34 ? name : 'undefined' }
-            ]
-          }
-        })
-        if (findDepo) {
-          // const hasil = []
-          const dataDepo = []
-          for (let i = 0; i < findDepo.length; i++) {
-            if (listDepo !== 'all') {
-              const depoArr = listDepo.split(',')
-              if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
-                const data = { kode_plant: findDepo[i].kode_plant }
-                dataDepo.push(data)
-              }
-            } else {
-              const data = { kode_plant: findDepo[i].kode_plant }
-              dataDepo.push(data)
-            }
-          }
-          // for (let i = 0; i < findDepo.length; i++) {
-          const hasil = await ops.findAll({
-            where: {
-              // kode_plant: findDepo[i].kode_plant,
-              [Op.and]: [
-                {
-                  [Op.or]: dataDepo
-                },
-                statTrans === 'all'
-                  ? { [Op.not]: { status_transaksi: null } }
-                  : category === 'verif' && level === 2
-                    ? { [Op.or]: [{ status_transaksi: statTrans }, { status_transaksi: 5 }] }
-                    : { status_transaksi: statTrans },
-                statRej === 'all' ? { [Op.not]: { start_ops: null } } : { status_reject: statRej },
-                statMenu === 'all' ? { [Op.not]: { start_ops: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                category === 'ajuan bayar'
-                  ? { [Op.not]: { no_pembayaran: null } }
-                  : { [Op.not]: { id: null } },
-                statKasbon === 'kasbon'
-                  ? { type_kasbon: statKasbon }
-                  : statKasbon === 'non kasbon'
-                    ? {
-                        [Op.or]: [
-                          { [Op.not]: { type_kasbon: 'kasbon' } },
-                          { type_kasbon: null }
-                        ]
-                      }
-                    : {
-                        [Op.not]: { id: null }
-                      },
-                timeVal1 === 'all'
-                  ? { [Op.not]: { id: null } }
-                  : category === 'ajuan bayar'
-                    ? {
-                        tgl_sublist: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
-                        }
-                      }
-                    : {
-                        start_ops: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
-                        }
-                      },
-                jentrans === 'undefined' || jentrans === undefined || jentrans === '' || jentrans === null || jentrans === 'all' ? { [Op.not]: { id: null } } : { sub_coa: jentrans },
-                desttf === 'undefined' || desttf === undefined || desttf === '' || desttf === null || desttf === 'all' ? { [Op.not]: { id: null } } : { tujuan_tf: desttf }
-              ],
-              [Op.or]: [
-                { kode_plant: { [Op.like]: `%${searchValue}%` } },
-                { area: { [Op.like]: `%${searchValue}%` } },
-                { cost_center: { [Op.like]: `%${searchValue}%` } },
-                { no_coa: { [Op.like]: `%${searchValue}%` } },
-                // { sub_coa: { [Op.like]: `%${searchValue}%` } },
-                { nama_coa: { [Op.like]: `%${searchValue}%` } },
-                { keterangan: { [Op.like]: `%${searchValue}%` } },
-                { no_faktur: { [Op.like]: `%${searchValue}%` } },
-                { nama_vendor: { [Op.like]: `%${searchValue}%` } },
-                { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
-                // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
-                { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-                { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-                { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-                { no_ktp: { [Op.like]: `%${searchValue}%` } },
-                { no_npwp: { [Op.like]: `%${searchValue}%` } },
-                { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-                { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-              ]
-            },
-            order: [
-              ['start_ops', 'DESC'],
-              [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-              [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-            ],
-            include: [
-              {
-                model: ttd,
-                as: 'appForm'
-              },
-              {
-                model: ttd,
-                as: 'appList'
-              },
-              {
-                model: finance,
-                as: 'depo',
-                include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-              },
-              {
-                model: veriftax,
-                as: 'veriftax'
-              },
-              {
-                model: kliring,
-                as: 'kliring'
-              },
-              {
-                model: bbm,
-                as: 'bbm'
-              }
-            ]
-          })
-          // if (result.length > 0) {
-          //   for (let j = 0; j < result.length; j++) {
-          //     hasil.push(result[j])
-          //   }
-          // }
-          // }
-          if (hasil.length > 0) {
-            const data = []
-            for (let i = 0; i < hasil.length; i++) {
-              data.push(category === 'ajuan bayar' ? hasil[i].no_pembayaran : hasil[i].no_transaksi)
-            }
-            // hasil.map(x => {
-            //   return (
-            //     data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
-            //   )
-            // })
-            const set = new Set(data)
-            const noDis = [...set]
-            const result = hasil
-            const newOps = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role, level) : filterApp(type, result, noDis, role)
-            console.log(moment(timeV1).format('DD MMMM YYYY'))
-            return response(res, 'success get ops', { result, noDis, findDepo, newOps, dataDepo })
-          } else {
-            const result = hasil
-            const noDis = []
-            console.log(moment(timeV1).format('DD MMMM YYYY'))
-            return response(res, 'success get ops', { result, noDis, findDepo, newOps: [], dataDepo })
-          }
-        } else {
-          return response(res, 'failed get ops', {}, 400, false)
-        }
-      } else {
-        const findDepo = await finance.findAll()
-        const dataDepo = []
-        for (let i = 0; i < findDepo.length; i++) {
-          if (listDepo !== 'all') {
-            const depoArr = listDepo.split(',')
-            if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
-              const data = { kode_plant: findDepo[i].kode_plant }
-              dataDepo.push(data)
-            }
-          } else {
-            const data = { kode_plant: findDepo[i].kode_plant }
-            dataDepo.push(data)
-          }
-        }
-        if (dataDepo.length > 0) {
+      const findUser = await user.findByPk(idUser)
+      if (findUser) {
+        const name = findUser.fullname
+        const email = findUser.email
+        if (level === 5) {
           const findOps = await ops.findAll({
             where: {
+              kode_plant: kode,
               [Op.and]: [
-                {
-                  [Op.or]: dataDepo
-                },
-                statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                statTrans === 'all' && realisasi === 'realisasi' ? { status_transaksi: { [Op.gte]: 8 } } : statTrans === 'all' && realisasi !== 'realisasi' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
                 statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                 statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                 statKasbon === 'kasbon'
@@ -1783,12 +1505,12 @@ module.exports = {
                         [Op.gte]: timeV1,
                         [Op.lt]: timeV2
                       }
-                    }
+                    },
+                { [Op.not]: { status_transaksi: null } },
+                { [Op.not]: { status_transaksi: 1 } },
+                category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
               ],
               [Op.or]: [
-                { kode_plant: { [Op.like]: `%${searchValue}%` } },
-                { area: { [Op.like]: `%${searchValue}%` } },
-                { cost_center: { [Op.like]: `%${searchValue}%` } },
                 { no_coa: { [Op.like]: `%${searchValue}%` } },
                 { sub_coa: { [Op.like]: `%${searchValue}%` } },
                 { nama_coa: { [Op.like]: `%${searchValue}%` } },
@@ -1834,10 +1556,6 @@ module.exports = {
                 as: 'kliring'
               },
               {
-                model: taxcode,
-                as: 'taxcode'
-              },
-              {
                 model: bbm,
                 as: 'bbm'
               }
@@ -1856,13 +1574,305 @@ module.exports = {
           const noDis = [...set]
           if (findOps) {
             const newOps = category === 'verif' ? filter(type, findOps, noDis, statData, role) : filterApp(type, findOps, noDis, role)
-            return response(res, 'success get data ops', { result: findOps, findDepo, noDis, newOps })
+            return response(res, 'success get data ops', { result: findOps, noDis, newOps, findDepo: [] })
           } else {
-            return response(res, 'success get data ops', { result: findOps, findDepo, noDis, newOps: [] })
+            return response(res, 'success get data ops', { result: findOps, noDis, newOps: [], findDepo: [] })
+          }
+        } else if (access.find(item => item === level) !== undefined) {
+          const findDepo = await finance.findAll({
+            where: {
+              [Op.or]: [
+                { bm: level === 10 ? name : 'undefined' },
+                { rom: level === 11 ? name : 'undefined' },
+                { nom: level === 12 ? name : 'undefined' },
+                { pic_finance: level === 2 ? name : 'undefined' },
+                { spv_finance: level === 7 ? name : 'undefined' },
+                { asman_finance: level === 8 ? name : 'undefined' },
+                { manager_finance: level === 9 ? name : 'undefined' },
+                { pic_tax: level === 4 ? name : 'undefined' },
+                { manager_tax: level === 14 ? name : 'undefined' },
+                { spv_tax: level === 24 ? name : 'undefined' },
+                { asman_tax: level === 34 ? name : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+              ]
+            }
+          })
+          if (findDepo) {
+            // const hasil = []
+            const dataDepo = []
+            for (let i = 0; i < findDepo.length; i++) {
+              if (listDepo !== 'all') {
+                const depoArr = listDepo.split(',')
+                if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
+                  const data = { kode_plant: findDepo[i].kode_plant }
+                  dataDepo.push(data)
+                }
+              } else {
+                const data = { kode_plant: findDepo[i].kode_plant }
+                dataDepo.push(data)
+              }
+            }
+            // for (let i = 0; i < findDepo.length; i++) {
+            const hasil = await ops.findAll({
+              where: {
+                // kode_plant: findDepo[i].kode_plant,
+                [Op.and]: [
+                  {
+                    [Op.or]: dataDepo
+                  },
+                  statTrans === 'all'
+                    ? { [Op.not]: { status_transaksi: null } }
+                    : category === 'verif' && level === 2
+                      ? { [Op.or]: [{ status_transaksi: statTrans }, { status_transaksi: 5 }] }
+                      : { status_transaksi: statTrans },
+                  statRej === 'all' ? { [Op.not]: { start_ops: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { start_ops: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  category === 'ajuan bayar'
+                    ? { [Op.not]: { no_pembayaran: null } }
+                    : { [Op.not]: { id: null } },
+                  statKasbon === 'kasbon'
+                    ? { type_kasbon: statKasbon }
+                    : statKasbon === 'non kasbon'
+                      ? {
+                          [Op.or]: [
+                            { [Op.not]: { type_kasbon: 'kasbon' } },
+                            { type_kasbon: null }
+                          ]
+                        }
+                      : {
+                          [Op.not]: { id: null }
+                        },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : category === 'ajuan bayar'
+                      ? {
+                          tgl_sublist: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        }
+                      : {
+                          start_ops: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        },
+                  jentrans === 'undefined' || jentrans === undefined || jentrans === '' || jentrans === null || jentrans === 'all' ? { [Op.not]: { id: null } } : { sub_coa: jentrans },
+                  desttf === 'undefined' || desttf === undefined || desttf === '' || desttf === null || desttf === 'all' ? { [Op.not]: { id: null } } : { tujuan_tf: desttf }
+                ],
+                [Op.or]: [
+                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                  { area: { [Op.like]: `%${searchValue}%` } },
+                  { cost_center: { [Op.like]: `%${searchValue}%` } },
+                  { no_coa: { [Op.like]: `%${searchValue}%` } },
+                  // { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                  { keterangan: { [Op.like]: `%${searchValue}%` } },
+                  { no_faktur: { [Op.like]: `%${searchValue}%` } },
+                  { nama_vendor: { [Op.like]: `%${searchValue}%` } },
+                  { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
+                  // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
+                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                ]
+              },
+              order: [
+                ['start_ops', 'DESC'],
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+              ],
+              include: [
+                {
+                  model: ttd,
+                  as: 'appForm'
+                },
+                {
+                  model: ttd,
+                  as: 'appList'
+                },
+                {
+                  model: finance,
+                  as: 'depo',
+                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+                },
+                {
+                  model: veriftax,
+                  as: 'veriftax'
+                },
+                {
+                  model: kliring,
+                  as: 'kliring'
+                },
+                {
+                  model: bbm,
+                  as: 'bbm'
+                }
+              ]
+            })
+            // if (result.length > 0) {
+            //   for (let j = 0; j < result.length; j++) {
+            //     hasil.push(result[j])
+            //   }
+            // }
+            // }
+            if (hasil.length > 0) {
+              const data = []
+              for (let i = 0; i < hasil.length; i++) {
+                data.push(category === 'ajuan bayar' ? hasil[i].no_pembayaran : hasil[i].no_transaksi)
+              }
+              // hasil.map(x => {
+              //   return (
+              //     data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
+              //   )
+              // })
+              const set = new Set(data)
+              const noDis = [...set]
+              const result = hasil
+              const newOps = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role, level) : filterApp(type, result, noDis, role)
+              console.log(moment(timeV1).format('DD MMMM YYYY'))
+              return response(res, 'success get ops', { result, noDis, findDepo, newOps, dataDepo })
+            } else {
+              const result = hasil
+              const noDis = []
+              console.log(moment(timeV1).format('DD MMMM YYYY'))
+              return response(res, 'success get ops', { result, noDis, findDepo, newOps: [], dataDepo })
+            }
+          } else {
+            return response(res, 'failed get ops', {}, 400, false)
           }
         } else {
-          return response(res, 'Failed get data ops', {}, 404, false)
+          const findDepo = await finance.findAll()
+          const dataDepo = []
+          for (let i = 0; i < findDepo.length; i++) {
+            if (listDepo !== 'all') {
+              const depoArr = listDepo.split(',')
+              if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
+                const data = { kode_plant: findDepo[i].kode_plant }
+                dataDepo.push(data)
+              }
+            } else {
+              const data = { kode_plant: findDepo[i].kode_plant }
+              dataDepo.push(data)
+            }
+          }
+          if (dataDepo.length > 0) {
+            const findOps = await ops.findAll({
+              where: {
+                [Op.and]: [
+                  {
+                    [Op.or]: dataDepo
+                  },
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
+                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  statKasbon === 'kasbon'
+                    ? { type_kasbon: statKasbon }
+                    : statKasbon === 'non kasbon'
+                      ? {
+                          [Op.or]: [
+                            { [Op.not]: { type_kasbon: 'kasbon' } },
+                            { type_kasbon: null }
+                          ]
+                        }
+                      : {
+                          [Op.not]: { id: null }
+                        },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        start_ops: {
+                          [Op.gte]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
+                ],
+                [Op.or]: [
+                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                  { area: { [Op.like]: `%${searchValue}%` } },
+                  { cost_center: { [Op.like]: `%${searchValue}%` } },
+                  { no_coa: { [Op.like]: `%${searchValue}%` } },
+                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                  { keterangan: { [Op.like]: `%${searchValue}%` } },
+                  { no_faktur: { [Op.like]: `%${searchValue}%` } },
+                  { nama_vendor: { [Op.like]: `%${searchValue}%` } },
+                  { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
+                  // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
+                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                ]
+              },
+              order: [
+                ['start_ops', 'DESC'],
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+              ],
+              include: [
+                {
+                  model: ttd,
+                  as: 'appForm'
+                },
+                {
+                  model: ttd,
+                  as: 'appList'
+                },
+                {
+                  model: finance,
+                  as: 'depo',
+                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+                },
+                {
+                  model: veriftax,
+                  as: 'veriftax'
+                },
+                {
+                  model: kliring,
+                  as: 'kliring'
+                },
+                {
+                  model: taxcode,
+                  as: 'taxcode'
+                },
+                {
+                  model: bbm,
+                  as: 'bbm'
+                }
+              ]
+            })
+            const data = []
+            for (let i = 0; i < findOps.length; i++) {
+              data.push(findOps[i].no_transaksi)
+            }
+            // findOps.map(x => {
+            //   return (
+            //     data.push(x.no_transaksi)
+            //   )
+            // })
+            const set = new Set(data)
+            const noDis = [...set]
+            if (findOps) {
+              const newOps = category === 'verif' ? filter(type, findOps, noDis, statData, role) : filterApp(type, findOps, noDis, role)
+              return response(res, 'success get data ops', { result: findOps, findDepo, noDis, newOps })
+            } else {
+              return response(res, 'success get data ops', { result: findOps, findDepo, noDis, newOps: [] })
+            }
+          } else {
+            return response(res, 'Failed get data ops', {}, 404, false)
+          }
         }
+      } else {
+        return response(res, 'Failed get data ops', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -3702,7 +3712,7 @@ module.exports = {
     try {
       const level = req.user.level
       const kode = req.user.kode
-      const name = req.user.fullname
+      const idUser = req.user.id
       const { status, reject, menu, time1, time2, search } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 8 : status
@@ -3712,117 +3722,213 @@ module.exports = {
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
-      if (level === 5) {
-        const findOps = await ops.findAll({
-          where: {
-            kode_plant: kode,
-            [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-              timeVal1 === 'all'
-                ? { [Op.not]: { id: null } }
-                : {
-                    tanggal_transfer: {
-                      [Op.gte]: timeV1,
-                      [Op.lt]: timeV2
-                    }
-                  },
-              { [Op.not]: { status_transaksi: null } },
-              { [Op.not]: { status_transaksi: 1 } }
-            ],
-            [Op.or]: [
-              { no_coa: { [Op.like]: `%${searchValue}%` } },
-              { sub_coa: { [Op.like]: `%${searchValue}%` } },
-              { nama_coa: { [Op.like]: `%${searchValue}%` } },
-              { keterangan: { [Op.like]: `%${searchValue}%` } },
-              { no_faktur: { [Op.like]: `%${searchValue}%` } },
-              { nama_vendor: { [Op.like]: `%${searchValue}%` } },
-              { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
-              // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
-              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_ktp: { [Op.like]: `%${searchValue}%` } },
-              { no_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-            ],
-            [Op.not]: [
-              { status_transaksi: 1 }
-            ]
-          },
-          order: [
-            ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
-            },
-            {
-              model: finance,
-              as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
-            },
-            {
-              model: veriftax,
-              as: 'veriftax'
-            },
-            {
-              model: finance,
-              as: 'finance'
-            },
-            {
-              model: taxcode,
-              as: 'taxcode'
-            },
-            {
-              model: bbm,
-              as: 'bbm'
-            }
-          ]
-        })
-        if (findOps) {
-          return response(res, 'success get data ops', { result: findOps })
-        } else {
-          return response(res, 'success get data ops', { result: findOps })
-        }
-      } else if (access.find(item => item === level) !== undefined) {
-        const findDepo = await finance.findAll({
-          where: {
-            [Op.or]: [
-              { bm: level === 10 ? name : 'undefined' },
-              { rom: level === 11 ? name : 'undefined' },
-              { nom: level === 12 ? name : 'undefined' },
-              { pic_finance: level === 2 ? name : 'undefined' },
-              { spv_finance: level === 7 ? name : 'undefined' },
-              { spv2_finance: level === 17 ? name : 'undefined' },
-              { asman_finance: level === 8 ? name : 'undefined' },
-              { manager_finance: level === 9 ? name : 'undefined' },
-              { pic_tax: level === 4 ? name : 'undefined' },
-              { manager_tax: level === 14 ? name : 'undefined' },
-              { spv_tax: level === 24 ? name : 'undefined' },
-              { asman_tax: level === 34 ? name : 'undefined' }
-            ]
-          }
-        })
-        if (findDepo) {
-          // const hasil = []
-          const dataDepo = []
-          for (let i = 0; i < findDepo.length; i++) {
-            const data = { kode_plant: findDepo[i].kode_plant }
-            dataDepo.push(data)
-          }
-          // for (let i = 0; i < findDepo.length; i++) {
-          const hasil = await ops.findAll({
+      const findUser = await user.findByPk(idUser)
+      if (findUser) {
+        const name = findUser.fullname
+        const email = findUser.email
+        if (level === 5) {
+          const findOps = await ops.findAll({
             where: {
-              // kode_plant: findDepo[i].kode_plant,
+              kode_plant: kode,
               [Op.and]: [
+                statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
+                statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                timeVal1 === 'all'
+                  ? { [Op.not]: { id: null } }
+                  : {
+                      tanggal_transfer: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                    },
+                { [Op.not]: { status_transaksi: null } },
+                { [Op.not]: { status_transaksi: 1 } }
+              ],
+              [Op.or]: [
+                { no_coa: { [Op.like]: `%${searchValue}%` } },
+                { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                { keterangan: { [Op.like]: `%${searchValue}%` } },
+                { no_faktur: { [Op.like]: `%${searchValue}%` } },
+                { nama_vendor: { [Op.like]: `%${searchValue}%` } },
+                { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
+                // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
+                { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+              ],
+              [Op.not]: [
+                { status_transaksi: 1 }
+              ]
+            },
+            order: [
+              ['id', 'ASC'],
+              [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+            ],
+            include: [
+              {
+                model: ttd,
+                as: 'appForm'
+              },
+              {
+                model: finance,
+                as: 'depo',
+                include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
+              },
+              {
+                model: veriftax,
+                as: 'veriftax'
+              },
+              {
+                model: finance,
+                as: 'finance'
+              },
+              {
+                model: taxcode,
+                as: 'taxcode'
+              },
+              {
+                model: bbm,
+                as: 'bbm'
+              }
+            ]
+          })
+          if (findOps) {
+            return response(res, 'success get data ops', { result: findOps })
+          } else {
+            return response(res, 'success get data ops', { result: findOps })
+          }
+        } else if (access.find(item => item === level) !== undefined) {
+          const findDepo = await finance.findAll({
+            where: {
+              [Op.or]: [
+                { bm: level === 10 ? name : 'undefined' },
+                { rom: level === 11 ? name : 'undefined' },
+                { nom: level === 12 ? name : 'undefined' },
+                { pic_finance: level === 2 ? name : 'undefined' },
+                { spv_finance: level === 7 ? name : 'undefined' },
+                { spv2_finance: level === 17 ? name : 'undefined' },
+                { asman_finance: level === 8 ? name : 'undefined' },
+                { manager_finance: level === 9 ? name : 'undefined' },
+                { pic_tax: level === 4 ? name : 'undefined' },
+                { manager_tax: level === 14 ? name : 'undefined' },
+                { spv_tax: level === 24 ? name : 'undefined' },
+                { asman_tax: level === 34 ? name : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+              ]
+            }
+          })
+          if (findDepo) {
+            // const hasil = []
+            const dataDepo = []
+            for (let i = 0; i < findDepo.length; i++) {
+              const data = { kode_plant: findDepo[i].kode_plant }
+              dataDepo.push(data)
+            }
+            // for (let i = 0; i < findDepo.length; i++) {
+            const hasil = await ops.findAll({
+              where: {
+                // kode_plant: findDepo[i].kode_plant,
+                [Op.and]: [
+                  {
+                    [Op.or]: dataDepo
+                  },
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : statTrans === '8' ? { status_transaksi: { [Op.gte]: 7 } } : { status_transaksi: statTrans },
+                  statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
+                  statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                  timeVal1 === 'all'
+                    ? { [Op.not]: { id: null } }
+                    : {
+                        tanggal_transfer: {
+                          [Op.gte]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
+                ],
+                [Op.or]: [
+                  { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                  { area: { [Op.like]: `%${searchValue}%` } },
+                  { cost_center: { [Op.like]: `%${searchValue}%` } },
+                  { no_coa: { [Op.like]: `%${searchValue}%` } },
+                  { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                  { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                  { keterangan: { [Op.like]: `%${searchValue}%` } },
+                  { no_faktur: { [Op.like]: `%${searchValue}%` } },
+                  { nama_vendor: { [Op.like]: `%${searchValue}%` } },
+                  { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
+                  // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
+                  { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                  { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                  { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                  { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                  { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                ]
+              },
+              order: [
+                ['id', 'DESC'],
+                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+              ],
+              include: [
                 {
-                  [Op.or]: dataDepo
+                  model: ttd,
+                  as: 'appForm'
                 },
+                {
+                  model: ttd,
+                  as: 'appList'
+                },
+                {
+                  model: finance,
+                  as: 'depo',
+                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
+                },
+                {
+                  model: veriftax,
+                  as: 'veriftax'
+                },
+                {
+                  model: finance,
+                  as: 'finance'
+                },
+                {
+                  model: taxcode,
+                  as: 'taxcode'
+                },
+                {
+                  model: bbm,
+                  as: 'bbm'
+                }
+              ]
+            })
+            // if (result.length > 0) {
+            //   for (let j = 0; j < result.length; j++) {
+            //     hasil.push(result[j])
+            //   }
+            // }
+            // }
+            if (hasil.length > 0) {
+              const result = hasil
+              return response(res, 'success get ops', { result })
+            } else {
+              const result = hasil
+              return response(res, 'success get ops', { result })
+            }
+          } else {
+            return response(res, 'failed get ops', {}, 400, false)
+          }
+        } else {
+          const findOps = await ops.findAll({
+            where: {
+              [Op.and]: [
                 statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : statTrans === '8' ? { status_transaksi: { [Op.gte]: 7 } } : { status_transaksi: statTrans },
                 statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                 statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
@@ -3893,101 +3999,14 @@ module.exports = {
               }
             ]
           })
-          // if (result.length > 0) {
-          //   for (let j = 0; j < result.length; j++) {
-          //     hasil.push(result[j])
-          //   }
-          // }
-          // }
-          if (hasil.length > 0) {
-            const result = hasil
-            return response(res, 'success get ops', { result })
+          if (findOps) {
+            return response(res, 'success get data ops', { result: findOps })
           } else {
-            const result = hasil
-            return response(res, 'success get ops', { result })
+            return response(res, 'success get data ops', { result: findOps })
           }
-        } else {
-          return response(res, 'failed get ops', {}, 400, false)
         }
       } else {
-        const findOps = await ops.findAll({
-          where: {
-            [Op.and]: [
-              statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : statTrans === '8' ? { status_transaksi: { [Op.gte]: 7 } } : { status_transaksi: statTrans },
-              statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
-              statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-              timeVal1 === 'all'
-                ? { [Op.not]: { id: null } }
-                : {
-                    tanggal_transfer: {
-                      [Op.gte]: timeV1,
-                      [Op.lt]: timeV2
-                    }
-                  }
-            ],
-            [Op.or]: [
-              { kode_plant: { [Op.like]: `%${searchValue}%` } },
-              { area: { [Op.like]: `%${searchValue}%` } },
-              { cost_center: { [Op.like]: `%${searchValue}%` } },
-              { no_coa: { [Op.like]: `%${searchValue}%` } },
-              { sub_coa: { [Op.like]: `%${searchValue}%` } },
-              { nama_coa: { [Op.like]: `%${searchValue}%` } },
-              { keterangan: { [Op.like]: `%${searchValue}%` } },
-              { no_faktur: { [Op.like]: `%${searchValue}%` } },
-              { nama_vendor: { [Op.like]: `%${searchValue}%` } },
-              { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
-              // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
-              { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-              { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-              { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_ktp: { [Op.like]: `%${searchValue}%` } },
-              { no_npwp: { [Op.like]: `%${searchValue}%` } },
-              { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-              { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-            ]
-          },
-          order: [
-            ['id', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-          ],
-          include: [
-            {
-              model: ttd,
-              as: 'appForm'
-            },
-            {
-              model: ttd,
-              as: 'appList'
-            },
-            {
-              model: finance,
-              as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
-            },
-            {
-              model: veriftax,
-              as: 'veriftax'
-            },
-            {
-              model: finance,
-              as: 'finance'
-            },
-            {
-              model: taxcode,
-              as: 'taxcode'
-            },
-            {
-              model: bbm,
-              as: 'bbm'
-            }
-          ]
-        })
-        if (findOps) {
-          return response(res, 'success get data ops', { result: findOps })
-        } else {
-          return response(res, 'success get data ops', { result: findOps })
-        }
+        return response(res, 'failed get data ops', { result: [] }, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

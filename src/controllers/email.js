@@ -237,7 +237,8 @@ module.exports = {
                   if (findDraftUser) {
                     for (let i = 0; i < findDraftUser.length; i++) {
                       const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                      const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                      if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                         temp.push(findDraftUser[i])
                       }
                     }
@@ -292,8 +293,9 @@ module.exports = {
                     let toMail = null
                     for (let i = 0; i < findUser.length; i++) {
                       const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
+                      const findEmail = findUser[i].email === null ? '' : findUser[i].email
                       cekName.push(findName)
-                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                      if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                         toMail = findUser[i]
                       }
                     }
@@ -373,7 +375,8 @@ module.exports = {
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
                     const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                    const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                    if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
                   }
@@ -428,7 +431,8 @@ module.exports = {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
                     const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                    const findEmail = findUser[i].email === null ? '' : findUser[i].email
+                    if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                       toMail = findUser[i]
                     }
                   }
@@ -505,7 +509,8 @@ module.exports = {
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
                     const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                    const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                    if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
                   }
@@ -589,7 +594,8 @@ module.exports = {
                       }
                     } else {
                       const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                      const findEmail = findUser[i].email === null ? '' : findUser[i].email
+                      if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                         toMail = findUser[i]
                       }
                     }
@@ -667,7 +673,8 @@ module.exports = {
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
                     const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                    const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                    if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
                   }
@@ -718,13 +725,14 @@ module.exports = {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
                     const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
+                    const findEmail = findUser[i].email === null ? '' : findUser[i].email
                     const findKode = findUser[i].kode_plant === null ? '' : findUser[i].kode_plant
                     if (noLevel.level === 5) {
-                      if (findDepo.kode_plant === findKode && findDepo.aos.toString().toLowerCase() === findName.toLowerCase()) {
+                      if (findDepo.kode_plant === findKode && (findDepo.aos.toString().toLowerCase() === findName.toLowerCase() || findDepo.aos.toString().toLowerCase() === findEmail.toLowerCase())) {
                         toMail = findUser[i]
                       }
                     } else {
-                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                      if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                         toMail = findUser[i]
                       }
                     }
@@ -806,7 +814,8 @@ module.exports = {
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
                     const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                    const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                    if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
                   }
@@ -911,7 +920,8 @@ module.exports = {
                     let toMail = null
                     for (let i = 0; i < findUser.length; i++) {
                       const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                      const findEmail = findUser[i].email === null ? '' : findUser[i].email
+                      if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                         toMail = findUser[i]
                       }
                     }
@@ -1032,7 +1042,8 @@ module.exports = {
                 if (findDraftUser) {
                   for (let i = 0; i < findDraftUser.length; i++) {
                     const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                    const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                    if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                       temp.push(findDraftUser[i])
                     }
                   }
@@ -1086,7 +1097,8 @@ module.exports = {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
                     const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                    const findEmail = findUser[i].email === null ? '' : findUser[i].email
+                    if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                       toMail = findUser[i]
                     }
                   }
@@ -1166,7 +1178,8 @@ module.exports = {
               if (findDraftUser) {
                 for (let i = 0; i < findDraftUser.length; i++) {
                   const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                  if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                  const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                  if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                     temp.push(findDraftUser[i])
                   }
                 }
@@ -1251,7 +1264,8 @@ module.exports = {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
                     const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                    if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                    const findEmail = findUser[i].email === null ? '' : findUser[i].email
+                    if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                       toMail = findUser[i]
                     }
                   }
@@ -1329,7 +1343,8 @@ module.exports = {
               if (findDraftUser) {
                 for (let i = 0; i < findDraftUser.length; i++) {
                   const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                  if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                  const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                  if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                     temp.push(findDraftUser[i])
                   }
                 }
@@ -1380,7 +1395,8 @@ module.exports = {
                 let toMail = null
                 for (let i = 0; i < findUser.length; i++) {
                   const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                  if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                  const findEmail = findUser[i].email === null ? '' : findUser[i].email
+                  if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                     toMail = findUser[i]
                   }
                 }
@@ -1457,7 +1473,8 @@ module.exports = {
               if (findDraftUser) {
                 for (let i = 0; i < findDraftUser.length; i++) {
                   const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
-                  if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                  const findEmail = findDraftUser[i].email === null ? '' : findDraftUser[i].email
+                  if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                     temp.push(findDraftUser[i])
                   }
                 }
@@ -1517,7 +1534,8 @@ module.exports = {
                   if (findUser.length > 0) {
                     for (let i = 0; i < findUser.length; i++) {
                       const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
-                      if (listName.find(e => e !== null && e.toString().toLowerCase() === findName.toLowerCase()) !== undefined) {
+                      const findEmail = findUser[i].email === null ? '' : findUser[i].email
+                      if (listName.find(e => e !== null && (e.toString().toLowerCase() === findName.toLowerCase() || e.toString().toLowerCase() === findEmail.toLowerCase())) !== undefined) {
                         dataTo.push(findUser[i])
                       }
                     }
