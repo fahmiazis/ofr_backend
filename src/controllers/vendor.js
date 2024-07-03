@@ -368,8 +368,8 @@ module.exports = {
   },
   deleteAll: async (req, res) => {
     try {
-      const timeV1 = moment()
-      const timeV2 = moment().add(1, 'd')
+      const timeV1 = moment().format('YYYY-MM-DD')
+      const timeV2 = moment().add(1, 'd').format('YYYY-MM-DD')
       const findVendor = await vendor.findAll({
         where: {
           createdAt: {
