@@ -8,7 +8,7 @@ const uploadMaster = require('../helpers/uploadMaster')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
 const excel = require('exceljs')
-const moment = require('moment')
+const moment = require('moment') // eslint-disable-line
 const vs = require('fs-extra')
 const { APP_URL } = process.env
 const borderStyles = {
@@ -151,9 +151,9 @@ module.exports = {
               const select = await vendor.findOne({
                 where: {
                   [Op.or]: [
-                    { nama: { [Op.like]: `%${dataVendor[0]}%` } },
-                    { no_npwp: { [Op.like]: `%${dataVendor[1]}%` } },
-                    { no_ktp: { [Op.like]: `%${dataVendor[2]}%` } }
+                    { nama: dataVendor[0] },
+                    { no_npwp: dataVendor[1] },
+                    { no_ktp: dataVendor[2] }
                   ]
                 }
               })
@@ -373,16 +373,17 @@ module.exports = {
   },
   deleteAll: async (req, res) => {
     try {
-      const timeV1 = moment().format('YYYY-MM-DD')
-      const timeV2 = moment().add(1, 'd').format('YYYY-MM-DD')
-      const findVendor = await vendor.findAll({
-        where: {
-          createdAt: {
-            [Op.gte]: timeV1,
-            [Op.lt]: timeV2
-          }
-        }
-      })
+      // const timeV1 = moment().format('YYYY-MM-DD')
+      // const timeV2 = moment().add(1, 'd').format('YYYY-MM-DD')
+      // const findVendor = await vendor.findAll({
+      //   where: {
+      //     createdAt: {
+      //       [Op.gte]: timeV1,
+      //       [Op.lt]: timeV2
+      //     }
+      //   }
+      // })
+      const findVendor = await vendor.findAll()
       if (findVendor.length > 0) {
         const temp = []
         for (let i = 0; i < findVendor.length; i++) {
