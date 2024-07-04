@@ -110,7 +110,7 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
-        const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT', 'JENIS VENDOR']
+        const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT', 'JENIS VENDOR', 'Memiliki SKB/SKT', 'NO SKB', 'NO SKT', 'Start Periode', 'End Periode']
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
           console.log(valid[i] === cek[i])
@@ -162,7 +162,12 @@ module.exports = {
                 no_npwp: dataVendor[1],
                 no_ktp: dataVendor[2],
                 alamat: dataVendor[3],
-                jenis_vendor: dataVendor[4]
+                jenis_vendor: dataVendor[4],
+                type_skb: dataVendor[5] === '' ? 'tidak' : dataVendor[5],
+                no_skb: dataVendor[5] === '' || dataVendor[5] === 'tidak' ? null : dataVendor[6],
+                no_skt: dataVendor[5] === '' || dataVendor[5] === 'tidak' ? null : dataVendor[7],
+                datef_skb: dataVendor[5] === '' || dataVendor[5] === 'tidak' ? null : dataVendor[8],
+                datel_skb: dataVendor[5] === '' || dataVendor[5] === 'tidak' ? null : dataVendor[9]
               }
               if (select) {
                 const upbank = await select.update(data)
@@ -325,8 +330,8 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT', 'JENIS VENDOR']
-        const key = ['nama', 'no_npwp', 'no_ktp', 'alamat', 'jenis_vendor']
+        const header = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT', 'JENIS VENDOR', 'Memiliki SKB/SKT', 'NO SKB', 'NO SKT', 'Start Periode', 'End Periode']
+        const key = ['nama', 'no_npwp', 'no_ktp', 'alamat', 'jenis_vendor', 'type_skb', 'no_skb', 'no_skt', 'datef_skb', 'datel_skt']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
