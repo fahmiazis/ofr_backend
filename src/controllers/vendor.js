@@ -148,12 +148,13 @@ module.exports = {
             rows.shift()
             for (let i = 0; i < rows.length; i++) {
               const dataVendor = rows[i]
+              console.log(dataVendor[0], dataVendor[1])
               const select = await vendor.findOne({
                 where: {
                   [Op.or]: [
                     { nama: dataVendor[0] },
-                    { no_npwp: dataVendor[1] },
-                    { no_ktp: dataVendor[2] }
+                    dataVendor[1] === '' || dataVendor[1] === null ? { id: null } : { no_npwp: dataVendor[1] },
+                    dataVendor[2] === '' || dataVendor[2] === null ? { id: null } : { no_ktp: dataVendor[2] }
                   ]
                 }
               })
