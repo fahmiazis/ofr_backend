@@ -3708,7 +3708,6 @@ module.exports = {
     try {
       const schema = joi.object({
         id: joi.number().required(),
-        idFaktur: joi.number().required(),
         no_faktur: joi.string().required(),
         date_faktur: joi.date().required(),
         val: joi.string().required(),
