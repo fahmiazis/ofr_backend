@@ -3710,7 +3710,7 @@ module.exports = {
         id: joi.number().required(),
         no_faktur: joi.string().required(),
         date_faktur: joi.date().required(),
-        val: joi.string().required(),
+        val: joi.required(),
         keterangan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
@@ -3762,7 +3762,7 @@ module.exports = {
         idFaktur: joi.number().required(),
         no_faktur: joi.string().required(),
         date_faktur: joi.date().required(),
-        val: joi.string().required(),
+        val: joi.required(),
         keterangan: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
