@@ -3668,12 +3668,12 @@ module.exports = {
             const data = {
               klaimId: results.id,
               no_faktur: val.no_faktur,
-              date_faktur: val.date_faktur,
+              date_faktur: moment(val.date_faktur).format('DD-MM-YYYY'),
               val: val.val,
               keterangan: val.keterangan
             }
             if (findFaktur.length > 0) {
-              const cekData = findFaktur.find(({no_faktur}) => (data.no_faktur !== '' && no_faktur === data.no_faktur)) // eslint-disable-line
+              const cekData = findFaktur.find((item) => (data.no_faktur !== '' && item.no_faktur.toString() === data.no_faktur.toString()))
               // const resData = level === 2 && cekData === 'ya' ? 5 : 4
               console.log(cekData)
               if (cekData !== undefined) {
@@ -3784,7 +3784,7 @@ module.exports = {
             keterangan: results.keterangan
           }
           if (findFaktur.length > 0) {
-              const cekData = findFaktur.find(({no_faktur}) => (data.no_faktur !== '' && no_faktur === data.no_faktur)) // eslint-disable-line
+            const cekData = findFaktur.find((item) => (data.no_faktur !== '' && item.no_faktur.toString() === data.no_faktur.toString()))
             // const resData = level === 2 && cekData === 'ya' ? 5 : 4
             if (cekData !== undefined) {
               temp.push()

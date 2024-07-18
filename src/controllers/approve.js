@@ -319,6 +319,7 @@ module.exports = {
             { kode_plant: { [Op.like]: `%${searchValue}%` } }
           ]
         },
+        group: 'kode_plant',
         order: [[sortValue, 'ASC']],
         limit: limit,
         offset: (page - 1) * limit
@@ -327,7 +328,24 @@ module.exports = {
       if (result) {
         return response(res, 'list approve', { result, pageInfo })
       } else {
-        return response(res, 'failed to get user', {}, 404, false)
+        return response(res, 'failed to get data approve', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getAppPlant: async (req, res) => {
+    try {
+      const { kode } = req.query
+      const findApp = await nameapp.findAll({
+        where: {
+          kode_plant: kode
+        }
+      })
+      if (findApp.length > 0) {
+        return response(res, 'list approve', { result: findApp })
+      } else {
+        return response(res, 'failed to get data approve', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)

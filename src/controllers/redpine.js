@@ -1103,5 +1103,37 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  updateFlagNull: async (req, res) => {
+    try {
+      const { kode } = req.query
+      const findAll = await ops.findAll({
+        where: {
+          kode_plant: kode
+        }
+      })
+      if (findAll.length > 0) {
+        const temp = []
+        const data = {
+          flag_redpine: null
+        }
+        for (let i = 0; i < findAll.length; i++) {
+          const findData = await ops.findByPk(findAll[i].id)
+          if (findData) {
+            await findData.update(data)
+            temp.push(findData)
+          }
+        }
+        if (temp.length > 0) {
+          return response(res, 'success update flag null', { findAll })
+        } else {
+          return response(res, 'success update flag null', { findAll })
+        }
+      } else {
+        return response(res, 'failed update flag', { findAll }, 400, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }
