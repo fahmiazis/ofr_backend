@@ -3784,7 +3784,7 @@ module.exports = {
             keterangan: results.keterangan
           }
           if (findFaktur.length > 0) {
-            const cekData = findFaktur.find((item) => (data.no_faktur !== '' && item.no_faktur.toString() === data.no_faktur.toString()))
+            const cekData = findFaktur.find((item) => (data.no_faktur !== '' && item.no_faktur.toString() === data.no_faktur.toString() && item.id !== results.idFaktur))
             // const resData = level === 2 && cekData === 'ya' ? 5 : 4
             if (cekData !== undefined) {
               temp.push()
