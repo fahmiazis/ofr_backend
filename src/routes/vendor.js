@@ -11,5 +11,6 @@ route.delete('/del/:id', vendor.deleteVendor)
 route.delete('/delall', vendor.deleteAll)
 route.get('/export', vendor.exportSqlVendor)
 route.patch('/upspar', vendor.updateSpar)
+route.patch('/sync', vendor.syncVerVendor)
 
 module.exports = route

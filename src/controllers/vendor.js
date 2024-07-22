@@ -1,4 +1,4 @@
-const { vendor } = require('../models')
+const { vendor, vervendor } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -458,6 +458,60 @@ module.exports = {
         }
       } else {
         return response(res, 'failed update sparator all', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  syncVerVendor: async (req, res) => {
+    try {
+      const findVerif = await vervendor.findAll({
+        where: {
+          status_transaksi: 8
+        }
+      })
+      if (findVerif.length > 0) {
+        const temp = []
+        for (let i = 0; i < findVerif.length; i++) {
+          const data = findVerif[i]
+          const cekBadan = data.jenis_vendor !== null && data.jenis_vendor !== '' ? data.jenis_vendor : data.nik === null || data.nik === '' || data.nik === 'TIDAK ADA' ? 'Badan' : 'Orang Pribadi'
+          const npwp = cekBadan === 'Badan' && data.npwp.length === 15 ? `0${data.npwp}` : cekBadan === 'Orang Pribadi' ? data.nik : data.npwp
+          const send = {
+            nama: data.nama,
+            no_npwp: npwp,
+            no_ktp: data.nik,
+            alamat: data.alamat,
+            kode_plant: data.kode_plant,
+            jenis_vendor: data.jenis_vendor,
+            type_skb: data.type_skb,
+            no_skb: data.no_skb,
+            no_skt: data.no_skt,
+            datef_skb: data.datef_skb,
+            datel_skb: data.datel_skb
+          }
+          const cekVendor = await vendor.findOne({
+            where: {
+              [Op.or]: [
+                { nama: data.nama },
+                npwp === '' || npwp === null ? { id: null } : { no_npwp: npwp },
+                data.nik === '' || data.nik === null ? { id: null } : { no_ktp: data.nik }
+              ]
+            }
+          })
+          if (cekVendor) {
+            temp.push(data)
+          } else {
+            const addVendor = await vendor.create(send)
+            temp.push(addVendor)
+          }
+        }
+        if (temp) {
+          return response(res, 'success sync vervendor', { result: temp })
+        } else {
+          return response(res, 'success sync vervendor', { result: temp })
+        }
+      } else {
+        return response(res, 'failed sync vervendor', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
