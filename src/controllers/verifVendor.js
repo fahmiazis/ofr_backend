@@ -239,6 +239,9 @@ module.exports = {
                         { type_skb: null }
                       ]
                     }
+            ],
+            [Op.not]: [
+              { status_transaksi: 0 }
             ]
           }
         })
