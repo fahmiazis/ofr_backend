@@ -152,7 +152,7 @@ module.exports = {
               const select = await vendor.findOne({
                 where: {
                   [Op.or]: [
-                    { nama: dataVendor[0] },
+                    // { nama: dataVendor[0] },
                     dataVendor[1] === '' || dataVendor[1] === null ? { id: null } : { no_npwp: dataVendor[1] },
                     dataVendor[2] === '' || dataVendor[2] === null ? { id: null } : { no_ktp: dataVendor[2] }
                   ]
@@ -492,7 +492,7 @@ module.exports = {
           const cekVendor = await vendor.findOne({
             where: {
               [Op.or]: [
-                { nama: data.nama },
+                // { nama: data.nama },
                 npwp === '' || npwp === null ? { id: null } : { no_npwp: npwp },
                 data.nik === '' || data.nik === null ? { id: null } : { no_ktp: data.nik }
               ]
