@@ -152,7 +152,10 @@ module.exports = {
                   })
                   const findData = await ops.findOne({
                     where: {
-                      no_faktur: results.no_faktur
+                      no_faktur: results.no_faktur,
+                      [Op.not]: [
+                        { status_transaksi: 0 }
+                      ]
                     }
                   })
                   if (findData) {
@@ -212,7 +215,10 @@ module.exports = {
                     })
                     const findData = await ops.findOne({
                       where: {
-                        no_faktur: results.no_faktur
+                        no_faktur: results.no_faktur,
+                        [Op.not]: [
+                          { status_transaksi: 0 }
+                        ]
                       }
                     })
                     if (findData) {
@@ -251,7 +257,10 @@ module.exports = {
                   })
                   const findData = await ops.findOne({
                     where: {
-                      no_faktur: results.no_faktur
+                      no_faktur: results.no_faktur,
+                      [Op.not]: [
+                        { status_transaksi: 0 }
+                      ]
                     }
                   })
                   if (findData) {
@@ -441,9 +450,10 @@ module.exports = {
                     [Op.and]: [
                       results.no_faktur === '' || results.no_faktur === null || results.no_faktur === undefined ? { id: null } : { no_faktur: results.no_faktur }
                     ],
-                    [Op.not]: {
-                      id: id
-                    }
+                    [Op.not]: [
+                      { id: id },
+                      { status_transaksi: 0 }
+                    ]
                   }
                 })
                 if (findData) {
