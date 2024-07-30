@@ -142,6 +142,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 100
+      } else if (limit === 'all') {
+        const findLimit = await listmenu.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }
@@ -261,6 +264,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 100
+      } else if (limit === 'all') {
+        const findLimit = await menu.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }

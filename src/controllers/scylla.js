@@ -136,6 +136,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await scylla.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }

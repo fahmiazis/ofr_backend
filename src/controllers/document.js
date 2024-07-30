@@ -382,6 +382,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 100
+      } else if (limit === 'all') {
+        const findLimit = await namedocs.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }
@@ -435,6 +438,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await depo.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }
@@ -496,6 +502,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await document.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }

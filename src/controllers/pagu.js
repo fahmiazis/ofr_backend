@@ -234,6 +234,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await pagu.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }

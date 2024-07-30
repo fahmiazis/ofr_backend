@@ -243,6 +243,9 @@ module.exports = {
       }
       if (!limit) {
         limit = 10
+      } else if (limit === 'all') {
+        const findLimit = await glikk.findAll()
+        limit = findLimit.length
       } else {
         limit = parseInt(limit)
       }
