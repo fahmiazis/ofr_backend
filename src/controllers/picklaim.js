@@ -1,4 +1,4 @@
-const { picklaim } = require('../models')
+const { picklaim, finance } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -132,6 +132,7 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
+        const count2 = []
         const cek = [
           'KODE PLANT',
           'KODE DISTRIBUTION',
@@ -150,15 +151,34 @@ module.exports = {
           'EDOT',
           'MEIJI'
         ]
+        const cek2 = [
+          'PROFIT CENTER',
+          'NAMA AREA',
+          'NAMA AREA SAP',
+          'KSNI',
+          'NNI',
+          'NSI',
+          'MCP',
+          'MAS',
+          'SIMBA',
+          'LOTTE',
+          'MUN',
+          'EITI',
+          'EDOT',
+          'MEIJI'
+        ]
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
-          console.log(valid[i], cek[i])
-          console.log(valid[i] === cek[i])
           if (valid[i] === cek[i]) {
             count.push(1)
           }
         }
-        console.log(count.length)
+        for (let i = 0; i < cek2.length; i++) {
+          console.log(valid[i], cek2[i])
+          if (valid[i] === cek2[i]) {
+            count2.push(1)
+          }
+        }
         if (count.length === cek.length) {
           const cost = []
           const kode = []
@@ -222,6 +242,113 @@ module.exports = {
                 const createPicklaim = await picklaim.create(data)
                 if (createPicklaim) {
                   arr.push(1)
+                }
+              }
+            }
+            if (arr.length > 0) {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+                console.log('success')
+              })
+              return response(res, 'successfully upload file master')
+            } else {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+                console.log('success')
+              })
+              return response(res, 'failed to upload file', {}, 404, false)
+            }
+          }
+        } else if (count2.length === cek2.length) {
+          const cost = []
+          const kode = []
+          for (let i = 1; i < rows.length; i++) {
+            const a = rows[i]
+            kode.push(`${a[0]}`)
+            cost.push(`profit center ${a[0]}`)
+          }
+          const result = []
+          const dupCost = {}
+
+          cost.forEach(item => {
+            if (!dupCost[item]) { dupCost[item] = 0 }
+            dupCost[item] += 1
+          })
+
+          for (const prop in dupCost) {
+            if (dupCost[prop] >= 2) {
+              result.push(prop)
+            }
+          }
+
+          if (result.length > 0) {
+            return response(res, 'there is duplication in your file master', { result }, 404, false)
+          } else {
+            const arr = []
+            rows.shift()
+            for (let i = 0; i < rows.length; i++) {
+              const dataPicklaim = rows[i]
+              const select = await picklaim.findOne({
+                where: {
+                  [Op.and]: [
+                    { profit_center: { [Op.like]: `%${dataPicklaim[0]}%` } }
+                  ]
+                }
+              })
+              const data = {
+                // kode_plant: dataPicklaim[0],
+                // kode_dist: dataPicklaim[1],
+                profit_center: dataPicklaim[0],
+                // area: dataPicklaim[1],
+                // area_sap: dataPicklaim[2],
+                ksni: dataPicklaim[3],
+                nni: dataPicklaim[4],
+                nsi: dataPicklaim[5],
+                mcp: dataPicklaim[6],
+                mas: dataPicklaim[7],
+                simba: dataPicklaim[8],
+                lotte: dataPicklaim[9],
+                mun: dataPicklaim[10],
+                eiti: dataPicklaim[11],
+                edot: dataPicklaim[12],
+                meiji: dataPicklaim[13]
+              }
+              if (select) {
+                const upbank = await select.update(data)
+                if (upbank) {
+                  arr.push(1)
+                }
+              } else {
+                const findPlant = await finance.findOne({
+                  where: {
+                    [Op.and]: [
+                      { profit_center: { [Op.like]: `%${dataPicklaim[0]}%` } }
+                    ]
+                  }
+                })
+                if (findPlant) {
+                  const send = {
+                    kode_plant: findPlant.kode_plant,
+                    // kode_dist: findPlant,
+                    profit_center: dataPicklaim[0],
+                    area: dataPicklaim[1],
+                    area_sap: dataPicklaim[2],
+                    ksni: dataPicklaim[3],
+                    nni: dataPicklaim[4],
+                    nsi: dataPicklaim[5],
+                    mcp: dataPicklaim[6],
+                    mas: dataPicklaim[7],
+                    simba: dataPicklaim[8],
+                    lotte: dataPicklaim[9],
+                    mun: dataPicklaim[10],
+                    eiti: dataPicklaim[11],
+                    edot: dataPicklaim[12],
+                    meiji: dataPicklaim[13]
+                  }
+                  const createPicklaim = await picklaim.create(send)
+                  if (createPicklaim) {
+                    arr.push(1)
+                  }
                 }
               }
             }
