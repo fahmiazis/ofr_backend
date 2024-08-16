@@ -1438,7 +1438,7 @@ module.exports = {
               return response(res, 'failed get dokumen2', { result: [] })
             }
           } else {
-            return response(res, 'failed get dokumen3', { result: [] })
+            return response(res, 'failed get dokumen3', { result: [name] })
           }
         } else {
           return response(res, 'failed get dokumen4', { result: [] })
