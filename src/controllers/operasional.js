@@ -1428,16 +1428,16 @@ module.exports = {
               if (findDocCre.length > 0) {
                 return response(res, 'success get dokumen', { result: findDocCre, cekIndi })
               } else {
-                return response(res, 'failed get dokumen', { result: [] })
+                return response(res, 'failed get dokumen1', { result: [] })
               }
             } else {
-              return response(res, 'failed get dokumen', { result: [] })
+              return response(res, 'failed get dokumen2', { result: [] })
             }
           } else {
-            return response(res, 'failed get dokumen', { result: [] })
+            return response(res, 'failed get dokumen3', { result: [] })
           }
         } else {
-          return response(res, 'failed get dokumen', { result: [] })
+          return response(res, 'failed get dokumen4', { result: [] })
         }
       }
     } catch (error) {
@@ -1458,7 +1458,7 @@ module.exports = {
       if (findDoc) {
         return response(res, 'success get dokumen', { result: findDoc })
       } else {
-        return response(res, 'failed get dokumen')
+        return response(res, 'failed get dokumen5')
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -1933,7 +1933,7 @@ module.exports = {
         if (findOps) {
           return response(res, 'success get dokumen', { result: findOps })
         } else {
-          return response(res, 'failed get dokumen', { result: [] })
+          return response(res, 'failed get dokumen6', { result: [] })
         }
       } else {
         const findOps = await ops.findAll({
@@ -1972,7 +1972,7 @@ module.exports = {
         if (findOps) {
           return response(res, 'success get dokumen', { result: findOps })
         } else {
-          return response(res, 'failed get dokumen', { result: [] })
+          return response(res, 'failed get dokumen7', { result: [] })
         }
       }
     } catch (error) {
@@ -2022,7 +2022,7 @@ module.exports = {
       if (findOps) {
         return response(res, 'success get dokumen', { result: findOps })
       } else {
-        return response(res, 'failed get dokumen', { result: [] })
+        return response(res, 'failed get dokumen8', { result: [] })
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -4048,7 +4048,7 @@ module.exports = {
           if (findDocCre.length > 0) {
             return response(res, 'success get dokumen', { result: findDocCre })
           } else {
-            return response(res, 'failed get dokumen', { result: [] })
+            return response(res, 'failed get dokumen9', { result: [] })
           }
         } else {
           return response(res, 'failed get doc bukti bayar')
