@@ -1234,7 +1234,7 @@ module.exports = {
     try {
       const { no } = req.body
       let { name } = req.body
-      if (name === undefined || name === 'undefined' || name === null || name === 'null' || name === '') {
+      if (name === undefined || name === 'undefined' || name === null || name === 'null' || name === '' || name === 'Draft Pengajuan Ops') {
         name = 'Draft Pengajuan Operasional'
       }
       const findDoc = await docuser.findAll({
@@ -1438,7 +1438,7 @@ module.exports = {
               return response(res, 'failed get dokumen2', { result: [] })
             }
           } else {
-            return response(res, 'failed get dokumen3', { result: [name] })
+            return response(res, 'failed get dokumen3', { result: [], name })
           }
         } else {
           return response(res, 'failed get dokumen4', { result: [] })
