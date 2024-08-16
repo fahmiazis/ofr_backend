@@ -1232,7 +1232,11 @@ module.exports = {
   },
   getDocument: async (req, res) => {
     try {
-      const { no, name } = req.body
+      const { no } = req.body
+      let { name } = req.body
+      if (name === undefined || name === 'undefined' || name === null || name === 'null' || name === '') {
+        name = 'Draft Pengajuan Operasional'
+      }
       const findDoc = await docuser.findAll({
         where: {
           no_transaksi: no
