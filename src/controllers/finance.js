@@ -377,8 +377,9 @@ module.exports = {
   getAllRek: async (req, res) => {
     try {
       const kode = req.user.kode
+      const level = req.user.level
       const { tipe } = req.query
-      if (tipe === 'all') {
+      if (tipe === 'all' || level !== 5) {
         const findRek = await finance.findAll({
           include: [{
             model: depo,
