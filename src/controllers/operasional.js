@@ -5,7 +5,7 @@ const response = require('../helpers/response')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
-const { filterApp, filter, filterBayar } = require('../helpers/pagination')
+const { pagination, filterApp, filter, filterBayar } = require('../helpers/pagination')
 const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34]
 const nonPph = 'Non PPh'
 const spend = 'Rekening Spending Card'
@@ -3726,6 +3726,7 @@ module.exports = {
       const kode = req.user.kode
       const idUser = req.user.id
       const { status, reject, menu, time1, time2, search } = req.query
+      let { limit, page } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 8 : status
       const statRej = reject === 'undefined' ? null : reject
@@ -3734,6 +3735,20 @@ module.exports = {
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
+      if (!limit) {
+        limit = 10
+      } else if (limit === 'all') {
+        limit = 'all'
+      } else {
+        limit = parseInt(limit)
+      }
+
+      if (!page) {
+        page = 1
+      } else {
+        page = parseInt(page)
+      }
+
       const findUser = await user.findByPk(idUser)
       if (findUser) {
         const name = findUser.fullname
@@ -3844,7 +3859,7 @@ module.exports = {
               dataDepo.push(data)
             }
             // for (let i = 0; i < findDepo.length; i++) {
-            const hasil = await ops.findAll({
+            const hasil = await ops.findAndCountAll({
               where: {
                 // kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
@@ -3919,7 +3934,10 @@ module.exports = {
                   model: bbm,
                   as: 'bbm'
                 }
-              ]
+              ],
+              limit: limit,
+              offset: (page - 1) * limit,
+              distinct: true
             })
             // if (result.length > 0) {
             //   for (let j = 0; j < result.length; j++) {
@@ -3928,17 +3946,19 @@ module.exports = {
             // }
             // }
             if (hasil.length > 0) {
+              const pageInfo = pagination('/ops/report', req.query, page, limit, hasil.count)
               const result = hasil
-              return response(res, 'success get ops', { result })
+              return response(res, 'success get ops', { result, pageInfo })
             } else {
+              const pageInfo = pagination('/ops/report', req.query, page, limit, hasil.count)
               const result = hasil
-              return response(res, 'success get ops', { result })
+              return response(res, 'success get ops', { result, pageInfo })
             }
           } else {
             return response(res, 'failed get ops', {}, 400, false)
           }
         } else {
-          const findOps = await ops.findAll({
+          const findOps = await ops.findAndCountAll({
             where: {
               [Op.and]: [
                 statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : statTrans === '8' ? { status_transaksi: { [Op.gte]: 7 } } : { status_transaksi: statTrans },
@@ -4009,12 +4029,17 @@ module.exports = {
                 model: bbm,
                 as: 'bbm'
               }
-            ]
+            ],
+            limit: limit,
+            offset: (page - 1) * limit,
+            distinct: true
           })
           if (findOps) {
-            return response(res, 'success get data ops', { result: findOps })
+            const pageInfo = pagination('/ops/report', req.query, page, limit, findOps.count)
+            return response(res, 'success get data ops', { result: findOps, pageInfo })
           } else {
-            return response(res, 'success get data ops', { result: findOps })
+            const pageInfo = pagination('/ops/report', req.query, page, limit, findOps.count)
+            return response(res, 'success get data ops', { result: findOps, pageInfo })
           }
         }
       } else {
