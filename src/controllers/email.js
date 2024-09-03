@@ -1587,6 +1587,7 @@ module.exports = {
   sendEmail: async (req, res) => {
     try {
       const name = req.user.name
+      const fullname = req.user.fullname
       const level = req.user.level
       const { nameTo, to, cc, message, no, tipe, subject, jenis, draft, listData, proses } = req.body
       const findRole = await role.findOne({
@@ -1843,7 +1844,7 @@ module.exports = {
                           Regards,
                       </div>
                       <div class="tittle">
-                          ${name}
+                          ${fullname}
                       </div>
                   </body>
                   `
