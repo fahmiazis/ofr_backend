@@ -5,7 +5,7 @@ const response = require('../helpers/response')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
-const { pagination, filterApp, filter, filterBayar } = require('../helpers/pagination')
+const { pagination, filterApp, filter, filterBayar } = require('../helpers/newPagination')
 const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34]
 const nonPph = 'Non PPh'
 const spend = 'Rekening Spending Card'
@@ -1506,7 +1506,7 @@ module.exports = {
         const name = findUser.fullname
         const email = findUser.email
         if (level === 5) {
-          const findOps = await ops.findAll({
+          const findOps = await ops.findAndCountAll({
             where: {
               kode_plant: kode,
               [Op.and]: [
@@ -1586,24 +1586,30 @@ module.exports = {
                 model: bbm,
                 as: 'bbm'
               }
-            ]
+            ],
+            limit: limit,
+            offset: (page - 1) * limit,
+            group: ['ops.no_transaksi'],
+            distinct: true
           })
-          const data = []
-          for (let i = 0; i < findOps.length; i++) {
-            data.push(findOps[i].no_transaksi)
-          }
+          // const data = []
+          // for (let i = 0; i < findOps.length; i++) {
+          //   data.push(findOps[i].no_transaksi)
+          // }
           // findOps.map(x => {
           //   return (
           //     data.push(x.no_transaksi)
           //   )
           // })
-          const set = new Set(data)
-          const noDis = [...set]
+          // const set = new Set(data)
+          // const noDis = [...set]
           if (findOps) {
-            const newOps = category === 'verif' ? filter(type, findOps, noDis, statData, role) : filterApp(type, findOps, noDis, role)
-            return response(res, 'success get data ops', { result: findOps, noDis, newOps, findDepo: [] })
+            const newOps = category === 'verif' ? filter(type, findOps.rows, statData, role) : filterApp(type, findOps.rows, role)
+            const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
+            return response(res, 'success get data ops', { result: findOps.rows, pageInfo, newOps, findDepo: [] })
           } else {
-            return response(res, 'success get data ops', { result: findOps, noDis, newOps: [], findDepo: [] })
+            const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
+            return response(res, 'success get data ops', { result: findOps.rows, pageInfo, newOps: [], findDepo: [] })
           }
         } else if (access.find(item => item === level) !== undefined) {
           const findDepo = await finance.findAll({
@@ -1641,7 +1647,7 @@ module.exports = {
               }
             }
             // for (let i = 0; i < findDepo.length; i++) {
-            const hasil = await ops.findAll({
+            const hasil = await ops.findAndCountAll({
               where: {
                 // kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
@@ -1740,7 +1746,11 @@ module.exports = {
                   model: bbm,
                   as: 'bbm'
                 }
-              ]
+              ],
+              limit: limit,
+              offset: (page - 1) * limit,
+              group: [category === 'ajuan bayar' ? 'ops.no_pembayaran' : 'ops.no_transaksi'],
+              distinct: true
             })
             // if (result.length > 0) {
             //   for (let j = 0; j < result.length; j++) {
@@ -1748,27 +1758,32 @@ module.exports = {
             //   }
             // }
             // }
-            if (hasil.length > 0) {
-              const data = []
-              for (let i = 0; i < hasil.length; i++) {
-                data.push(category === 'ajuan bayar' ? hasil[i].no_pembayaran : hasil[i].no_transaksi)
-              }
+            if (hasil.rows.length > 0) {
+              // const data = []
+              // for (let i = 0; i < hasil.length; i++) {
+              //   data.push(category === 'ajuan bayar' ? hasil[i].no_pembayaran : hasil[i].no_transaksi)
+              // }
               // hasil.map(x => {
               //   return (
               //     data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
               //   )
               // })
-              const set = new Set(data)
-              const noDis = [...set]
-              const result = hasil
-              const newOps = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role, level) : filterApp(type, result, noDis, role)
-              console.log(moment(timeV1).format('DD MMMM YYYY'))
-              return response(res, 'success get ops', { result, noDis, findDepo, newOps, dataDepo })
+              // const set = new Set(data)
+              // const noDis = [...set]
+              const result = hasil.rows
+              if (statTrans === 'all') {
+                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                return response(res, 'success get ops', { result, findDepo, newOps: result, pageInfo, dataDepo })
+              } else {
+                const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
+                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                return response(res, 'success get ops', { result, findDepo, newOps, pageInfo, dataDepo })
+              }
             } else {
-              const result = hasil
-              const noDis = []
-              console.log(moment(timeV1).format('DD MMMM YYYY'))
-              return response(res, 'success get ops', { result, noDis, findDepo, newOps: [], dataDepo })
+              const result = hasil.rows
+              // const noDis = []
+              const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+              return response(res, 'success get ops', { result, findDepo, pageInfo, newOps: [], dataDepo })
             }
           } else {
             return response(res, 'failed get ops', {}, 400, false)
@@ -1881,24 +1896,29 @@ module.exports = {
               group: ['ops.no_transaksi'],
               distinct: true
             })
-            const data = []
-            for (let i = 0; i < findOps.rows.length; i++) {
-              data.push(findOps.rows[i].no_transaksi)
-            }
+            // const data = []
+            // for (let i = 0; i < findOps.rows.length; i++) {
+            //   data.push(findOps.rows[i].no_transaksi)
+            // }
             // findOps.rows.map(x => {
             //   return (
             //     data.push(x.no_transaksi)
             //   )
-            // })
-            const set = new Set(data)
-            const noDis = [...set]
+            // // })
+            // const set = new Set(data)
+            // const noDis = [...set]
             if (findOps.rows) {
-              const newOps = category === 'verif' ? filter(type, findOps.rows, noDis, statData, role) : filterApp(type, findOps.rows, noDis, role)
-              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
-              return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, noDis, newOps })
+              if (statTrans === 'all') {
+                const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
+                return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, newOps: findOps.rows })
+              } else {
+                const newOps = category === 'verif' ? filter(type, findOps.rows, statData, role) : filterApp(type, findOps.rows, role)
+                const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
+                return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, newOps })
+              }
             } else {
               const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
-              return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, noDis, newOps: [] })
+              return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, newOps: [] })
             }
           } else {
             return response(res, 'Failed get data ops', {}, 404, false)
