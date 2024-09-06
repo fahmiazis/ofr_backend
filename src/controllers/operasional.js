@@ -1476,6 +1476,21 @@ module.exports = {
       const role = req.user.role
       const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
       const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi, search, jentrans, desttf } = req.query
+      let { limit, page } = req.query
+      if (!limit) {
+        limit = 10
+      } else if (limit === 'all') {
+        limit = 'all'
+      } else {
+        limit = parseInt(limit)
+      }
+
+      if (!page) {
+        page = 1
+      } else {
+        page = parseInt(page)
+      }
+
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? 'all' : reject
@@ -1774,7 +1789,7 @@ module.exports = {
             }
           }
           if (dataDepo.length > 0) {
-            const findOps = await ops.findAll({
+            const findOps = await ops.findAndCountAll({
               where: {
                 [Op.and]: [
                   {
@@ -1860,24 +1875,30 @@ module.exports = {
                   model: bbm,
                   as: 'bbm'
                 }
-              ]
+              ],
+              limit: limit,
+              offset: (page - 1) * limit,
+              group: ['ops.no_transaksi'],
+              distinct: true
             })
             const data = []
-            for (let i = 0; i < findOps.length; i++) {
-              data.push(findOps[i].no_transaksi)
+            for (let i = 0; i < findOps.rows.length; i++) {
+              data.push(findOps.rows[i].no_transaksi)
             }
-            // findOps.map(x => {
+            // findOps.rows.map(x => {
             //   return (
             //     data.push(x.no_transaksi)
             //   )
             // })
             const set = new Set(data)
             const noDis = [...set]
-            if (findOps) {
-              const newOps = category === 'verif' ? filter(type, findOps, noDis, statData, role) : filterApp(type, findOps, noDis, role)
-              return response(res, 'success get data ops', { result: findOps, findDepo, noDis, newOps })
+            if (findOps.rows) {
+              const newOps = category === 'verif' ? filter(type, findOps.rows, noDis, statData, role) : filterApp(type, findOps.rows, noDis, role)
+              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
+              return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, noDis, newOps })
             } else {
-              return response(res, 'success get data ops', { result: findOps, findDepo, noDis, newOps: [] })
+              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
+              return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, noDis, newOps: [] })
             }
           } else {
             return response(res, 'Failed get data ops', {}, 404, false)
