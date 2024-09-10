@@ -1749,7 +1749,7 @@ module.exports = {
               ],
               limit: limit,
               offset: (page - 1) * limit,
-              group: [category === 'ajuan bayar' ? 'ops.no_pembayaran' : 'ops.no_transaksi'],
+              group: [category === 'verif' && level === 2 ? 'ops.id' : category === 'ajuan bayar' ? 'ops.no_pembayaran' : 'ops.no_transaksi'],
               distinct: true
             })
             // if (result.length > 0) {

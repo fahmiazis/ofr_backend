@@ -761,6 +761,22 @@ module.exports = {
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd')
+
+      let { limit, page } = req.query
+      if (!limit) {
+        limit = 10
+      } else if (limit === 'all') {
+        limit = 'all'
+      } else {
+        limit = parseInt(limit)
+      }
+
+      if (!page) {
+        page = 1
+      } else {
+        page = parseInt(page)
+      }
+
       const findUser = await user.findByPk(idUser)
       if (findUser) {
         const name = findUser.fullname
@@ -1230,7 +1246,11 @@ module.exports = {
                   model: kliring,
                   as: 'kliring'
                 }
-              ]
+              ],
+              limit: limit,
+              offset: (page - 1) * limit,
+              group: ['klaims.no_transaksi'],
+              distinct: true
             })
             const data = []
             findKlaim.map(x => {
