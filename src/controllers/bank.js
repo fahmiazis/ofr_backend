@@ -31,13 +31,10 @@ module.exports = {
       } else {
         const findNameBank = await bank.findOne({
           where: {
-            [Op.or]: [
-              { kode_bank: { [Op.like]: `%${results.kode_bank}` } },
-              { name: { [Op.like]: `%${results.name}` } }
-            ]
+            name: results.name
           }
         })
-        if (findNameBank && (findNameBank.name === results.name || findNameBank.kode_bank === results.kode_bank)) {
+        if (findNameBank) {
           return response(res, 'nama bank telah terdftar', {}, 404, false)
         } else {
           const createBank = await bank.create(results)
@@ -66,10 +63,7 @@ module.exports = {
       } else {
         const findNameBank = await bank.findOne({
           where: {
-            [Op.or]: [
-              { kode_bank: { [Op.like]: `%${results.kode_bank}` } },
-              { name: { [Op.like]: `%${results.name}` } }
-            ],
+            name: results.name,
             [Op.not]: {
               id: id
             }
@@ -125,7 +119,7 @@ module.exports = {
             for (let i = 1; i < rows.length; i++) {
               const a = rows[i]
               kode.push(`${a[0]}`)
-              cost.push(`Nama bank ${a[0]} kode bank ${a[2] === null || a[2] === '' ? i : a[2]}`)
+              cost.push(`Nama bank ${a[0]}`)
             }
             const result = []
             const dupCost = {}
@@ -150,10 +144,7 @@ module.exports = {
                 const dataBank = rows[i]
                 const select = await bank.findOne({
                   where: {
-                    [Op.or]: [
-                      { kode_bank: { [Op.like]: `%${dataBank[2]}%` } },
-                      { name: { [Op.like]: `%${dataBank[0]}%` } }
-                    ]
+                    name: dataBank[0]
                   }
                 })
                 const data = {
