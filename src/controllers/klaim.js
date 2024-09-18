@@ -782,7 +782,7 @@ module.exports = {
         const name = findUser.fullname
         const email = findUser.email
         if (level === 5) {
-          const findKlaim = await klaim.findAll({
+          const findKlaim = await klaim.findAndCountAll({
             where: {
               kode_plant: kode,
               [Op.and]: [
@@ -853,7 +853,7 @@ module.exports = {
             offset: (page - 1) * limit
           })
           const data = []
-          findKlaim.map(x => {
+          findKlaim.rows.map(x => {
             return (
               data.push(x.no_transaksi)
             )
@@ -861,10 +861,12 @@ module.exports = {
           const set = new Set(data)
           const noDis = [...set]
           if (findKlaim) {
-            const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
-            return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim, findDepo: [] })
+            const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
+            const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, role) : filterApp(type, findKlaim.rows, noDis, role)
+            return response(res, 'success get data klaim', { result: findKlaim.rows, noDis, newKlaim, findDepo: [], pageInfo })
           } else {
-            return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [], findDepo: [] })
+            const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
+            return response(res, 'success get data klaim', { result: findKlaim.rows, noDis, newKlaim: [], findDepo: [], pageInfo })
           }
         } else if (access.find(item => item === level)) {
           const findDepo = await finance.findAll({
@@ -898,7 +900,7 @@ module.exports = {
               }
             }
             // for (let i = 0; i < findDepo.length; i++) {
-            const hasil = await klaim.findAll({
+            const hasil = await klaim.findAndCountAll({
               where: {
                 // kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
@@ -991,7 +993,7 @@ module.exports = {
             //     }
             //   }
             // }
-            if (hasil.length > 0) {
+            if (hasil.rows.length > 0) {
               const data = []
               hasil.map(x => {
                 return (
@@ -1000,13 +1002,15 @@ module.exports = {
               })
               const set = new Set(data)
               const noDis = [...set]
-              const result = hasil
+              const result = hasil.rows
+              const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.count.length)
               const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
-              return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
+              return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim, pageInfo })
             } else {
-              const result = hasil
+              const result = hasil.rows
+              const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.count.length)
               const noDis = []
-              return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+              return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [], pageInfo })
             }
           } else {
             return response(res, 'failed get klaim', {}, 400, false)
@@ -1266,7 +1270,7 @@ module.exports = {
               distinct: true
             })
             const data = []
-            findKlaim.map(x => {
+            findKlaim.rows.map(x => {
               return (
                 data.push(x.no_transaksi)
               )
@@ -2561,6 +2565,22 @@ module.exports = {
       const timeVal2 = time2 === 'undefined' ? 'all' : time2
       const timeV1 = moment(timeVal1)
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2)
+
+      let { limit, page } = req.query
+      if (!limit || limit === undefined || limit === null) {
+        limit = 100
+      } else if (limit === 'all') {
+        limit = 'all'
+      } else {
+        limit = parseInt(limit)
+      }
+
+      if (!page || page === undefined || page === null) {
+        page = 1
+      } else {
+        page = parseInt(page)
+      }
+
       const findUser = await user.findByPk(idUser)
       if (findUser) {
         const name = findUser.fullname
@@ -2633,7 +2653,9 @@ module.exports = {
                 model: finance,
                 as: 'finance'
               }
-            ]
+            ],
+            limit: limit,
+            offset: (page - 1) * limit
           })
           if (findKlaim) {
             return response(res, 'success get data klaim', { result: findKlaim })
@@ -2732,7 +2754,9 @@ module.exports = {
                   model: finance,
                   as: 'finance'
                 }
-              ]
+              ],
+              limit: limit,
+              offset: (page - 1) * limit
             })
             // if (result.length > 0) {
             //   for (let j = 0; j < result.length; j++) {
@@ -2856,7 +2880,9 @@ module.exports = {
                       model: finance,
                       as: 'finance'
                     }
-                  ]
+                  ],
+                  limit: limit,
+                  offset: (page - 1) * limit
                 })
                 if (result.length > 0) {
                   for (let j = 0; j < result.length; j++) {
@@ -2944,7 +2970,9 @@ module.exports = {
                 model: finance,
                 as: 'finance'
               }
-            ]
+            ],
+            limit: limit,
+            offset: (page - 1) * limit
           })
           if (findKlaim) {
             return response(res, 'success get data klaim', { result: findKlaim })
