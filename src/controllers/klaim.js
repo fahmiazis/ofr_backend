@@ -6,7 +6,7 @@ const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
-const { filterApp, filter, filterBayar } = require('../helpers/pagination')
+const { filterApp, filter, filterBayar, pagination } = require('../helpers/pagination')
 const uploadMaster = require('../helpers/uploadMaster')
 const fs = require('fs')
 const access = [10, 11, 12, 2, 7, 8, 9]
@@ -763,15 +763,15 @@ module.exports = {
       const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : moment(timeVal2).add(1, 'd')
 
       let { limit, page } = req.query
-      if (!limit) {
-        limit = 10
+      if (!limit || limit === undefined || limit === null) {
+        limit = 100
       } else if (limit === 'all') {
         limit = 'all'
       } else {
         limit = parseInt(limit)
       }
 
-      if (!page) {
+      if (!page || page === undefined || page === null) {
         page = 1
       } else {
         page = parseInt(page)
@@ -848,7 +848,9 @@ module.exports = {
                 model: kliring,
                 as: 'kliring'
               }
-            ]
+            ],
+            limit: limit,
+            offset: (page - 1) * limit
           })
           const data = []
           findKlaim.map(x => {
@@ -977,7 +979,11 @@ module.exports = {
                   model: kliring,
                   as: 'kliring'
                 }
-              ]
+              ],
+              limit: limit,
+              offset: (page - 1) * limit,
+              group: [category === 'verif' && level === 2 ? 'klaim.id' : category === 'ajuan bayar' ? 'klaim.no_pembayaran' : 'klaim.id'],
+              distinct: true
             })
             //   if (result.length > 0) {
             //     for (let j = 0; j < result.length; j++) {
@@ -1059,7 +1065,7 @@ module.exports = {
               }
               // const hasil = []
               // for (let i = 0; i < findDepo.length; i++) {
-              const hasil = await klaim.findAll({
+              const hasil = await klaim.findAndCountAll({
                 where: {
                   // kode_plant: findDepo[i].kode_plant,
                   [Op.and]: [
@@ -1129,7 +1135,11 @@ module.exports = {
                     model: kliring,
                     as: 'kliring'
                   }
-                ]
+                ],
+                limit: limit,
+                offset: (page - 1) * limit,
+                group: [category === 'verif' && level === 2 ? 'klaim.id' : category === 'ajuan bayar' ? 'klaim.no_pembayaran' : 'klaim.id'],
+                distinct: true
               })
               // if (result.length > 0) {
               //   for (let j = 0; j < result.length; j++) {
@@ -1137,7 +1147,7 @@ module.exports = {
               //   }
               // }
               // }
-              if (hasil.length > 0) {
+              if (hasil.rows.length > 0) {
                 const data = []
                 hasil.map(x => {
                   return (
@@ -1146,18 +1156,21 @@ module.exports = {
                 })
                 const set = new Set(data)
                 const noDis = [...set]
-                const result = hasil
+                const result = hasil.rows
+                const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.count.length)
                 const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
-                return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim })
+                return response(res, 'success get klaim', { result, noDis, findDepo, pageInfo, newKlaim })
               } else {
-                const result = hasil
+                const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.count.length)
+                const result = hasil.rows
                 const noDis = []
-                return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+                return response(res, 'success get klaim', { result, noDis, findDepo, pageInfo, newKlaim: [] })
               }
             } else {
+              const pageInfo = pagination('/klaim/get', req.query, page, limit, 0)
               const result = []
               const noDis = []
-              return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim: [] })
+              return response(res, 'success get klaim', { result, noDis, findDepo, pageInfo, newKlaim: [] })
             }
           } else {
             return response(res, 'failed get klaim', {}, 400, false)
@@ -1178,7 +1191,7 @@ module.exports = {
             }
           }
           if (dataDepo.length > 0) {
-            const findKlaim = await klaim.findAll({
+            const findKlaim = await klaim.findAndCountAll({
               where: {
                 [Op.and]: [
                   {
@@ -1249,7 +1262,7 @@ module.exports = {
               ],
               limit: limit,
               offset: (page - 1) * limit,
-              group: ['klaims.no_transaksi'],
+              group: [category === 'verif' && level === 2 ? 'klaim.id' : category === 'ajuan bayar' ? 'klaim.no_pembayaran' : 'klaim.id'],
               distinct: true
             })
             const data = []
@@ -1261,10 +1274,12 @@ module.exports = {
             const set = new Set(data)
             const noDis = [...set]
             if (findKlaim) {
-              const newKlaim = category === 'verif' ? filter(type, findKlaim, noDis, statData, role) : filterApp(type, findKlaim, noDis, role)
-              return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim, findDepo })
+              const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
+              const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, role) : filterApp(type, findKlaim.rows, noDis, role)
+              return response(res, 'success get data klaim', { result: findKlaim.rows, noDis, newKlaim, findDepo, pageInfo })
             } else {
-              return response(res, 'success get data klaim', { result: findKlaim, noDis, newKlaim: [], findDepo })
+              const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
+              return response(res, 'success get data klaim', { result: findKlaim.rows, noDis, newKlaim: [], findDepo, pageInfo })
             }
           } else {
             return response(res, 'Failed get data klaim', {}, 404, false)
