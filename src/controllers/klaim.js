@@ -995,7 +995,7 @@ module.exports = {
             // }
             if (hasil.rows.length > 0) {
               const data = []
-              hasil.map(x => {
+              hasil.rows.map(x => {
                 return (
                   data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
                 )
@@ -1153,7 +1153,7 @@ module.exports = {
               // }
               if (hasil.rows.length > 0) {
                 const data = []
-                hasil.map(x => {
+                hasil.rows.map(x => {
                   return (
                     data.push(category === 'ajuan bayar' ? x.no_pembayaran : x.no_transaksi)
                   )
