@@ -2668,8 +2668,6 @@ module.exports = {
                         temp.push(1)
                       }
                     }
-                  } else {
-                    return response(res, 'failed reject batal cause edit faktur', {}, 400, false)
                   }
                 } else {
                   if (listId.find(e => e === findOps[i].id)) {
@@ -3805,7 +3803,7 @@ module.exports = {
                 timeVal1 === 'all'
                   ? { [Op.not]: { id: null } }
                   : {
-                      tanggal_transfer: {
+                      tgl_sublist: {
                         [Op.gte]: timeV1,
                         [Op.lt]: timeV2
                       }
@@ -3913,7 +3911,7 @@ module.exports = {
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
                     : {
-                        tanggal_transfer: {
+                        tgl_sublist: {
                           [Op.gte]: timeV1,
                           [Op.lt]: timeV2
                         }
@@ -4008,7 +4006,7 @@ module.exports = {
                 timeVal1 === 'all'
                   ? { [Op.not]: { id: null } }
                   : {
-                      tanggal_transfer: {
+                      tgl_sublist: {
                         [Op.gte]: timeV1,
                         [Op.lt]: timeV2
                       }
