@@ -188,7 +188,9 @@ module.exports = {
       const findTrans = await transaksi.findOne({
         where: {
           no_transaksi: no,
-          [Op.not]: { people_reject: null }
+          [Op.and]: [
+            tipe === 'revisi' ? { [Op.not]: { people_reject: null } } : { [Op.not]: { id: null } }
+          ]
         }
       })
       const findAllTrans = await transaksi.findAll({
