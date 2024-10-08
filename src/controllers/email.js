@@ -970,7 +970,7 @@ module.exports = {
         return response(res, 'failed get email 1', { findRole, findDepo, findTrans }, 404, false)
       }
     } catch (error) {
-      return response(res, error.message, {}, 500, false)
+      return response(res, error.message, { line: error.lineNumber }, 500, false)
     }
   },
   draftEmailAjuan: async (req, res) => {
