@@ -3,8 +3,8 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const response = require('./helpers/response')
 const morgan = require('morgan')
-const cron = require('node-cron')
-const request = require('request')
+const cron = require('node-cron') // eslint-disable-line
+const request = require('request') // eslint-disable-line
 
 const app = express()
 const server = require('http').createServer(app)
@@ -119,10 +119,11 @@ app.use('/tesemail', emailRoute)
 // zarchive
 app.use('/zip', zarRoute)
 
-// cron update data faktur e-invices
+// cron update data faktur e-invoices
+
 const options = {
   method: 'GET',
-  url: 'http://ofr.pinusmerahabadi.co.id:8080/faktur/shelfaktur'
+  url: 'http:/localhost:8080/faktur/shelfaktur'
 }
 
 cron.schedule('0 0 0 * * *', () => {
