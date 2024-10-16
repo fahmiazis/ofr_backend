@@ -2111,6 +2111,11 @@ module.exports = {
             }
           })
           if (findDepo) {
+            const findAos = await user.findOne({
+              where: {
+                kode_plant: findDepo.kode_plant
+              }
+            })
             const findApp = await approve.findAll({
               where: {
                 [Op.and]: [
@@ -2124,7 +2129,7 @@ module.exports = {
               for (let i = 0; i < findApp.length; i++) {
                 const data = {
                   jabatan: findApp[i].jabatan,
-                  nama: findApp[i].jabatan === 'aos' ? findDepo.aos : null,
+                  nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
                   status: findApp[i].jabatan === 'aos' ? 1 : null,
                   no_transaksi: no,
                   sebagai: findApp[i].sebagai,
@@ -2179,7 +2184,7 @@ module.exports = {
                 for (let i = 0; i < findApp.length; i++) {
                   const data = {
                     jabatan: findApp[i].jabatan,
-                    nama: findApp[i].jabatan === 'aos' ? findDepo.aos : null,
+                    nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
                     status: findApp[i].jabatan === 'aos' ? 1 : null,
                     no_transaksi: no,
                     sebagai: findApp[i].sebagai,
