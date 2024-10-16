@@ -1439,29 +1439,72 @@ module.exports = {
           no_transaksi: no
         }
       })
-      if (findTtd.length > 0) {
-        const penyetuju = []
-        const pembuat = []
-        const pemeriksa = []
-        const mengetahui = []
-        for (let i = 0; i < findTtd.length; i++) {
-          if (findTtd[i].sebagai === 'pembuat') {
-            pembuat.push(findTtd[i])
-          } else if (findTtd[i].sebagai === 'pemeriksa') {
-            pemeriksa.push(findTtd[i])
-          } else if (findTtd[i].sebagai === 'penyetuju') {
-            penyetuju.push(findTtd[i])
-          } else if (findTtd[i].sebagai === 'mengetahui') {
-            mengetahui.push(findTtd[i])
-          }
+      const findKlaim = await klaim.findOne({
+        where: {
+          no_transaksi: no
         }
-        return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
-      } else {
-        const findKlaim = await klaim.findOne({
-          where: {
-            no_transaksi: no
+      })
+      if (findTtd.length > 0) {
+        if (findKlaim.status_transaksi <= 2) {
+          const findDepo = await finance.findOne({
+            where: {
+              kode_plant: findKlaim.kode_plant
+            }
+          })
+          const cek = []
+          for (let i = 0; i < findTtd.length; i++) {
+            if ((findTtd[i].jabatan === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findTtd[i].jabatan === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+              const findId = await ttd.findByPk(findTtd[i].id)
+              if (findId) {
+                await findId.destroy()
+              }
+            }
+            cek.push(findTtd[i])
           }
-        })
+          if (cek.length) {
+            const findSign = await ttd.findAll({
+              where: {
+                no_transaksi: no
+              }
+            })
+            if (findSign.length > 0) {
+              const penyetuju = []
+              const pembuat = []
+              const pemeriksa = []
+              const mengetahui = []
+              for (let i = 0; i < findSign.length; i++) {
+                if (findSign[i].sebagai === 'pembuat') {
+                  pembuat.push(findSign[i])
+                } else if (findSign[i].sebagai === 'pemeriksa') {
+                  pemeriksa.push(findSign[i])
+                } else if (findSign[i].sebagai === 'penyetuju') {
+                  penyetuju.push(findSign[i])
+                } else if (findSign[i].sebagai === 'mengetahui') {
+                  mengetahui.push(findSign[i])
+                }
+              }
+              return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+            }
+          }
+        } else {
+          const penyetuju = []
+          const pembuat = []
+          const pemeriksa = []
+          const mengetahui = []
+          for (let i = 0; i < findTtd.length; i++) {
+            if (findTtd[i].sebagai === 'pembuat') {
+              pembuat.push(findTtd[i])
+            } else if (findTtd[i].sebagai === 'pemeriksa') {
+              pemeriksa.push(findTtd[i])
+            } else if (findTtd[i].sebagai === 'penyetuju') {
+              penyetuju.push(findTtd[i])
+            } else if (findTtd[i].sebagai === 'mengetahui') {
+              mengetahui.push(findTtd[i])
+            }
+          }
+          return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+        }
+      } else {
         if (findKlaim) {
           const findDepo = await finance.findOne({
             where: {
@@ -1469,6 +1512,7 @@ module.exports = {
             }
           })
           if (findDepo) {
+            // const listName = Object.values(findDepo.dataValues)
             const findAos = await user.findOne({
               where: {
                 kode_plant: findDepo.kode_plant
@@ -1485,18 +1529,22 @@ module.exports = {
             if (findApp.length > 0) {
               const temp = []
               for (let i = 0; i < findApp.length; i++) {
-                const data = {
-                  jabatan: findApp[i].jabatan,
-                  nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
-                  status: findApp[i].jabatan === 'aos' ? 1 : null,
-                  no_transaksi: no,
-                  sebagai: findApp[i].sebagai,
-                  jenis: findApp[i].jenis,
-                  kategori: findApp[i].kategori
-                }
-                const send = await ttd.create(data)
-                if (send) {
-                  temp.push(send)
+                if ((findApp[i].jabatan === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findApp[i].jabatan === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+                  console.log('')
+                } else {
+                  const data = {
+                    jabatan: findApp[i].jabatan,
+                    nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
+                    status: findApp[i].jabatan === 'aos' ? 1 : null,
+                    no_transaksi: no,
+                    sebagai: findApp[i].sebagai,
+                    jenis: findApp[i].jenis,
+                    kategori: findApp[i].kategori
+                  }
+                  const send = await ttd.create(data)
+                  if (send) {
+                    temp.push(send)
+                  }
                 }
               }
               if (temp.length > 0) {
@@ -1540,18 +1588,22 @@ module.exports = {
               if (findApp.length > 0) {
                 const temp = []
                 for (let i = 0; i < findApp.length; i++) {
-                  const data = {
-                    jabatan: findApp[i].jabatan,
-                    nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
-                    status: findApp[i].jabatan === 'aos' ? 1 : null,
-                    no_transaksi: no,
-                    sebagai: findApp[i].sebagai,
-                    jenis: findApp[i].jenis,
-                    kategori: findApp[i].kategori
-                  }
-                  const send = await ttd.create(data)
-                  if (send) {
-                    temp.push(send)
+                  if ((findApp[i].jabatan === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findApp[i].jabatan === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+                    console.log('')
+                  } else {
+                    const data = {
+                      jabatan: findApp[i].jabatan,
+                      nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
+                      status: findApp[i].jabatan === 'aos' ? 1 : null,
+                      no_transaksi: no,
+                      sebagai: findApp[i].sebagai,
+                      jenis: findApp[i].jenis,
+                      kategori: findApp[i].kategori
+                    }
+                    const send = await ttd.create(data)
+                    if (send) {
+                      temp.push(send)
+                    }
                   }
                 }
                 if (temp.length > 0) {
