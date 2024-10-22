@@ -198,7 +198,7 @@ module.exports = {
           no_transaksi: no
         }
       })
-      if (findRole && findDepo && findPic && findTrans && findAllTrans.length > 0) {
+      if (findRole && findDepo && findTrans && findAllTrans.length > 0 && (jenis === 'klaim' && !findPic ? findPic : findDepo)) {
         const listName = Object.values(findDepo.dataValues)
         if (tipe === 'approve') {
           const findApp = await ttd.findAll({
