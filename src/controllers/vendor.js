@@ -215,7 +215,8 @@ module.exports = {
     try {
       // const kode = req.user.kode
       const { noIdent } = req.body
-      const dataFind = noIdent === undefined || noIdent === null ? '' : noIdent.replace(/[-' '.]/g, '')
+      // const dataFind = noIdent === undefined || noIdent === null ? '' : noIdent.replace(/[-' '.]/g, '')
+      const dataFind = noIdent === undefined || noIdent === null ? '' : noIdent
       if (noIdent !== undefined) {
         const findVendor = await vendor.findAll({
           where: {

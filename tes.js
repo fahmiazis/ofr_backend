@@ -1,5 +1,3 @@
-const dataAjuan = ['king', 'king', 'kong']
+const num = '0.005%'
 
-const index = dataAjuan.indexOf(dataAjuan.find((item) => item === 'king'))
-
-console.log(index)
+console.log(785000 * parseFloat(num))

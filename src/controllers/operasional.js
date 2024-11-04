@@ -159,7 +159,7 @@ module.exports = {
                     }
                   })
                   if (findData) {
-                    return response(res, 'No faktur telah expired', {}, 400, false)
+                    return response(res, 'No faktur telah expired 1', {}, 400, false)
                   } else {
                     const dataEdit = {
                       status: 'inactive'
@@ -222,7 +222,7 @@ module.exports = {
                       }
                     })
                     if (findData) {
-                      return response(res, 'No faktur telah expired', {}, 400, false)
+                      return response(res, 'No faktur telah expired 2', {}, 400, false)
                     } else {
                       const dataEdit = {
                         status: 'inactive'
@@ -264,7 +264,7 @@ module.exports = {
                     }
                   })
                   if (findData) {
-                    return response(res, 'No faktur telah expired', {}, 400, false)
+                    return response(res, 'No faktur telah expired 3', {}, 400, false)
                   } else {
                     const dataEdit = {
                       status: 'inactive'
@@ -455,7 +455,7 @@ module.exports = {
                   }
                 })
                 if (findData) {
-                  return response(res, 'No faktur telah expired2', {}, 400, false)
+                  return response(res, 'No faktur telah expired 4', {}, 400, false)
                 } else {
                   const dataEdit = {
                     status: 'inactive'
@@ -529,7 +529,7 @@ module.exports = {
               //         }
               //       })
               //       if (findData) {
-              //         return response(res, 'No faktur telah expired', {}, 400, false)
+              //         return response(res, 'No faktur telah expired 5', {}, 400, false)
               //       } else {
               //         const dataEdit = {
               //           status: 'inactive'
@@ -580,7 +580,7 @@ module.exports = {
               //       }
               //     })
               //     if (findData) {
-              //       return response(res, 'No faktur telah expired', {}, 400, false)
+              //       return response(res, 'No faktur telah expired 6', {}, 400, false)
               //     } else {
               //       const dataEdit = {
               //         status: 'inactive'
