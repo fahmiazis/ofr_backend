@@ -22,9 +22,9 @@ module.exports = {
     try {
       const schema = joi.object({
         kode_plant: joi.string().required(),
-        rek_spending: joi.string().required(),
-        rek_zba: joi.string().required(),
-        rek_bankcol: joi.string().required()
+        no_rekening: joi.string().required(),
+        type: joi.string().required(),
+        bank: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -32,7 +32,10 @@ module.exports = {
       } else {
         const findRek = await rekening.findOne({
           where: {
-            kode_plant: { [Op.like]: `%${results.kode_plant}` }
+            [Op.and]: [
+              { kode_plant: { [Op.like]: `%${results.kode_plant}%` } },
+              { type: { [Op.like]: `%${results.bank}%` } }
+            ]
           }
         })
         if (findRek) {
@@ -55,9 +58,9 @@ module.exports = {
       const id = req.params.id
       const schema = joi.object({
         kode_plant: joi.string().required(),
-        rek_spending: joi.string().required(),
-        rek_zba: joi.string().required(),
-        rek_bankcol: joi.string().required()
+        no_rekening: joi.string().required(),
+        type: joi.string().required(),
+        bank: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -65,7 +68,10 @@ module.exports = {
       } else {
         const findRek = await rekening.findOne({
           where: {
-            kode_plant: { [Op.like]: `%${results.kode_plant}` },
+            [Op.and]: [
+              { kode_plant: { [Op.like]: `%${results.kode_plant}%` } },
+              { type: { [Op.like]: `%${results.bank}%` } }
+            ],
             [Op.not]: {
               id: id
             }
@@ -108,7 +114,7 @@ module.exports = {
           const dokumen = `assets/masters/${req.files[0].filename}`
           const rows = await readXlsxFile(dokumen)
           const count = []
-          const cek = ['KODE PLANT', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL']
+          const cek = ['KODE PLANT', 'NOMOR REKENING', 'TIPE REKENING', 'NAMA BANK']
           const valid = rows[0]
           for (let i = 0; i < cek.length; i++) {
             if (valid[i] === cek[i]) {
@@ -146,14 +152,17 @@ module.exports = {
                 const dataRek = rows[i]
                 const select = await rekening.findOne({
                   where: {
-                    kode_plant: { [Op.like]: `%${dataRek[0]}%` }
+                    [Op.and]: [
+                      { kode_plant: { [Op.like]: `%${dataRek[0]}%` } },
+                      { type: { [Op.like]: `%${dataRek[2]}%` } }
+                    ]
                   }
                 })
                 const data = {
                   kode_plant: dataRek[0],
-                  rek_spending: dataRek[1],
-                  rek_zba: dataRek[2],
-                  rek_bankcol: dataRek[3]
+                  no_rekening: dataRek[1],
+                  type: dataRek[2],
+                  bank: dataRek[3]
                 }
                 if (select) {
                   const upbank = await select.update(data)
@@ -264,9 +273,9 @@ module.exports = {
         where: {
           [Op.or]: [
             { kode_plant: { [Op.like]: `%${searchValue}%` } },
-            { rek_spending: { [Op.like]: `%${searchValue}%` } },
-            { rek_zba: { [Op.like]: `%${searchValue}%` } },
-            { rek_bankcol: { [Op.like]: `%${searchValue}%` } }
+            { no_rekening: { [Op.like]: `%${searchValue}%` } },
+            { type: { [Op.like]: `%${searchValue}%` } },
+            { bank: { [Op.like]: `%${searchValue}%` } }
           ]
         },
         order: [[sortValue, 'ASC']],
@@ -321,8 +330,8 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['KODE PLANT', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL']
-        const key = ['kode_plant', 'rek_spending', 'rek_zba', 'rek_bankcol']
+        const header = ['KODE PLANT', 'NOMOR REKENING', 'TIPE REKENING', 'NAMA BANK']
+        const key = ['kode_plant', 'no_rekening', 'type', 'bank']
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }
           arr.push(temp)
@@ -375,7 +384,7 @@ module.exports = {
           }
         }
         if (temp.length > 0) {
-          return response(res, 'success delete all', {}, 404, false)
+          return response(res, 'success delete all', { total: temp.length })
         } else {
           return response(res, 'failed delete all', {}, 404, false)
         }

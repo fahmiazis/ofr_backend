@@ -35,6 +35,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'pic_finance',
         as: 'pic'
       })
+      finance.hasMany(models.rekening, {
+        foreignKey: 'kode_plant',
+        sourceKey: 'kode_plant',
+        as: 'rek'
+      })
     }
   }
   finance.init({

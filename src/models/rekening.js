@@ -19,9 +19,9 @@ module.exports = (sequelize, DataTypes) => {
   }
   rekening.init({
     kode_plant: DataTypes.STRING,
-    rek_spending: DataTypes.STRING,
-    rek_zba: DataTypes.STRING,
-    rek_bankcol: DataTypes.STRING
+    no_rekening: DataTypes.STRING,
+    type: DataTypes.STRING,
+    bank: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'rekening'

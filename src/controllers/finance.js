@@ -1,4 +1,4 @@
-const { finance, depo } = require('../models')
+const { finance, depo, rekening } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -381,10 +381,16 @@ module.exports = {
       const { tipe } = req.query
       if (tipe === 'all' || level !== 5) {
         const findRek = await finance.findAll({
-          include: [{
-            model: depo,
-            as: 'depo'
-          }]
+          include: [
+            {
+              model: depo,
+              as: 'depo'
+            },
+            {
+              model: rekening,
+              as: 'rek'
+            }
+          ]
         })
         if (findRek.length > 0) {
           return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
@@ -396,7 +402,17 @@ module.exports = {
         const findRek = await finance.findAll({
           where: {
             kode_plant: kode
-          }
+          },
+          include: [
+            {
+              model: depo,
+              as: 'depo'
+            },
+            {
+              model: rekening,
+              as: 'rek'
+            }
+          ]
         })
         if (findRek.length > 0) {
           return response(res, 'succes get rekening', { result: findRek, length: findRek.length })
@@ -501,14 +517,30 @@ module.exports = {
       const kode = req.user.kode
       const cost = req.user.name
       if (level === 5 || level === 9) {
-        const result = await finance.findOne({ where: { kode_plant: level === 5 ? kode : cost } })
+        const result = await finance.findOne({
+          where: { kode_plant: level === 5 ? kode : cost },
+          include: [
+            {
+              model: rekening,
+              as: 'rek'
+            }
+          ]
+        })
         if (result) {
           return response(res, 'succes get detail depo', { result })
         } else {
           return response(res, 'failed get detail depo', {}, 404, false)
         }
       } else {
-        const findFinance = await finance.findByPk(id)
+        const findFinance = await finance.findOne({
+          where: { id: id },
+          include: [
+            {
+              model: rekening,
+              as: 'rek'
+            }
+          ]
+        })
         if (findFinance) {
           return response(res, 'succes get detail finance', { result: findFinance })
         } else {
