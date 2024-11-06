@@ -1,3 +1,3 @@
-const num = '0.005%'
-
-console.log(785000 * parseFloat(num))
+for (let i = 0; i < 6; i++) {
+  console.log(i)
+}

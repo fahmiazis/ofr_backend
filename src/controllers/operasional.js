@@ -4784,5 +4784,48 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  updateTtdAos: async (req, res) => {
+    try {
+      const findSign = await ttd.findAll({
+        where: {
+          [Op.and]: [
+            { jabatan: { [Op.like]: '%AOS%' } },
+            { status: null }
+          ]
+        }
+      })
+      if (findSign.length > 0) {
+        const cek = []
+        for (let i = 0; i < findSign.length; i++) {
+          const kode = findSign[i].no_transaksi.split('/')[1]
+          const findAos = await user.findOne({
+            where: {
+              kode_plant: kode
+            }
+          })
+          if (findAos) {
+            const data = {
+              nama: findAos.fullname,
+              status: 1
+            }
+            const findId = await ttd.findByPk(findSign[i].id)
+            if (findId) {
+              await findId.update(data)
+              cek.push(findId)
+            }
+          }
+        }
+        if (cek.length > 0) {
+          return response(res, 'success update sign aos', { findSign })
+        } else {
+          return response(res, 'all aos have sign', { findSign })
+        }
+      } else {
+        return response(res, 'all aos have sign', { findSign })
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }
