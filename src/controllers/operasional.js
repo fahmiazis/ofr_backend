@@ -3938,7 +3938,7 @@ module.exports = {
             ]
           })
           if (findOps) {
-            return response(res, 'success get data ops', { result: findOps })
+            return response(res, 'success get data ops', { result: findOps, cond: 'if' })
           } else {
             return response(res, 'success get data ops', { result: findOps })
           }
@@ -4060,7 +4060,7 @@ module.exports = {
             if (hasil.length > 0) {
               const pageInfo = pagination('/ops/report', req.query, page, limit, hasil.count)
               const result = hasil
-              return response(res, 'success get ops', { result, pageInfo })
+              return response(res, 'success get ops', { result, pageInfo, cond: 'if else' })
             } else {
               const pageInfo = pagination('/ops/report', req.query, page, limit, hasil.count)
               const result = hasil
@@ -4148,7 +4148,7 @@ module.exports = {
           })
           if (findOps) {
             const pageInfo = pagination('/ops/report', req.query, page, limit, findOps.count)
-            return response(res, 'success get data ops', { result: findOps, pageInfo })
+            return response(res, 'success get data ops', { result: findOps, pageInfo, cond: 'else' })
           } else {
             const pageInfo = pagination('/ops/report', req.query, page, limit, findOps.count)
             return response(res, 'success get data ops', { result: findOps, pageInfo })
