@@ -1492,7 +1492,7 @@ module.exports = {
       }
 
       const searchValue = search || ''
-      const statTrans = status === 'undefined' || status === null ? 2 : status
+      const statTrans = status === undefined || status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? 'all' : reject
       const statMenu = menu === 'undefined' ? 'all' : menu
       const statData = data === 'undefined' ? 'all' : data
