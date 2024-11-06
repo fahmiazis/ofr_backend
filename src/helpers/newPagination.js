@@ -28,13 +28,14 @@ module.exports = {
     return pageInfo
   },
   filterApp: (type, dataAjuan, role) => {
+    const level = req.user.level
     if (type === 'available') {
       const newKlaim = []
       for (let i = 0; i < dataAjuan.length; i++) {
         if ((dataAjuan[i].status_reject === 0 || dataAjuan[i].status_reject === null) && dataAjuan[i].status_transaksi === 2) {
           const app = dataAjuan[i].appForm
           const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-          if (app[find] !== undefined && app[find + 1].status !== undefined && app[find + 1].status === '1' && (app[find].status === null || app[find].status === '0')) {
+          if (level !== 5 && (app[find] !== undefined && app[find + 1].status !== undefined) && app[find + 1].status === '1' && (app[find].status === null || app[find].status === '0')) {
             newKlaim.push(dataAjuan[i])
           }
         }
@@ -65,7 +66,7 @@ module.exports = {
       for (let i = 0; i < dataAjuan.length; i++) {
         const app = dataAjuan[i].appForm
         const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-        if (app[find] === undefined || (app[find] !== undefined && app[find].status === '1') || (app[find] !== undefined && app[find + 1].status !== undefined && app[find + 1].status !== '1')) {
+        if (app[find] === undefined || (app[find] !== undefined && app[find].status === '1') || (level !== 5 && (app[find] !== undefined && app[find + 1].status !== undefined) && app[find + 1].status !== '1')) {
           newKlaim.push(dataAjuan[i])
         } else if (dataAjuan[i].status_reject !== null && dataAjuan[i].status_reject !== 0) {
           newKlaim.push(dataAjuan[i])
