@@ -1551,8 +1551,8 @@ module.exports = {
                 } else {
                   const data = {
                     jabatan: findApp[i].jabatan,
-                    nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
-                    status: findApp[i].jabatan === 'aos' ? 1 : null,
+                    nama: findApp[i].jabatan.toLowerCase() === 'aos' ? findAos.fullname : null,
+                    status: findApp[i].jabatan.toLowerCase() === 'aos' ? 1 : null,
                     no_transaksi: no,
                     sebagai: findApp[i].sebagai,
                     jenis: findApp[i].jenis,
@@ -1610,8 +1610,8 @@ module.exports = {
                   } else {
                     const data = {
                       jabatan: findApp[i].jabatan,
-                      nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
-                      status: findApp[i].jabatan === 'aos' ? 1 : null,
+                      nama: findApp[i].jabatan.toLowerCase() === 'aos' ? findAos.fullname : null,
+                      status: findApp[i].jabatan.toLowerCase() === 'aos' ? 1 : null,
                       no_transaksi: no,
                       sebagai: findApp[i].sebagai,
                       jenis: findApp[i].jenis,
