@@ -7,6 +7,7 @@ const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { pagination, filterApp, filter, filterBayar } = require('../helpers/newPagination')
 const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34]
+const taxAcc = [4, 14, 24, 34, 102]
 const nonPph = 'Non PPh'
 const spend = 'Rekening Spending Card'
 const zba = 'Rekening ZBA'
@@ -3983,12 +3984,19 @@ module.exports = {
                   statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
-                    : {
-                        tgl_sublist: {
-                          [Op.gte]: timeV1,
-                          [Op.lt]: timeV2
+                    : taxAcc.find(item => item === level) !== undefined
+                      ? {
+                          start_ops: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
                         }
-                      }
+                      : {
+                          tgl_sublist: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        }
                 ],
                 [Op.or]: [
                   { kode_plant: { [Op.like]: `%${searchValue}%` } },
@@ -4078,12 +4086,19 @@ module.exports = {
                 statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                 timeVal1 === 'all'
                   ? { [Op.not]: { id: null } }
-                  : {
-                      tgl_sublist: {
-                        [Op.gte]: timeV1,
-                        [Op.lt]: timeV2
+                  : taxAcc.find(item => item === level) !== undefined
+                    ? {
+                        start_ops: {
+                          [Op.gte]: timeV1,
+                          [Op.lt]: timeV2
+                        }
                       }
-                    }
+                    : {
+                        tgl_sublist: {
+                          [Op.gte]: timeV1,
+                          [Op.lt]: timeV2
+                        }
+                      }
               ],
               [Op.or]: [
                 { kode_plant: { [Op.like]: `%${searchValue}%` } },
