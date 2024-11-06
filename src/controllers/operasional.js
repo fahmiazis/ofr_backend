@@ -2093,12 +2093,26 @@ module.exports = {
               kode_plant: findOps.kode_plant
             }
           })
+          const findAos = await user.findOne({
+            where: {
+              kode_plant: findDepo.kode_plant
+            }
+          })
           const cek = []
           for (let i = 0; i < findTtd.length; i++) {
             if ((findTtd[i].jabatan === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findTtd[i].jabatan === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
               const findId = await ttd.findByPk(findTtd[i].id)
               if (findId) {
                 await findId.destroy()
+              } else if (findTtd[i].jabatan === 'aos') {
+                const data = {
+                  nama: findAos.fullname,
+                  status: 1
+                }
+                const send = await ttd.create(data)
+                if (send) {
+                  cek.push(findTtd[i])
+                }
               }
             }
             cek.push(findTtd[i])
