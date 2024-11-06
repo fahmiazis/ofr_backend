@@ -1451,12 +1451,29 @@ module.exports = {
               kode_plant: findKlaim.kode_plant
             }
           })
+          const findAos = await user.findOne({
+            where: {
+              kode_plant: findKlaim.kode_plant
+            }
+          })
           const cek = []
           for (let i = 0; i < findTtd.length; i++) {
-            if ((findTtd[i].jabatan === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findTtd[i].jabatan === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+            if ((findTtd[i].jabatan.toLowerCase() === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findTtd[i].jabatan.toLowerCase() === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
               const findId = await ttd.findByPk(findTtd[i].id)
               if (findId) {
                 await findId.destroy()
+              }
+            } else if (findTtd[i].jabatan.toLowerCase() === 'aos') {
+              const findId = await ttd.findByPk(findTtd[i].id)
+              if (findId) {
+                const data = {
+                  nama: findAos.fullname,
+                  status: 1
+                }
+                const send = await findTtd.update(data)
+                if (send) {
+                  cek.push(findTtd[i])
+                }
               }
             }
             cek.push(findTtd[i])
@@ -1529,7 +1546,7 @@ module.exports = {
             if (findApp.length > 0) {
               const temp = []
               for (let i = 0; i < findApp.length; i++) {
-                if ((findApp[i].jabatan === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findApp[i].jabatan === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+                if ((findApp[i].jabatan.toLowerCase() === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findApp[i].jabatan.toLowerCase() === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
                   console.log('')
                 } else {
                   const data = {
@@ -1588,7 +1605,7 @@ module.exports = {
               if (findApp.length > 0) {
                 const temp = []
                 for (let i = 0; i < findApp.length; i++) {
-                  if ((findApp[i].jabatan === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findApp[i].jabatan === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+                  if ((findApp[i].jabatan.toLowerCase() === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findApp[i].jabatan.toLowerCase() === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
                     console.log('')
                   } else {
                     const data = {

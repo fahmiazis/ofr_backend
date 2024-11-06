@@ -2095,7 +2095,7 @@ module.exports = {
           })
           const findAos = await user.findOne({
             where: {
-              kode_plant: findDepo.kode_plant
+              kode_plant: findOps.kode_plant
             }
           })
           const cek = []
@@ -2105,7 +2105,7 @@ module.exports = {
               if (findId) {
                 await findId.destroy()
               }
-            } else if (findTtd[i].jabatan === 'aos') {
+            } else if (findTtd[i].jabatan.toLowerCase() === 'aos') {
               const findId = await ttd.findByPk(findTtd[i].id)
               if (findId) {
                 const data = {
@@ -2192,8 +2192,8 @@ module.exports = {
                 } else {
                   const data = {
                     jabatan: findApp[i].jabatan,
-                    nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
-                    status: findApp[i].jabatan === 'aos' ? 1 : null,
+                    nama: findApp[i].jabatan.toLowerCase() === 'aos' ? findAos.fullname : null,
+                    status: findApp[i].jabatan.toLowerCase() === 'aos' ? 1 : null,
                     no_transaksi: no,
                     sebagai: findApp[i].sebagai,
                     jenis: findApp[i].jenis,
@@ -2251,8 +2251,8 @@ module.exports = {
                   } else {
                     const data = {
                       jabatan: findApp[i].jabatan,
-                      nama: findApp[i].jabatan === 'aos' ? findAos.fullname : null,
-                      status: findApp[i].jabatan === 'aos' ? 1 : null,
+                      nama: findApp[i].jabatan.toLowerCase() === 'aos' ? findAos.fullname : null,
+                      status: findApp[i].jabatan.toLowerCase() === 'aos' ? 1 : null,
                       no_transaksi: no,
                       sebagai: findApp[i].sebagai,
                       jenis: findApp[i].jenis,
