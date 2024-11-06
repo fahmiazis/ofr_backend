@@ -2112,9 +2112,9 @@ module.exports = {
                   nama: findAos.fullname,
                   status: 1
                 }
-                const send = await findTtd.update(data)
+                const send = await findId.update(data)
                 if (send) {
-                  cek.push(findTtd[i])
+                  cek.push(findId)
                 }
               }
             }
