@@ -4148,7 +4148,7 @@ module.exports = {
           })
           if (findOps) {
             const pageInfo = pagination('/ops/report', req.query, page, limit, findOps.count)
-            return response(res, 'success get data ops', { result: findOps, pageInfo, cond: 'else' })
+            return response(res, 'success get data ops', { result: findOps, pageInfo, cond: 'else', timeV1, timeV2, timeVal1, timeVal2 })
           } else {
             const pageInfo = pagination('/ops/report', req.query, page, limit, findOps.count)
             return response(res, 'success get data ops', { result: findOps, pageInfo })
