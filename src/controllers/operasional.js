@@ -1604,7 +1604,7 @@ module.exports = {
           // const set = new Set(data)
           // const noDis = [...set]
           if (findOps) {
-            const newOps = category === 'verif' ? filter(type, findOps.rows, statData, role) : filterApp(type, findOps.rows, role)
+            const newOps = category === 'verif' ? filter(type, findOps.rows, statData, role) : filterApp(type, findOps.rows, role, level)
             const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
             return response(res, 'success get data ops', { result: findOps.rows, pageInfo, newOps, findDepo: [] })
           } else {
@@ -1912,7 +1912,7 @@ module.exports = {
                 const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
                 return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, newOps: findOps.rows })
               } else {
-                const newOps = category === 'verif' ? filter(type, findOps.rows, statData, role) : filterApp(type, findOps.rows, role)
+                const newOps = category === 'verif' ? filter(type, findOps.rows, statData, role) : filterApp(type, findOps.rows, role, level)
                 const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
                 return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, newOps })
               }

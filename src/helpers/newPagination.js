@@ -27,8 +27,7 @@ module.exports = {
     }
     return pageInfo
   },
-  filterApp: (type, dataAjuan, role) => {
-    const level = req.user.level
+  filterApp: (type, dataAjuan, role, level) => {
     if (type === 'available') {
       const newKlaim = []
       for (let i = 0; i < dataAjuan.length; i++) {
