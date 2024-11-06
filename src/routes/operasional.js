@@ -45,4 +45,7 @@ route.patch('/bbm/add', ops.addBbm)
 route.delete('/bbm/del/:id', ops.deleteBbm)
 route.get('/bbm/get/:id', ops.getBbm)
 
+// update approval all aos
+route.patch('/sign/aos', ops.updateSignAos)
+
 module.exports = route

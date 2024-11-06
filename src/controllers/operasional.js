@@ -4785,7 +4785,7 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  updateTtdAos: async (req, res) => {
+  updateSignAos: async (req, res) => {
     try {
       const findSign = await ttd.findAll({
         where: {
