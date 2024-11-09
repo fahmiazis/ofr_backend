@@ -1633,7 +1633,17 @@ module.exports = {
               ]
             }
           })
-          if (findDepo) {
+          const findApp = await approve.findAll({
+            where: {
+              [Op.and]: [
+                { kode_plant: 'all' },
+                { nama_approve: 'Pengajuan Ops' }
+              ]
+            }
+          })
+          if (findDepo && findApp) {
+            const indexApp = findApp.map(item => item.jabatan).indexOf(role)
+            const dataApp = findApp[indexApp - 1]
             const dataDepo = []
             for (let i = 0; i < findDepo.length; i++) {
               if (listDepo !== 'all') {
@@ -1654,15 +1664,13 @@ module.exports = {
                     [Op.or]: dataDepo
                   },
                   { no_transaksi: { [Op.like]: '%OPS%' } },
-                  parseInt(statTrans) === 2 ? { jabatan: { [Op.like]: `%${role}%` } } : { [Op.not]: { id: null } },
-                  parseInt(statTrans) === 2
-                    ? {
-                        [Op.or]: [
-                          { status: null },
-                          { status: '0' }
-                        ]
-                      }
-                    : { [Op.not]: { id: null } },
+                  { jabatan: { [Op.like]: `%${role}%` } },
+                  {
+                    [Op.or]: [
+                      { status: null },
+                      { status: '0' }
+                    ]
+                  },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
                     : {
@@ -1671,6 +1679,10 @@ module.exports = {
                           [Op.lt]: timeV2
                         }
                       }
+                ],
+                [Op.and]: [
+                  { jabatan: { [Op.like]: `%${dataApp}%` } },
+                  { status: '1' }
                 ]
               }
             })
