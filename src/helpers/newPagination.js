@@ -36,6 +36,8 @@ module.exports = {
           const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
           if (level !== 5 && (app[find] !== undefined && app[find + 1] !== undefined) && app[find + 1].status === '1' && (app[find].status === null || app[find].status === '0')) {
             newKlaim.push(dataAjuan[i])
+          } else if (dataAjuan[i].status_reject === 0 && dataAjuan[i].status_transaksi === 2 && (app[find] !== undefined && app[find + 1] !== undefined) && app[find + 1].status === '1' && app[find].status === '0') {
+            newKlaim.push(dataAjuan[i])
           }
         }
       }
@@ -54,7 +56,7 @@ module.exports = {
         if (dataAjuan[i].status_reject === 0 && dataAjuan[i].status_transaksi === 2) {
           const app = dataAjuan[i].appForm
           const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-          if (app[find] !== undefined && app[find + 1].status === '1' && app[find].status === '0') {
+          if (app[find] !== undefined && app[find + 1] !== undefined && app[find + 1].status === '1' && app[find].status === '0') {
             newKlaim.push(dataAjuan[i])
           }
         }
@@ -104,7 +106,7 @@ module.exports = {
         if (dataAjuan[i].status_reject === 0 && dataAjuan[i].status_transaksi === parseInt(data)) {
           const app = dataAjuan[i].appList
           const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-          if (app[find] !== undefined && app[find + 1].status === '1' && app[find].status === '0') {
+          if (app[find] !== undefined && app[find + 1] !== undefined && app[find + 1].status === '1' && app[find].status === '0') {
             newKlaim.push(dataAjuan[i])
           }
         }
