@@ -1655,7 +1655,14 @@ module.exports = {
                   },
                   { no_transaksi: { [Op.like]: '%OPS%' } },
                   parseInt(statTrans) === 2 ? { jabatan: { [Op.like]: `%${role}%` } } : { [Op.not]: { id: null } },
-                  parseInt(statTrans) === 2 ? { status: null } : { [Op.not]: { id: null } },
+                  parseInt(statTrans) === 2
+                    ? {
+                        [Op.or]: [
+                          { status: null },
+                          { status: '0' }
+                        ]
+                      }
+                    : { [Op.not]: { id: null } },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
                     : {
