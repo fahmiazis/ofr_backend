@@ -1643,7 +1643,7 @@ module.exports = {
           })
           if (findDepo && findApp) {
             const indexApp = findApp.map(item => item.jabatan).indexOf(role)
-            const dataApp = findApp[indexApp - 1]
+            const dataApp = findApp[indexApp - 1].jabatan
             const dataDepo = []
             for (let i = 0; i < findDepo.length; i++) {
               if (listDepo !== 'all') {
@@ -1657,15 +1657,17 @@ module.exports = {
                 dataDepo.push(data)
               }
             }
-            const findSign = await ttd.findAll({
+            const findSignCek = await ttd.findAll({
               where: {
                 [Op.and]: [
                   {
                     [Op.or]: dataDepo
                   },
                   { no_transaksi: { [Op.like]: '%OPS%' } },
-                  { jabatan: { [Op.like]: `%${role}%` } },
                   {
+                    [Op.and]: [
+                      { jabatan: { [Op.like]: `%${role}%` } }
+                    ],
                     [Op.or]: [
                       { status: null },
                       { status: '0' }
@@ -1679,8 +1681,20 @@ module.exports = {
                           [Op.lt]: timeV2
                         }
                       }
-                ],
+                ]
+              }
+            })
+            const dataCek = []
+            for (let i = 0; i < findSignCek.length; i++) {
+              const data = { no_transaksi: findSignCek[i].no_transaksi }
+              dataCek.push(data)
+            }
+            const findSign = await ttd.findAll({
+              where: {
                 [Op.and]: [
+                  {
+                    [Op.or]: dataCek
+                  },
                   { jabatan: { [Op.like]: `%${dataApp}%` } },
                   { status: '1' }
                 ]
