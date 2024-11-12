@@ -1644,17 +1644,29 @@ module.exports = {
           if (findDepo && findApp) {
             const indexApp = findApp.map(item => item.jabatan).indexOf(role)
             const dataApp = findApp[indexApp - 1].jabatan
+            const dataApp2 = findApp[indexApp - (level === 12 ? 2 : 1)].jabatan
             const dataDepo = []
+            const depoVacant = []
             for (let i = 0; i < findDepo.length; i++) {
               if (listDepo !== 'all') {
                 const depoArr = listDepo.split(',')
                 if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
                   const data = { no_transaksi: { [Op.like]: `%${findDepo[i].kode_plant}%` } }
-                  dataDepo.push(data)
+                  if (findDepo[i].rom.toLowerCase() === 'vacant' || findDepo[i].rom === null) {
+                    depoVacant.push(findDepo[i].kode_plant)
+                    dataDepo.push(data)
+                  } else {
+                    dataDepo.push(data)
+                  }
                 }
               } else {
                 const data = { no_transaksi: { [Op.like]: `%${findDepo[i].kode_plant}%` } }
-                dataDepo.push(data)
+                if (findDepo[i].rom.toLowerCase() === 'vacant' || findDepo[i].rom === null) {
+                  depoVacant.push(findDepo[i].kode_plant)
+                  dataDepo.push(data)
+                } else {
+                  dataDepo.push(data)
+                }
               }
             }
             const findSignCek = await ttd.findAll({
@@ -1685,9 +1697,16 @@ module.exports = {
               }
             })
             const dataCek = []
+            const dataVacant = []
             for (let i = 0; i < findSignCek.length; i++) {
+              const noTrans = findSignCek[i].no_transaksi.split('/')
               const data = { no_transaksi: findSignCek[i].no_transaksi }
-              dataCek.push(data)
+              if (depoVacant.find(item => item.kode_plant === noTrans[1]) !== undefined) {
+                dataVacant.push(data)
+                dataCek.push(data)
+              } else {
+                dataCek.push(data)
+              }
             }
             const findSign = await ttd.findAll({
               where: {
@@ -1700,132 +1719,159 @@ module.exports = {
                 ]
               }
             })
+            const findSignVacant = await ttd.findAll({
+              where: {
+                [Op.and]: [
+                  {
+                    [Op.or]: dataVacant
+                  },
+                  level === 12 ? { jabatan: { [Op.like]: `%${dataApp2}%` } } : { jabatan: { [Op.like]: `%${dataApp}%` } },
+                  { status: '1' }
+                ]
+              }
+            })
             if (findSign.length > 0) {
               const dataSign = []
               for (let i = 0; i < findSign.length; i++) {
                 const data = { no_transaksi: findSign[i].no_transaksi }
                 dataSign.push(data)
               }
-              const hasil = await ops.findAndCountAll({
-                where: {
-                  [Op.and]: [
-                    {
-                      [Op.or]: dataSign
-                    },
-                    statTrans === 'all'
-                      ? { [Op.not]: { status_transaksi: null } }
-                      : category === 'verif' && level === 2
-                        ? { [Op.or]: [{ status_transaksi: statTrans }, { status_transaksi: 5 }] }
-                        : { status_transaksi: statTrans },
-                    statRej === 'all' ? { [Op.not]: { start_ops: null } } : { status_reject: statRej },
-                    statMenu === 'all' ? { [Op.not]: { start_ops: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
-                    category === 'ajuan bayar'
-                      ? { [Op.not]: { no_pembayaran: null } }
-                      : { [Op.not]: { id: null } },
-                    statKasbon === 'kasbon'
-                      ? { type_kasbon: statKasbon }
-                      : statKasbon === 'non kasbon'
-                        ? {
-                            [Op.or]: [
-                              { [Op.not]: { type_kasbon: 'kasbon' } },
-                              { type_kasbon: null }
-                            ]
-                          }
-                        : {
-                            [Op.not]: { id: null }
-                          },
-                    timeVal1 === 'all'
-                      ? { [Op.not]: { id: null } }
-                      : category === 'ajuan bayar'
-                        ? {
-                            tgl_sublist: {
-                              [Op.gte]: timeV1,
-                              [Op.lt]: timeV2
+              for (let i = 0; i < findSignVacant.length; i++) {
+                if (depoVacant.length !== 0) {
+                  const data = { no_transaksi: findSignVacant[i].no_transaksi }
+                  dataSign.push(data)
+                }
+              }
+              if (dataSign.length > 0) {
+                // const dataSignFin = []
+                // for (let i = 0; i < findSign.length; i++) {
+                //   const data = { no_transaksi: findSign[i].no_transaksi }
+                //   dataSign.push(data)
+                // }
+                const hasil = await ops.findAndCountAll({
+                  where: {
+                    [Op.and]: [
+                      {
+                        [Op.or]: dataSign
+                      },
+                      statTrans === 'all'
+                        ? { [Op.not]: { status_transaksi: null } }
+                        : category === 'verif' && level === 2
+                          ? { [Op.or]: [{ status_transaksi: statTrans }, { status_transaksi: 5 }] }
+                          : { status_transaksi: statTrans },
+                      statRej === 'all' ? { [Op.not]: { start_ops: null } } : { status_reject: statRej },
+                      statMenu === 'all' ? { [Op.not]: { start_ops: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
+                      category === 'ajuan bayar'
+                        ? { [Op.not]: { no_pembayaran: null } }
+                        : { [Op.not]: { id: null } },
+                      statKasbon === 'kasbon'
+                        ? { type_kasbon: statKasbon }
+                        : statKasbon === 'non kasbon'
+                          ? {
+                              [Op.or]: [
+                                { [Op.not]: { type_kasbon: 'kasbon' } },
+                                { type_kasbon: null }
+                              ]
                             }
-                          }
-                        : {
-                            start_ops: {
-                              [Op.gte]: timeV1,
-                              [Op.lt]: timeV2
+                          : {
+                              [Op.not]: { id: null }
+                            },
+                      timeVal1 === 'all'
+                        ? { [Op.not]: { id: null } }
+                        : category === 'ajuan bayar'
+                          ? {
+                              tgl_sublist: {
+                                [Op.gte]: timeV1,
+                                [Op.lt]: timeV2
+                              }
                             }
-                          },
-                    jentrans === 'undefined' || jentrans === undefined || jentrans === '' || jentrans === null || jentrans === 'all' ? { [Op.not]: { id: null } } : { sub_coa: jentrans },
-                    desttf === 'undefined' || desttf === undefined || desttf === '' || desttf === null || desttf === 'all' ? { [Op.not]: { id: null } } : { tujuan_tf: desttf }
+                          : {
+                              start_ops: {
+                                [Op.gte]: timeV1,
+                                [Op.lt]: timeV2
+                              }
+                            },
+                      jentrans === 'undefined' || jentrans === undefined || jentrans === '' || jentrans === null || jentrans === 'all' ? { [Op.not]: { id: null } } : { sub_coa: jentrans },
+                      desttf === 'undefined' || desttf === undefined || desttf === '' || desttf === null || desttf === 'all' ? { [Op.not]: { id: null } } : { tujuan_tf: desttf }
+                    ],
+                    [Op.or]: [
+                      { kode_plant: { [Op.like]: `%${searchValue}%` } },
+                      { area: { [Op.like]: `%${searchValue}%` } },
+                      { cost_center: { [Op.like]: `%${searchValue}%` } },
+                      { no_coa: { [Op.like]: `%${searchValue}%` } },
+                      // { sub_coa: { [Op.like]: `%${searchValue}%` } },
+                      { nama_coa: { [Op.like]: `%${searchValue}%` } },
+                      { keterangan: { [Op.like]: `%${searchValue}%` } },
+                      { no_faktur: { [Op.like]: `%${searchValue}%` } },
+                      { nama_vendor: { [Op.like]: `%${searchValue}%` } },
+                      { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
+                      // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
+                      { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
+                      { nama_ktp: { [Op.like]: `%${searchValue}%` } },
+                      { nama_npwp: { [Op.like]: `%${searchValue}%` } },
+                      { no_ktp: { [Op.like]: `%${searchValue}%` } },
+                      { no_npwp: { [Op.like]: `%${searchValue}%` } },
+                      { no_transaksi: { [Op.like]: `%${searchValue}%` } },
+                      { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
+                    ]
+                  },
+                  order: [
+                    ['start_ops', 'DESC'],
+                    [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
+                    [{ model: ttd, as: 'appList' }, 'id', 'DESC']
                   ],
-                  [Op.or]: [
-                    { kode_plant: { [Op.like]: `%${searchValue}%` } },
-                    { area: { [Op.like]: `%${searchValue}%` } },
-                    { cost_center: { [Op.like]: `%${searchValue}%` } },
-                    { no_coa: { [Op.like]: `%${searchValue}%` } },
-                    // { sub_coa: { [Op.like]: `%${searchValue}%` } },
-                    { nama_coa: { [Op.like]: `%${searchValue}%` } },
-                    { keterangan: { [Op.like]: `%${searchValue}%` } },
-                    { no_faktur: { [Op.like]: `%${searchValue}%` } },
-                    { nama_vendor: { [Op.like]: `%${searchValue}%` } },
-                    { alamat_vendor: { [Op.like]: `%${searchValue}%` } },
-                    // { tgl_tagihanbayar: { [Op.like]: `%${searchValue}%` } },
-                    { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
-                    { nama_ktp: { [Op.like]: `%${searchValue}%` } },
-                    { nama_npwp: { [Op.like]: `%${searchValue}%` } },
-                    { no_ktp: { [Op.like]: `%${searchValue}%` } },
-                    { no_npwp: { [Op.like]: `%${searchValue}%` } },
-                    { no_transaksi: { [Op.like]: `%${searchValue}%` } },
-                    { no_pembayaran: { [Op.like]: `%${searchValue}%` } }
-                  ]
-                },
-                order: [
-                  ['start_ops', 'DESC'],
-                  [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                  [{ model: ttd, as: 'appList' }, 'id', 'DESC']
-                ],
-                include: [
-                  {
-                    model: ttd,
-                    as: 'appForm'
-                  },
-                  {
-                    model: ttd,
-                    as: 'appList',
-                    subQuery: false
-                  },
-                  {
-                    model: finance,
-                    as: 'depo',
-                    include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-                  },
-                  {
-                    model: veriftax,
-                    as: 'veriftax'
-                  },
-                  {
-                    model: kliring,
-                    as: 'kliring'
-                  },
-                  {
-                    model: bbm,
-                    as: 'bbm'
+                  include: [
+                    {
+                      model: ttd,
+                      as: 'appForm'
+                    },
+                    {
+                      model: ttd,
+                      as: 'appList',
+                      subQuery: false
+                    },
+                    {
+                      model: finance,
+                      as: 'depo',
+                      include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+                    },
+                    {
+                      model: veriftax,
+                      as: 'veriftax'
+                    },
+                    {
+                      model: kliring,
+                      as: 'kliring'
+                    },
+                    {
+                      model: bbm,
+                      as: 'bbm'
+                    }
+                  ],
+                  limit: limit,
+                  offset: (page - 1) * limit,
+                  group: [category === 'verif' && level === 2 ? 'ops.id' : category === 'ajuan bayar' ? 'ops.no_pembayaran' : 'ops.no_transaksi'],
+                  distinct: true
+                })
+                if (hasil.rows.length > 0) {
+                  const result = hasil.rows
+                  if (statTrans === 'all') {
+                    const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                    return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataCek })
+                  } else {
+                    const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
+                    const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                    return response(res, 'success get ops', { result, findSign, newOps, pageInfo, dataCek })
                   }
-                ],
-                limit: limit,
-                offset: (page - 1) * limit,
-                group: [category === 'verif' && level === 2 ? 'ops.id' : category === 'ajuan bayar' ? 'ops.no_pembayaran' : 'ops.no_transaksi'],
-                distinct: true
-              })
-              if (hasil.rows.length > 0) {
-                const result = hasil.rows
-                if (statTrans === 'all') {
-                  const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
-                  return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataCek })
                 } else {
-                  const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
+                  const result = hasil.rows
+                  // const noDis = []
                   const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
-                  return response(res, 'success get ops', { result, findSign, newOps, pageInfo, dataCek })
+                  return response(res, 'success get ops', { result, findSign, pageInfo, newOps: [], dataSign })
                 }
               } else {
-                const result = hasil.rows
-                // const noDis = []
-                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
-                return response(res, 'success get ops', { result, findSign, pageInfo, newOps: [], dataSign })
+                const pageInfo = pagination('/ops/get', req.query, page, limit, 0)
+                return response(res, 'success get ops', { result: [], findSign, pageInfo, newOps: [] })
               }
             } else {
               const pageInfo = pagination('/ops/get', req.query, page, limit, 0)
