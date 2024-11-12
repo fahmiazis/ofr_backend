@@ -1813,7 +1813,7 @@ module.exports = {
               })
               if (hasil.rows.length > 0) {
                 const result = hasil.rows
-                if (statTrans === 'all' || level === 10 || level === 11 || level === 12) {
+                if (statTrans === 'all') {
                   const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
                   return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataCek })
                 } else {
