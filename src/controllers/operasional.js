@@ -1701,7 +1701,7 @@ module.exports = {
             for (let i = 0; i < findSignCek.length; i++) {
               const noTrans = findSignCek[i].no_transaksi.split('/')
               const data = { no_transaksi: findSignCek[i].no_transaksi }
-              if (depoVacant.find(item => item.kode_plant === noTrans[1]) !== undefined) {
+              if (depoVacant.find(item => item === noTrans[1]) !== undefined) {
                 dataVacant.push(data)
                 dataCek.push(data)
               } else {
