@@ -1813,13 +1813,13 @@ module.exports = {
               })
               if (hasil.rows.length > 0) {
                 const result = hasil.rows
-                if (statTrans === 'all') {
+                if (statTrans === 'all' || level === 10 || level === 11 || level === 12) {
                   const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
-                  return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataSign })
+                  return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataCek })
                 } else {
                   const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
                   const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
-                  return response(res, 'success get ops', { result, findSign, newOps, pageInfo, dataSign })
+                  return response(res, 'success get ops', { result, findSign, newOps, pageInfo, dataCek })
                 }
               } else {
                 const result = hasil.rows
