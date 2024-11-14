@@ -1730,7 +1730,7 @@ module.exports = {
                 ]
               }
             })
-            if (findSign.length > 0) {
+            if (findSign.length > 0 || findSignVacant.length > 0) {
               const dataSign = []
               for (let i = 0; i < findSign.length; i++) {
                 const data = { no_transaksi: findSign[i].no_transaksi }
@@ -1867,15 +1867,15 @@ module.exports = {
                   const result = hasil.rows
                   // const noDis = []
                   const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
-                  return response(res, 'success get ops', { result, findSign, pageInfo, newOps: [], dataSign })
+                  return response(res, 'success get ops3', { result, findSign, pageInfo, newOps: [], dataSign })
                 }
               } else {
                 const pageInfo = pagination('/ops/get', req.query, page, limit, 0)
-                return response(res, 'success get ops', { result: [], findSign, pageInfo, newOps: [] })
+                return response(res, 'success get ops2', { result: [], findSign, pageInfo, newOps: [] })
               }
             } else {
               const pageInfo = pagination('/ops/get', req.query, page, limit, 0)
-              return response(res, 'success get ops', { result: [], findSign, pageInfo, newOps: [] })
+              return response(res, 'success get ops1', { result: [], findSign, pageInfo, newOps: [] })
             }
           } else {
             return response(res, 'failed get ops', {}, 400, false)
