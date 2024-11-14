@@ -1857,11 +1857,11 @@ module.exports = {
                   const result = hasil.rows
                   if (statTrans === 'all') {
                     const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
-                    return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataCek })
+                    return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataCek, depoVacant })
                   } else {
                     const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
                     const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
-                    return response(res, 'success get ops', { result, findSign, findSignVacant, newOps, pageInfo, dataCek })
+                    return response(res, 'success get ops', { result, findSign, findSignVacant, newOps, pageInfo, dataCek, depoVacant })
                   }
                 } else {
                   const result = hasil.rows
