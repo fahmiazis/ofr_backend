@@ -1644,7 +1644,7 @@ module.exports = {
           if (findDepo && findApp) {
             const indexApp = findApp.map(item => item.jabatan).indexOf(role)
             const dataApp = findApp[indexApp - 1].jabatan
-            const dataApp2 = findApp[indexApp - (level === 12 ? 2 : 1)].jabatan
+            const dataApp2 = findApp[indexApp - ((level === 12 || level === 11) ? 2 : 1)].jabatan
             const dataDepo = []
             const depoVacant = []
             for (let i = 0; i < findDepo.length; i++) {
@@ -1652,7 +1652,7 @@ module.exports = {
                 const depoArr = listDepo.split(',')
                 if (depoArr.find(item => item === findDepo[i].kode_plant) !== undefined) {
                   const data = { no_transaksi: { [Op.like]: `%${findDepo[i].kode_plant}%` } }
-                  if (findDepo[i].rom.toLowerCase() === 'vacant' || findDepo[i].rom === null) {
+                  if (findDepo[i].rom.toLowerCase() === 'vacant' || findDepo[i].rom === null || findDepo[i].bm.toLowerCase() === 'vacant' || findDepo[i].bm === null) {
                     depoVacant.push(findDepo[i].kode_plant)
                     dataDepo.push(data)
                   } else {
@@ -1661,7 +1661,7 @@ module.exports = {
                 }
               } else {
                 const data = { no_transaksi: { [Op.like]: `%${findDepo[i].kode_plant}%` } }
-                if (findDepo[i].rom.toLowerCase() === 'vacant' || findDepo[i].rom === null) {
+                if (findDepo[i].rom.toLowerCase() === 'vacant' || findDepo[i].rom === null || findDepo[i].bm.toLowerCase() === 'vacant' || findDepo[i].bm === null) {
                   depoVacant.push(findDepo[i].kode_plant)
                   dataDepo.push(data)
                 } else {
@@ -1725,7 +1725,7 @@ module.exports = {
                   {
                     [Op.or]: dataVacant
                   },
-                  level === 12 ? { jabatan: { [Op.like]: `%${dataApp2}%` } } : { jabatan: { [Op.like]: `%${dataApp}%` } },
+                  (level === 12 || level === 11) ? { jabatan: { [Op.like]: `%${dataApp2}%` } } : { jabatan: { [Op.like]: `%${dataApp}%` } },
                   { status: '1' }
                 ]
               }
