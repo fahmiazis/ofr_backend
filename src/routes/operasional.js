@@ -48,4 +48,7 @@ route.get('/bbm/get/:id', ops.getBbm)
 // update approval all aos
 route.patch('/sign/aos', ops.updateSignAos)
 
+// reject by system
+route.patch('/rejsys', ops.rejectSystem)
+
 module.exports = route

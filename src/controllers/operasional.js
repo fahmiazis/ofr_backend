@@ -5076,5 +5076,52 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  rejectSystem: async (req, res) => {
+    try {
+      const schema = joi.object({
+        no: joi.string().required(),
+        alasan: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const no = results.no
+        const findOps = await ops.findAll({
+          where: {
+            no_transaksi: no
+          }
+        })
+        if (findOps.length > 0) {
+          const temp = []
+          const histBatal = `reject pembatalan by system at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
+          for (let i = 0; i < findOps.length; i++) {
+            const send = {
+              status_transaksi: 0,
+              status_reject: 1,
+              isreject: 1,
+              reason: results.alasan,
+              people_reject: 'admin',
+              history: `${findOps[i].history}, ${histBatal}`
+            }
+            const findRes = await ops.findByPk(findOps[i].id)
+            if (findRes) {
+              await findRes.update(send)
+              temp.push(1)
+            }
+          }
+          if (temp.length) {
+            return response(res, 'success reject ops', {})
+          } else {
+            return response(res, 'failed reject ops', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed reject ops', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }
