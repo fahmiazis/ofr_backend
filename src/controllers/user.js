@@ -481,13 +481,20 @@ module.exports = {
                 const arr = []
                 for (let i = 0; i < create.length; i++) {
                   const dataUser = create[i]
-                  const data = {
+                  const dataCreate = {
                     username: dataUser[0],
                     fullname: dataUser[1],
                     kode_plant: dataUser[2],
                     email: dataUser[3],
                     level: dataUser[4].split('-')[0],
                     password: dataUser[5]
+                  }
+                  const dataUpdate = {
+                    username: dataUser[0],
+                    fullname: dataUser[1],
+                    kode_plant: dataUser[2],
+                    email: dataUser[3],
+                    level: dataUser[4].split('-')[0]
                   }
                   if (parseInt(dataUser[4].split('-')[0]) === 5) {
                     const findUser = await user.findOne({
@@ -496,12 +503,12 @@ module.exports = {
                       }
                     })
                     if (findUser) {
-                      const upUser = await findUser.update(data)
+                      const upUser = await findUser.update(dataUpdate)
                       if (upUser) {
                         arr.push(upUser)
                       }
                     } else {
-                      const createUser = await user.create(data)
+                      const createUser = await user.create(dataCreate)
                       if (createUser) {
                         arr.push(createUser)
                       }
@@ -513,12 +520,12 @@ module.exports = {
                       }
                     })
                     if (findUser) {
-                      const upUser = await findUser.update(data)
+                      const upUser = await findUser.update(dataUpdate)
                       if (upUser) {
                         arr.push(upUser)
                       }
                     } else {
-                      const createUser = await user.create(data)
+                      const createUser = await user.create(dataCreate)
                       if (createUser) {
                         arr.push(createUser)
                       }

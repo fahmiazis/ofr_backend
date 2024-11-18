@@ -2348,51 +2348,112 @@ module.exports = {
               kode_plant: findOps.kode_plant
             }
           })
+          const findApp = await approve.findAll({
+            where: {
+              [Op.and]: [
+                { kode_plant: 'all' },
+                { nama_approve: 'Pengajuan Ops' }
+              ]
+            }
+          })
           const cek = []
-          for (let i = 0; i < findTtd.length; i++) {
-            if ((findTtd[i].jabatan.toLowerCase() === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findTtd[i].jabatan.toLowerCase() === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+          if (findTtd.find(item => item.jabatan.toLowerCase() === 'bm') === undefined || findTtd.find(item => item.jabatan.toLowerCase() === 'rom') === undefined) {
+            for (let i = 0; i < findApp.length; i++) {
+              if ((findApp[i].jabatan.toLowerCase() === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findApp[i].jabatan.toLowerCase() === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+                console.log('')
+              } else {
+                const data = {
+                  jabatan: findApp[i].jabatan,
+                  nama: findApp[i].jabatan.toLowerCase() === 'aos' ? findAos.fullname : null,
+                  status: findApp[i].jabatan.toLowerCase() === 'aos' ? 1 : null,
+                  no_transaksi: no,
+                  sebagai: findApp[i].sebagai,
+                  jenis: findApp[i].jenis,
+                  kategori: findApp[i].kategori
+                }
+                const send = await ttd.create(data)
+                if (send) {
+                  cek.push(send)
+                }
+              }
+            }
+            for (let i = 0; i < findTtd.length; i++) {
               const findId = await ttd.findByPk(findTtd[i].id)
               if (findId) {
                 await findId.destroy()
               }
-            } else if (findTtd[i].jabatan.toLowerCase() === 'aos') {
-              const findId = await ttd.findByPk(findTtd[i].id)
-              if (findId) {
-                const data = {
-                  nama: findAos.fullname,
-                  status: 1
+            }
+            if (cek.length) {
+              const findSign = await ttd.findAll({
+                where: {
+                  no_transaksi: no
                 }
-                const send = await findId.update(data)
-                if (send) {
-                  cek.push(findId)
+              })
+              if (findSign.length > 0) {
+                const penyetuju = []
+                const pembuat = []
+                const pemeriksa = []
+                const mengetahui = []
+                for (let i = 0; i < findSign.length; i++) {
+                  if (findSign[i].sebagai === 'pembuat') {
+                    pembuat.push(findSign[i])
+                  } else if (findSign[i].sebagai === 'pemeriksa') {
+                    pemeriksa.push(findSign[i])
+                  } else if (findSign[i].sebagai === 'penyetuju') {
+                    penyetuju.push(findSign[i])
+                  } else if (findSign[i].sebagai === 'mengetahui') {
+                    mengetahui.push(findSign[i])
+                  }
                 }
+                return response(res, 'succes get approval1', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
               }
             }
-            cek.push(findTtd[i])
-          }
-          if (cek.length) {
-            const findSign = await ttd.findAll({
-              where: {
-                no_transaksi: no
-              }
-            })
-            if (findSign.length > 0) {
-              const penyetuju = []
-              const pembuat = []
-              const pemeriksa = []
-              const mengetahui = []
-              for (let i = 0; i < findSign.length; i++) {
-                if (findSign[i].sebagai === 'pembuat') {
-                  pembuat.push(findSign[i])
-                } else if (findSign[i].sebagai === 'pemeriksa') {
-                  pemeriksa.push(findSign[i])
-                } else if (findSign[i].sebagai === 'penyetuju') {
-                  penyetuju.push(findSign[i])
-                } else if (findSign[i].sebagai === 'mengetahui') {
-                  mengetahui.push(findSign[i])
+          } else {
+            for (let i = 0; i < findTtd.length; i++) {
+              if ((findTtd[i].jabatan.toLowerCase() === 'bm' && findDepo.bm.toString().toLowerCase() === 'vacant') || (findTtd[i].jabatan.toLowerCase() === 'rom' && findDepo.rom.toString().toLowerCase() === 'vacant')) {
+                const findId = await ttd.findByPk(findTtd[i].id)
+                if (findId) {
+                  await findId.destroy()
+                }
+              } else if (findTtd[i].jabatan.toLowerCase() === 'aos') {
+                const findId = await ttd.findByPk(findTtd[i].id)
+                if (findId) {
+                  const data = {
+                    nama: findAos.fullname,
+                    status: 1
+                  }
+                  const send = await findId.update(data)
+                  if (send) {
+                    cek.push(findId)
+                  }
                 }
               }
-              return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+              cek.push(findTtd[i])
+            }
+            if (cek.length) {
+              const findSign = await ttd.findAll({
+                where: {
+                  no_transaksi: no
+                }
+              })
+              if (findSign.length > 0) {
+                const penyetuju = []
+                const pembuat = []
+                const pemeriksa = []
+                const mengetahui = []
+                for (let i = 0; i < findSign.length; i++) {
+                  if (findSign[i].sebagai === 'pembuat') {
+                    pembuat.push(findSign[i])
+                  } else if (findSign[i].sebagai === 'pemeriksa') {
+                    pemeriksa.push(findSign[i])
+                  } else if (findSign[i].sebagai === 'penyetuju') {
+                    penyetuju.push(findSign[i])
+                  } else if (findSign[i].sebagai === 'mengetahui') {
+                    mengetahui.push(findSign[i])
+                  }
+                }
+                return response(res, 'succes get approval2', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd, findDepo })
+              }
             }
           }
         } else {
@@ -2411,7 +2472,7 @@ module.exports = {
               mengetahui.push(findTtd[i])
             }
           }
-          return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+          return response(res, 'succes get approval3', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
         }
       } else {
         if (findOps) {
@@ -2477,7 +2538,7 @@ module.exports = {
                       mengetahui.push(findTtd[i])
                     }
                   }
-                  return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+                  return response(res, 'succes get approval3', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
                 } else {
                   return response(res, 'failed get approval1', {}, 404, false)
                 }
@@ -2536,7 +2597,7 @@ module.exports = {
                         mengetahui.push(findTtd[i])
                       }
                     }
-                    return response(res, 'succes get approval', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+                    return response(res, 'succes get approval4', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
                   } else {
                     return response(res, 'failed get approval1', {}, 404, false)
                   }
