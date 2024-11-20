@@ -201,54 +201,54 @@ module.exports = {
                 }
               })
               if (findOps) {
-                const month = moment(results.periode_awal).format('DD MMMM YYYY')
-                const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
-                const monthCom = moment(findOps.periode_awall).format('DD MMMM YYYY')
-                const monthComLast = moment(findOps.periode_akhir).format('DD MMMM YYYY')
-                if (findOps.sub_coa === result.jenis_transaksi && month === monthCom && monthLast === monthComLast) {
-                  return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findOps })
-                } else {
-                  if (results.no_faktur !== '' && results.no_faktur !== undefined) {
-                    const findFaktur = await faktur.findOne({
-                      where: {
-                        no_faktur: results.no_faktur
-                      }
-                    })
-                    const findData = await ops.findOne({
-                      where: {
-                        no_faktur: results.no_faktur,
-                        [Op.not]: [
-                          { status_transaksi: 0 }
-                        ]
-                      }
-                    })
-                    if (findData) {
-                      return response(res, 'No faktur telah expired 2', {}, 400, false)
-                    } else {
-                      const dataEdit = {
-                        status: 'inactive'
-                      }
-                      const editFaktur = await findFaktur.update(dataEdit)
-                      if (editFaktur) {
-                        const sendData = await ops.create(send)
-                        if (sendData) {
-                          return response(res, 'success add ops1', { result: sendData })
-                        } else {
-                          return response(res, 'failed add ops 7', {}, 400, false)
-                        }
-                      } else {
-                        return response(res, 'failed add ops 8', {}, 400, false)
-                      }
+                // const month = moment(results.periode_awal).format('DD MMMM YYYY')
+                // const monthLast = moment(results.periode_akhir).format('DD MMMM YYYY')
+                // const monthCom = moment(findOps.periode_awall).format('DD MMMM YYYY')
+                // const monthComLast = moment(findOps.periode_akhir).format('DD MMMM YYYY')
+                // if (findOps.sub_coa === result.jenis_transaksi && month === monthCom && monthLast === monthComLast) {
+                //   return response(res, 'data ini telah diajukan pada pengajuan sebelumnya', { result: findOps })
+                // } else {
+                if (results.no_faktur !== '' && results.no_faktur !== undefined) {
+                  const findFaktur = await faktur.findOne({
+                    where: {
+                      no_faktur: results.no_faktur
                     }
+                  })
+                  const findData = await ops.findOne({
+                    where: {
+                      no_faktur: results.no_faktur,
+                      [Op.not]: [
+                        { status_transaksi: 0 }
+                      ]
+                    }
+                  })
+                  if (findData) {
+                    return response(res, 'No faktur telah expired 2', {}, 400, false)
                   } else {
-                    const sendData = await ops.create(send)
-                    if (sendData) {
-                      return response(res, 'success add ops1', { result: sendData })
+                    const dataEdit = {
+                      status: 'inactive'
+                    }
+                    const editFaktur = await findFaktur.update(dataEdit)
+                    if (editFaktur) {
+                      const sendData = await ops.create(send)
+                      if (sendData) {
+                        return response(res, 'success add ops1', { result: sendData })
+                      } else {
+                        return response(res, 'failed add ops 7', {}, 400, false)
+                      }
                     } else {
-                      return response(res, 'failed add ops 7', {}, 400, false)
+                      return response(res, 'failed add ops 8', {}, 400, false)
                     }
                   }
+                } else {
+                  const sendData = await ops.create(send)
+                  if (sendData) {
+                    return response(res, 'success add ops1', { result: sendData })
+                  } else {
+                    return response(res, 'failed add ops 7', {}, 400, false)
+                  }
                 }
+                // }
               } else {
                 if (results.no_faktur !== '' && results.no_faktur !== undefined) {
                   const findFaktur = await faktur.findOne({
