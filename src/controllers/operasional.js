@@ -4241,10 +4241,6 @@ module.exports = {
               {
                 model: taxcode,
                 as: 'taxcode'
-              },
-              {
-                model: bbm,
-                as: 'bbm'
               }
             ]
           })
@@ -4359,10 +4355,6 @@ module.exports = {
                 {
                   model: taxcode,
                   as: 'taxcode'
-                },
-                {
-                  model: bbm,
-                  as: 'bbm'
                 }
               ],
               limit: limit,
@@ -4461,10 +4453,6 @@ module.exports = {
               {
                 model: taxcode,
                 as: 'taxcode'
-              },
-              {
-                model: bbm,
-                as: 'bbm'
               }
             ],
             limit: limit,

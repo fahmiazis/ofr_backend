@@ -774,7 +774,10 @@ module.exports = {
               if (result) {
                 const findTtd = await ttd.findAll({
                   where: {
-                    jabatan: findRole.name
+                    [Op.and]: [
+                      { jabatan: findRole.name },
+                      { nama: null }
+                    ]
                   }
                 })
                 const findApp = await approve.findAll({
