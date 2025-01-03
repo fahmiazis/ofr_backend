@@ -234,9 +234,11 @@ module.exports = {
           }
         })
         if (findFaktur.length > 0 && findFaktur[0].status === null) {
-          const date1 = moment(findFaktur[0].tgl_faktur).format('M')
+          const tgl = findFaktur[0].tgl_faktur
+          const year = moment().format('YYYY') - moment(tgl).format('YYYY')
+          const date1 = moment(tgl).format('M')
           const date2 = moment().format('M')
-          const diffTime = Math.abs(date2 - date1)
+          const diffTime = year === 1 && date2 <= 3 ? Math.abs((parseInt(date2) + 12) - date1) : year === 0 ? Math.abs(date2 - date1) : 100
           const diffMonth = Math.floor(diffTime)
           if (diffMonth > 3) {
             const findShel = await shelfaktur.findAll({
