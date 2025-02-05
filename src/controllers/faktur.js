@@ -777,7 +777,7 @@ module.exports = {
         const temp = []
         const list = results.list
         for (let i = 0; i < list.length; i++) {
-          const findId = await faktur.findByPk(list[i].id)
+          const findId = await faktur.findByPk(list[i])
           if (findId) {
             const deleteId = await findId.destroy()
             if (deleteId) {
