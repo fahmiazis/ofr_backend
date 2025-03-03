@@ -1748,7 +1748,7 @@ module.exports = {
                 //   const data = { no_transaksi: findSign[i].no_transaksi }
                 //   dataSign.push(data)
                 // }
-                const hasil = await ops.findAndCountAll({
+                const hasil = await ops.findAll({
                   where: {
                     [Op.and]: [
                       {
@@ -1853,20 +1853,20 @@ module.exports = {
                   group: [category === 'verif' && level === 2 ? 'ops.id' : category === 'ajuan bayar' ? 'ops.no_pembayaran' : 'ops.no_transaksi'],
                   distinct: true
                 })
-                if (hasil.rows.length > 0) {
-                  const result = hasil.rows
+                if (hasil.length > 0) {
+                  const result = hasil
                   if (statTrans === 'all') {
-                    const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                    const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
                     return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataCek, depoVacant })
                   } else {
                     const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
-                    const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                    const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
                     return response(res, 'success get ops', { result, findSign, findSignVacant, newOps, pageInfo, dataCek, depoVacant })
                   }
                 } else {
-                  const result = hasil.rows
+                  const result = hasil
                   // const noDis = []
-                  const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                  const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
                   return response(res, 'success get ops3', { result, findSign, pageInfo, newOps: [], dataSign })
                 }
               } else {
@@ -1914,7 +1914,7 @@ module.exports = {
                 dataDepo.push(data)
               }
             }
-            const hasil = await ops.findAndCountAll({
+            const hasil = await ops.findAll({
               where: {
                 [Op.and]: [
                   {
@@ -2018,20 +2018,20 @@ module.exports = {
               group: [category === 'verif' && level === 2 ? 'ops.id' : category === 'ajuan bayar' ? 'ops.no_pembayaran' : 'ops.no_transaksi'],
               distinct: true
             })
-            if (hasil.rows.length > 0) {
+            if (hasil.length > 0) {
               const result = hasil.rows
               if (statTrans === 'all') {
-                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
                 return response(res, 'success get ops', { result, findDepo, newOps: result, pageInfo, dataDepo })
               } else {
                 const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
-                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
                 return response(res, 'success get ops', { result, findDepo, newOps, pageInfo, dataDepo })
               }
             } else {
               const result = hasil.rows
               // const noDis = []
-              const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.count.length)
+              const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
               return response(res, 'success get ops', { result, findDepo, pageInfo, newOps: [], dataDepo })
             }
           } else {
