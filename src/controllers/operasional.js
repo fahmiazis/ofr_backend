@@ -2019,7 +2019,7 @@ module.exports = {
               distinct: true
             })
             if (hasil.length > 0) {
-              const result = hasil.rows
+              const result = hasil
               if (statTrans === 'all') {
                 const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
                 return response(res, 'success get ops', { result, findDepo, newOps: result, pageInfo, dataDepo })
@@ -2029,7 +2029,7 @@ module.exports = {
                 return response(res, 'success get ops', { result, findDepo, newOps, pageInfo, dataDepo })
               }
             } else {
-              const result = hasil.rows
+              const result = hasil
               // const noDis = []
               const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
               return response(res, 'success get ops', { result, findDepo, pageInfo, newOps: [], dataDepo })
@@ -2054,12 +2054,10 @@ module.exports = {
           }
         }
         if (dataDepo.length > 0) {
-          const findOps = await ops.findAndCountAll({
+          const findOps = await ops.findAll({
             where: {
               [Op.and]: [
-                {
-                  [Op.or]: dataDepo
-                },
+                listDepo !== 'all' ? { [Op.or]: dataDepo } : { [Op.not]: { id: null } },
                 statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : { status_transaksi: statTrans },
                 statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
                 statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
@@ -2157,18 +2155,18 @@ module.exports = {
           // // })
           // const set = new Set(data)
           // const noDis = [...set]
-          if (findOps.rows) {
+          if (findOps) {
             if (statTrans === 'all') {
-              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
-              return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, newOps: findOps.rows })
+              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
+              return response(res, 'success get data ops', { result: findOps, pageInfo, findDepo, newOps: findOps })
             } else {
-              const newOps = category === 'verif' ? filter(type, findOps.rows, statData, role) : filterApp(type, findOps.rows, role, level)
-              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
-              return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, newOps })
+              const newOps = category === 'verif' ? filter(type, findOps, statData, role) : filterApp(type, findOps, role, level)
+              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
+              return response(res, 'success get data ops', { result: findOps, pageInfo, findDepo, newOps })
             }
           } else {
-            const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
-            return response(res, 'success get data ops', { result: findOps.rows, pageInfo, findDepo, newOps: [] })
+            const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
+            return response(res, 'success get data ops', { result: findOps, pageInfo, findDepo, newOps: [] })
           }
         } else {
           return response(res, 'Failed get data ops', {}, 404, false)
