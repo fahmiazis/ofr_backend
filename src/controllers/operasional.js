@@ -1743,11 +1743,6 @@ module.exports = {
                 }
               }
               if (dataSign.length > 0) {
-                // const dataSignFin = []
-                // for (let i = 0; i < findSign.length; i++) {
-                //   const data = { no_transaksi: findSign[i].no_transaksi }
-                //   dataSign.push(data)
-                // }
                 const hasil = await ops.findAll({
                   where: {
                     [Op.and]: [
