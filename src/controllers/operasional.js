@@ -1570,19 +1570,19 @@ module.exports = {
               model: ttd,
               as: 'appList'
             },
-            {
-              model: finance,
-              as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-            },
-            {
-              model: veriftax,
-              as: 'veriftax'
-            },
-            {
-              model: kliring,
-              as: 'kliring'
-            },
+            // {
+            //   model: finance,
+            //   as: 'depo',
+            //   include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+            // },
+            // {
+            //   model: veriftax,
+            //   as: 'veriftax'
+            // },
+            // {
+            //   model: kliring,
+            //   as: 'kliring'
+            // },
             {
               model: bbm,
               as: 'bbm'
@@ -1825,19 +1825,19 @@ module.exports = {
                       as: 'appList',
                       subQuery: false
                     },
-                    {
-                      model: finance,
-                      as: 'depo',
-                      include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-                    },
-                    {
-                      model: veriftax,
-                      as: 'veriftax'
-                    },
-                    {
-                      model: kliring,
-                      as: 'kliring'
-                    },
+                    // {
+                    //   model: finance,
+                    //   as: 'depo',
+                    //   include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+                    // },
+                    // {
+                    //   model: veriftax,
+                    //   as: 'veriftax'
+                    // },
+                    // {
+                    //   model: kliring,
+                    //   as: 'kliring'
+                    // },
                     {
                       model: bbm,
                       as: 'bbm'
@@ -1990,19 +1990,19 @@ module.exports = {
                   model: ttd,
                   as: 'appList'
                 },
-                {
-                  model: finance,
-                  as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-                },
-                {
-                  model: veriftax,
-                  as: 'veriftax'
-                },
-                {
-                  model: kliring,
-                  as: 'kliring'
-                },
+                // {
+                //   model: finance,
+                //   as: 'depo',
+                //   include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+                // },
+                // {
+                //   model: veriftax,
+                //   as: 'veriftax'
+                // },
+                // {
+                //   model: kliring,
+                //   as: 'kliring'
+                // },
                 {
                   model: bbm,
                   as: 'bbm'
@@ -2112,23 +2112,23 @@ module.exports = {
                 model: ttd,
                 as: 'appList'
               },
-              {
-                model: finance,
-                as: 'depo',
-                include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-              },
-              {
-                model: veriftax,
-                as: 'veriftax'
-              },
-              {
-                model: kliring,
-                as: 'kliring'
-              },
-              {
-                model: taxcode,
-                as: 'taxcode'
-              },
+              // {
+              //   model: finance,
+              //   as: 'depo',
+              //   include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+              // },
+              // {
+              //   model: veriftax,
+              //   as: 'veriftax'
+              // },
+              // {
+              //   model: kliring,
+              //   as: 'kliring'
+              // },
+              // {
+              //   model: taxcode,
+              //   as: 'taxcode'
+              // },
               {
                 model: bbm,
                 as: 'bbm'
@@ -4217,24 +4217,24 @@ module.exports = {
               {
                 model: ttd,
                 as: 'appForm'
-              },
-              {
-                model: finance,
-                as: 'depo',
-                include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
-              },
-              {
-                model: veriftax,
-                as: 'veriftax'
-              },
-              {
-                model: finance,
-                as: 'finance'
-              },
-              {
-                model: taxcode,
-                as: 'taxcode'
               }
+              // {
+              //   model: finance,
+              //   as: 'depo',
+              //   include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
+              // },
+              // {
+              //   model: veriftax,
+              //   as: 'veriftax'
+              // },
+              // {
+              //   model: finance,
+              //   as: 'finance'
+              // },
+              // {
+              //   model: taxcode,
+              //   as: 'taxcode'
+              // }
             ]
           })
           if (findOps) {
@@ -4331,24 +4331,24 @@ module.exports = {
                 {
                   model: ttd,
                   as: 'appList'
-                },
-                {
-                  model: finance,
-                  as: 'depo',
-                  include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
-                },
-                {
-                  model: veriftax,
-                  as: 'veriftax'
-                },
-                {
-                  model: finance,
-                  as: 'finance'
-                },
-                {
-                  model: taxcode,
-                  as: 'taxcode'
                 }
+                // {
+                //   model: finance,
+                //   as: 'depo',
+                //   include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
+                // },
+                // {
+                //   model: veriftax,
+                //   as: 'veriftax'
+                // },
+                // {
+                //   model: finance,
+                //   as: 'finance'
+                // },
+                // {
+                //   model: taxcode,
+                //   as: 'taxcode'
+                // }
               ],
               limit: limit,
               offset: (page - 1) * limit,
@@ -4429,24 +4429,25 @@ module.exports = {
               {
                 model: ttd,
                 as: 'appList'
-              },
-              {
-                model: finance,
-                as: 'depo',
-                include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
-              },
-              {
-                model: veriftax,
-                as: 'veriftax'
-              },
-              {
-                model: finance,
-                as: 'finance'
-              },
-              {
-                model: taxcode,
-                as: 'taxcode'
               }
+              // ,
+              // {
+              //   model: finance,
+              //   as: 'depo',
+              //   include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }, { model: user, as: 'pic' }]
+              // },
+              // {
+              //   model: veriftax,
+              //   as: 'veriftax'
+              // },
+              // {
+              //   model: finance,
+              //   as: 'finance'
+              // },
+              // {
+              //   model: taxcode,
+              //   as: 'taxcode'
+              // }
             ],
             limit: limit,
             offset: (page - 1) * limit,

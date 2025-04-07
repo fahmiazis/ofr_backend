@@ -1,5 +1,5 @@
 const joi = require('joi')
-const { depo, finance } = require('../models')
+const { depo, finance, kpp, glikk, user } = require('../models')
 const { pagination } = require('../helpers/pagination')
 const response = require('../helpers/response')
 const { Op } = require('sequelize')
@@ -212,7 +212,12 @@ module.exports = {
         const result = await finance.findAll({
           where: {
             bm: fullname
-          }
+          },
+          include: [
+            { model: kpp, as: 'kpp' },
+            { model: glikk, as: 'glikk' },
+            { model: user, as: 'pic' }
+          ]
         })
         const pageInfo = pagination('/depo/get', req.query, page, limit, result.length)
         if (result) {
@@ -224,7 +229,12 @@ module.exports = {
         const result = await finance.findAll({
           where: {
             rom: fullname
-          }
+          },
+          include: [
+            { model: kpp, as: 'kpp' },
+            { model: glikk, as: 'glikk' },
+            { model: user, as: 'pic' }
+          ]
         })
         const pageInfo = pagination('/depo/get', req.query, page, limit, result.length)
         if (result) {
@@ -239,6 +249,11 @@ module.exports = {
               { kode_plant: { [Op.like]: `%${searchValue}%` } }
             ]
           },
+          include: [
+            { model: kpp, as: 'kpp' },
+            { model: glikk, as: 'glikk' },
+            { model: user, as: 'pic' }
+          ],
           order: [[sortValue, 'ASC']],
           limit: limit,
           offset: (page - 1) * limit
