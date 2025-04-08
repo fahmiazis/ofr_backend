@@ -180,8 +180,8 @@ module.exports = {
   },
   getDepo: async (req, res) => {
     try {
-      const level = req.user.level
-      const fullname = req.user.name
+      // const level = req.user.level
+      // const fullname = req.user.name
       let { limit, page, search, sort } = req.query
       let searchValue = ''
       let sortValue = ''
@@ -208,62 +208,83 @@ module.exports = {
       } else {
         page = parseInt(page)
       }
-      if (level === 12) {
-        const result = await finance.findAll({
-          where: {
-            bm: fullname
-          },
-          include: [
-            { model: kpp, as: 'kpp' },
-            { model: glikk, as: 'glikk' },
-            { model: user, as: 'pic' }
+      // if (level === 12) {
+      //   const result = await finance.findAll({
+      //     where: {
+      //       bm: fullname
+      //     },
+      //     include: [
+      //       { model: kpp, as: 'kpp' },
+      //       { model: glikk, as: 'glikk' },
+      //       { model: user, as: 'pic' }
+      //     ]
+      //   })
+      //   const pageInfo = pagination('/depo/get', req.query, page, limit, result.length)
+      //   if (result) {
+      //     return response(res, 'list users', { result: { count: result.length, rows: result }, pageInfo })
+      //   } else {
+      //     return response(res, 'failed to get user', {}, 404, false)
+      //   }
+      // } else if (level === 7) {
+      //   const result = await finance.findAll({
+      //     where: {
+      //       rom: fullname
+      //     },
+      //     include: [
+      //       { model: kpp, as: 'kpp' },
+      //       { model: glikk, as: 'glikk' },
+      //       { model: user, as: 'pic' }
+      //     ]
+      //   })
+      //   const pageInfo = pagination('/depo/get', req.query, page, limit, result.length)
+      //   if (result) {
+      //     return response(res, 'list users', { result: { count: result.length, rows: result }, pageInfo })
+      //   } else {
+      //     return response(res, 'failed to get user', {}, 404, false)
+      //   }
+      // } else {
+      //   const result = await finance.findAndCountAll({
+      //     where: {
+      //       [Op.or]: [
+      //         { kode_plant: { [Op.like]: `%${searchValue}%` } }
+      //       ]
+      //     },
+      //     include: [
+      //       { model: kpp, as: 'kpp' },
+      //       { model: glikk, as: 'glikk' },
+      //       { model: user, as: 'pic' }
+      //     ],
+      //     order: [[sortValue, 'ASC']],
+      //     limit: limit,
+      //     offset: (page - 1) * limit
+      //   })
+      //   const pageInfo = pagination('/depo/get', req.query, page, limit, result.count)
+      //   if (result) {
+      //     return response(res, 'list users', { result, pageInfo })
+      //   } else {
+      //     return response(res, 'failed to get user', {}, 404, false)
+      //   }
+      // }
+      const result = await finance.findAndCountAll({
+        where: {
+          [Op.or]: [
+            { kode_plant: { [Op.like]: `%${searchValue}%` } }
           ]
-        })
-        const pageInfo = pagination('/depo/get', req.query, page, limit, result.length)
-        if (result) {
-          return response(res, 'list users', { result: { count: result.length, rows: result }, pageInfo })
-        } else {
-          return response(res, 'failed to get user', {}, 404, false)
-        }
-      } else if (level === 7) {
-        const result = await finance.findAll({
-          where: {
-            rom: fullname
-          },
-          include: [
-            { model: kpp, as: 'kpp' },
-            { model: glikk, as: 'glikk' },
-            { model: user, as: 'pic' }
-          ]
-        })
-        const pageInfo = pagination('/depo/get', req.query, page, limit, result.length)
-        if (result) {
-          return response(res, 'list users', { result: { count: result.length, rows: result }, pageInfo })
-        } else {
-          return response(res, 'failed to get user', {}, 404, false)
-        }
+        },
+        include: [
+          { model: kpp, as: 'kpp' },
+          { model: glikk, as: 'glikk' },
+          { model: user, as: 'pic' }
+        ],
+        order: [[sortValue, 'ASC']],
+        limit: limit,
+        offset: (page - 1) * limit
+      })
+      const pageInfo = pagination('/depo/get', req.query, page, limit, result.count)
+      if (result) {
+        return response(res, 'list users', { result, pageInfo })
       } else {
-        const result = await finance.findAndCountAll({
-          where: {
-            [Op.or]: [
-              { kode_plant: { [Op.like]: `%${searchValue}%` } }
-            ]
-          },
-          include: [
-            { model: kpp, as: 'kpp' },
-            { model: glikk, as: 'glikk' },
-            { model: user, as: 'pic' }
-          ],
-          order: [[sortValue, 'ASC']],
-          limit: limit,
-          offset: (page - 1) * limit
-        })
-        const pageInfo = pagination('/depo/get', req.query, page, limit, result.count)
-        if (result) {
-          return response(res, 'list users', { result, pageInfo })
-        } else {
-          return response(res, 'failed to get user', {}, 404, false)
-        }
+        return response(res, 'failed to get user', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
