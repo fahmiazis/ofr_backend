@@ -1,4 +1,4 @@
-const { vendor, vervendor } = require('../models')
+const { vendor, vervendor, rekvendor } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -110,7 +110,7 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
-        const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT', 'JENIS VENDOR', 'Memiliki SKB/SKT', 'NO SKB', 'NO SKT', 'Start Periode', 'End Periode']
+        const cek = ['NAMA', 'NO NPWP', 'NO KTP', 'ALAMAT', 'JENIS VENDOR', 'Memiliki SKB/SKT', 'NO SKB', 'NO SKT', 'Start Periode', 'End Periode', 'Bank', 'Nomor Rekening']
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
           console.log(valid[i] === cek[i])
@@ -224,7 +224,17 @@ module.exports = {
               { no_npwp: { [Op.like]: `%${dataFind}%` } },
               { no_ktp: { [Op.like]: `%${dataFind}%` } }
             ]
-          }
+          },
+          include: [
+            {
+              model: rekvendor,
+              as: 'reknik'
+            },
+            {
+              model: rekvendor,
+              as: 'reknpwp'
+            }
+          ]
         })
         if (findVendor.length > 0) {
           return response(res, 'succes get vendor', { result: findVendor, length: findVendor.length })
@@ -280,6 +290,16 @@ module.exports = {
             { alamat: { [Op.like]: `%${searchValue}%` } }
           ]
         },
+        include: [
+          {
+            model: rekvendor,
+            as: 'reknik'
+          },
+          {
+            model: rekvendor,
+            as: 'reknpwp'
+          }
+        ],
         order: [[sortValue, 'DESC']],
         limit: limit,
         offset: (page - 1) * limit
