@@ -2103,19 +2103,19 @@ module.exports = {
               model: ttd,
               as: 'appList'
             },
-            {
-              model: finance,
-              as: 'depo',
-              include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
-            },
-            {
-              model: veriftax,
-              as: 'veriftax'
-            },
-            {
-              model: kliring,
-              as: 'kliring'
-            },
+            // {
+            //   model: finance,
+            //   as: 'depo',
+            //   include: [{ model: kpp, as: 'kpp' }, { model: glikk, as: 'glikk' }]
+            // },
+            // {
+            //   model: veriftax,
+            //   as: 'veriftax'
+            // },
+            // {
+            //   model: kliring,
+            //   as: 'kliring'
+            // },
             {
               model: bbm,
               as: 'bbm'
