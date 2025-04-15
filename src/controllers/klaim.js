@@ -1,4 +1,4 @@
-const { klaim, coa, depo, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet, fakturkl, user } = require('../models')
+const { klaim, coa, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet, fakturkl, user } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -837,16 +837,16 @@ module.exports = {
                 as: 'depo'
               },
               {
-                model: depo,
-                as: 'scarea'
-              },
-              {
                 model: picklaim,
                 as: 'picklaim'
               },
               {
                 model: kliring,
                 as: 'kliring'
+              },
+              {
+                model: fakturkl,
+                as: 'faktur'
               }
             ],
             limit: limit,
@@ -1078,16 +1078,16 @@ module.exports = {
                           as: 'depo'
                         },
                         {
-                          model: depo,
-                          as: 'scarea'
-                        },
-                        {
                           model: picklaim,
                           as: 'picklaim'
                         },
                         {
                           model: kliring,
                           as: 'kliring'
+                        },
+                        {
+                          model: fakturkl,
+                          as: 'faktur'
                         }
                       ],
                       limit: limit,
@@ -1194,16 +1194,16 @@ module.exports = {
                     as: 'depo'
                   },
                   {
-                    model: depo,
-                    as: 'scarea'
-                  },
-                  {
                     model: picklaim,
                     as: 'picklaim'
                   },
                   {
                     model: kliring,
                     as: 'kliring'
+                  },
+                  {
+                    model: fakturkl,
+                    as: 'faktur'
                   }
                 ],
                 limit: limit,
@@ -1346,16 +1346,16 @@ module.exports = {
                     as: 'depo'
                   },
                   {
-                    model: depo,
-                    as: 'scarea'
-                  },
-                  {
                     model: picklaim,
                     as: 'picklaim'
                   },
                   {
                     model: kliring,
                     as: 'kliring'
+                  },
+                  {
+                    model: fakturkl,
+                    as: 'faktur'
                   }
                 ],
                 limit: limit,
@@ -1470,16 +1470,16 @@ module.exports = {
                   as: 'depo'
                 },
                 {
-                  model: depo,
-                  as: 'scarea'
-                },
-                {
                   model: picklaim,
                   as: 'picklaim'
                 },
                 {
                   model: kliring,
                   as: 'kliring'
+                },
+                {
+                  model: fakturkl,
+                  as: 'faktur'
                 }
               ],
               limit: limit,
@@ -1544,12 +1544,12 @@ module.exports = {
               as: 'depo'
             },
             {
-              model: depo,
-              as: 'scarea'
-            },
-            {
               model: picklaim,
               as: 'picklaim'
+            },
+            {
+              model: fakturkl,
+              as: 'faktur'
             },
             {
               model: kliring,
@@ -1586,8 +1586,8 @@ module.exports = {
               as: 'depo'
             },
             {
-              model: depo,
-              as: 'scarea'
+              model: fakturkl,
+              as: 'faktur'
             }
           ]
         })
@@ -1627,8 +1627,8 @@ module.exports = {
             as: 'depo'
           },
           {
-            model: depo,
-            as: 'scarea'
+            model: fakturkl,
+            as: 'faktur'
           },
           {
             model: picklaim,
@@ -2934,8 +2934,8 @@ module.exports = {
                 as: 'depo'
               },
               {
-                model: depo,
-                as: 'scarea'
+                model: fakturkl,
+                as: 'faktur'
               },
               {
                 model: picklaim,
@@ -3035,16 +3035,16 @@ module.exports = {
                   as: 'depo'
                 },
                 {
-                  model: depo,
-                  as: 'scarea'
-                },
-                {
                   model: picklaim,
                   as: 'picklaim'
                 },
                 {
                   model: finance,
                   as: 'finance'
+                },
+                {
+                  model: fakturkl,
+                  as: 'faktur'
                 }
               ],
               limit: limit,
@@ -3161,16 +3161,16 @@ module.exports = {
                       as: 'depo'
                     },
                     {
-                      model: depo,
-                      as: 'scarea'
-                    },
-                    {
                       model: picklaim,
                       as: 'picklaim'
                     },
                     {
                       model: finance,
                       as: 'finance'
+                    },
+                    {
+                      model: fakturkl,
+                      as: 'faktur'
                     }
                   ],
                   limit: limit,
@@ -3251,16 +3251,16 @@ module.exports = {
                 as: 'depo'
               },
               {
-                model: depo,
-                as: 'scarea'
-              },
-              {
                 model: picklaim,
                 as: 'picklaim'
               },
               {
                 model: finance,
                 as: 'finance'
+              },
+              {
+                model: fakturkl,
+                as: 'faktur'
               }
             ],
             limit: limit,

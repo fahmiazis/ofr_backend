@@ -45,6 +45,11 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'bank_tujuan',
         as: 'kliring'
       })
+      klaim.hasMany(models.fakturkl, {
+        foreignKey: 'klaimId',
+        as: 'faktur',
+        sourceKey: 'id'
+      })
     }
   }
   klaim.init({
