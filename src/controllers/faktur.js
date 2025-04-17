@@ -656,7 +656,8 @@ module.exports = {
   },
   syncFaktur: async (req, res) => {
     try {
-      const { date1, date2, faktur, type } = req.query
+      const { date1, date2, type } = req.query
+      const noFaktur = req.query.faktur
       const timeSync1 = moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD')
       const timeSync2 = moment().endOf('month').add(1, 'd').format('YYYY-MM-DD')
       const time1 = date1 === undefined || date1 === 'undefined' || date1 === null || date1 === 'null' ? timeSync1 : moment(date1).format('YYYY-MM-DD')
@@ -665,7 +666,7 @@ module.exports = {
       if (type === 'no') {
         const findApi = await axios({
           method: 'post',
-          url: `http://trial.pinusmerahabadi.co.id/api/v1/invoice?serial_number=${faktur}`,
+          url: `http://trial.pinusmerahabadi.co.id/api/v1/invoice?serial_number=${noFaktur}`,
           headers: {
             'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
           }
@@ -701,7 +702,7 @@ module.exports = {
               const findFinal = await shelfaktur.findAll({
                 where: {
                   [Op.and]: [
-                    { no_faktur: { [Op.like]: `%${faktur}` } }
+                    { no_faktur: { [Op.like]: `%${noFaktur}` } }
                   ],
                   status: null
                 }
@@ -718,7 +719,7 @@ module.exports = {
                 const findFinal = await shelfaktur.findAll({
                   where: {
                     [Op.and]: [
-                      { no_faktur: { [Op.like]: `%${faktur}` } }
+                      { no_faktur: { [Op.like]: `%${noFaktur}` } }
                     ],
                     status: null
                   }
