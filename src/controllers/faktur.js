@@ -688,6 +688,7 @@ module.exports = {
               }
             })
             if (findData) {
+              await findData.update(data)
               const findFinal = await shelfaktur.findAll({
                 where: {
                   [Op.and]: [
@@ -734,18 +735,19 @@ module.exports = {
                 no_faktur: dataInvoice[i].serial_number
               }
             })
+            const data = {
+              no_faktur: dataInvoice[i].serial_number,
+              nama: dataInvoice[i].seller,
+              jumlah_dpp: dataInvoice[i].nilai_jual.replace(/[^a-z0-9-]/g, ''),
+              jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, ''),
+              tgl_faktur: dataInvoice[i].date_invoice,
+              data: dataInvoice[i].toString(),
+              status: dataInvoice[i].approval_status
+            }
             if (findData) {
+              await findData.update(data)
               temp.push(findData)
             } else if (dataInvoice[i].approval_status === 1 && dataInvoice[i].principal_id === 4) {
-              const data = {
-                no_faktur: dataInvoice[i].serial_number,
-                nama: dataInvoice[i].seller,
-                jumlah_dpp: dataInvoice[i].nilai_jual.replace(/[^a-z0-9-]/g, ''),
-                jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, ''),
-                tgl_faktur: dataInvoice[i].date_invoice,
-                data: dataInvoice[i].toString(),
-                status: dataInvoice[i].approval_status
-              }
               const createData = await shelfaktur.create(data)
               if (createData) {
                 temp.push(createData)
