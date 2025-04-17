@@ -284,7 +284,7 @@ module.exports = {
                   const dataShel = {
                     no_faktur: resdata.serial_number,
                     nama: resdata.seller,
-                    jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
+                    jumlah_dpp: resdata.nilai_jual === null || resdata.nilai_jual === '' || resdata.nilai_jual === undefined ? resdata.dpp.replace(/[^a-z0-9-]/g, '') : resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
                     jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
                     tgl_faktur: resdata.date_invoice,
                     status: resdata.approval_status
@@ -359,14 +359,14 @@ module.exports = {
                   force: 1,
                   no_faktur: resdata.serial_number,
                   nama: resdata.seller,
-                  jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
+                  jumlah_dpp: resdata.nilai_jual === null || resdata.nilai_jual === '' || resdata.nilai_jual === undefined ? resdata.dpp.replace(/[^a-z0-9-]/g, '') : resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
                   jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
                   tgl_faktur: resdata.date_invoice
                 }
                 const dataShel = {
                   no_faktur: resdata.serial_number,
                   nama: resdata.seller,
-                  jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
+                  jumlah_dpp: resdata.nilai_jual === null || resdata.nilai_jual === '' || resdata.nilai_jual === undefined ? resdata.dpp.replace(/[^a-z0-9-]/g, '') : resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
                   jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
                   tgl_faktur: resdata.date_invoice,
                   status: resdata.approval_status
@@ -678,13 +678,13 @@ module.exports = {
             const data = {
               no_faktur: resdata.serial_number,
               nama: resdata.seller,
-              jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
+              jumlah_dpp: resdata.nilai_jual === null || resdata.nilai_jual === '' || resdata.nilai_jual === undefined ? resdata.dpp.replace(/[^a-z0-9-]/g, '') : resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
               jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
               tgl_faktur: resdata.date_invoice,
               status: resdata.approval_status
             }
             const valDpp = {
-              jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
+              jumlah_dpp: resdata.nilai_jual === null || resdata.nilai_jual === '' || resdata.nilai_jual === undefined ? resdata.dpp.replace(/[^a-z0-9-]/g, '') : resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
               jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, '')
             }
             const findData = await shelfaktur.findOne({
@@ -761,13 +761,13 @@ module.exports = {
               }
             })
             const valDpp = {
-              jumlah_dpp: dataInvoice[i].nilai_jual.replace(/[^a-z0-9-]/g, ''),
+              jumlah_dpp: dataInvoice[i].nilai_jual === null || dataInvoice[i].nilai_jual === '' || dataInvoice[i].nilai_jual === undefined ? dataInvoice[i].dpp.replace(/[^a-z0-9-]/g, '') : dataInvoice[i].nilai_jual.replace(/[^a-z0-9-]/g, ''),
               jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, '')
             }
             const data = {
               no_faktur: dataInvoice[i].serial_number,
               nama: dataInvoice[i].seller,
-              jumlah_dpp: dataInvoice[i].nilai_jual.replace(/[^a-z0-9-]/g, ''),
+              jumlah_dpp: dataInvoice[i].nilai_jual === null || dataInvoice[i].nilai_jual === '' || dataInvoice[i].nilai_jual === undefined ? dataInvoice[i].dpp.replace(/[^a-z0-9-]/g, '') : dataInvoice[i].nilai_jual.replace(/[^a-z0-9-]/g, ''),
               jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, ''),
               tgl_faktur: dataInvoice[i].date_invoice,
               data: dataInvoice[i].toString(),
