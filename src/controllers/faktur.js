@@ -682,7 +682,16 @@ module.exports = {
               tgl_faktur: resdata.date_invoice,
               status: resdata.approval_status
             }
+            const valDpp = {
+              jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
+              jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, '')
+            }
             const findData = await shelfaktur.findOne({
+              where: {
+                no_faktur: resdata.serial_number
+              }
+            })
+            const findFaktur = await faktur.findOne({
               where: {
                 no_faktur: resdata.serial_number
               }
@@ -697,7 +706,12 @@ module.exports = {
                   status: null
                 }
               })
-              return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+              if (findFaktur) {
+                await findFaktur.update(valDpp)
+                return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+              } else {
+                return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+              }
             } else {
               const creFaktur = await shelfaktur.create(data)
               if (creFaktur) {
@@ -709,7 +723,12 @@ module.exports = {
                     status: null
                   }
                 })
-                return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+                if (findFaktur) {
+                  await findFaktur.update(valDpp)
+                  return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+                } else {
+                  return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+                }
               }
             }
           } else {
@@ -735,6 +754,15 @@ module.exports = {
                 no_faktur: dataInvoice[i].serial_number
               }
             })
+            const findFaktur = await faktur.findOne({
+              where: {
+                no_faktur: dataInvoice[i].serial_number
+              }
+            })
+            const valDpp = {
+              jumlah_dpp: dataInvoice[i].nilai_jual.replace(/[^a-z0-9-]/g, ''),
+              jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, '')
+            }
             const data = {
               no_faktur: dataInvoice[i].serial_number,
               nama: dataInvoice[i].seller,
@@ -746,11 +774,21 @@ module.exports = {
             }
             if (findData) {
               await findData.update(data)
-              temp.push(findData)
+              if (findFaktur) {
+                await findFaktur.update(valDpp)
+                temp.push(findData)
+              } else {
+                temp.push(findData)
+              }
             } else if (dataInvoice[i].approval_status === 1 && dataInvoice[i].principal_id === 4) {
               const createData = await shelfaktur.create(data)
               if (createData) {
-                temp.push(createData)
+                if (findFaktur) {
+                  await findFaktur.update(valDpp)
+                  temp.push(createData)
+                } else {
+                  temp.push(createData)
+                }
               }
             }
           }
