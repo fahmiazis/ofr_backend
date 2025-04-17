@@ -284,7 +284,7 @@ module.exports = {
                   const dataShel = {
                     no_faktur: resdata.serial_number,
                     nama: resdata.seller,
-                    jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
+                    jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
                     jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
                     tgl_faktur: resdata.date_invoice,
                     status: resdata.approval_status
@@ -359,14 +359,14 @@ module.exports = {
                   force: 1,
                   no_faktur: resdata.serial_number,
                   nama: resdata.seller,
-                  jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
+                  jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
                   jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
                   tgl_faktur: resdata.date_invoice
                 }
                 const dataShel = {
                   no_faktur: resdata.serial_number,
                   nama: resdata.seller,
-                  jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
+                  jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
                   jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
                   tgl_faktur: resdata.date_invoice,
                   status: resdata.approval_status
@@ -677,7 +677,7 @@ module.exports = {
             const data = {
               no_faktur: resdata.serial_number,
               nama: resdata.seller,
-              jumlah_dpp: resdata.dpp.replace(/[^a-z0-9-]/g, ''),
+              jumlah_dpp: resdata.nilai_jual.replace(/[^a-z0-9-]/g, ''),
               jumlah_ppn: resdata.ppn.replace(/[^a-z0-9-]/g, ''),
               tgl_faktur: resdata.date_invoice,
               status: resdata.approval_status
@@ -740,7 +740,7 @@ module.exports = {
               const data = {
                 no_faktur: dataInvoice[i].serial_number,
                 nama: dataInvoice[i].seller,
-                jumlah_dpp: dataInvoice[i].dpp.replace(/[^a-z0-9-]/g, ''),
+                jumlah_dpp: dataInvoice[i].nilai_jual.replace(/[^a-z0-9-]/g, ''),
                 jumlah_ppn: dataInvoice[i].ppn.replace(/[^a-z0-9-]/g, ''),
                 tgl_faktur: dataInvoice[i].date_invoice,
                 data: dataInvoice[i].toString(),
