@@ -234,7 +234,8 @@ module.exports = {
               model: rekvendor,
               as: 'reknpwp'
             }
-          ]
+          ],
+          distinct: true
         })
         if (findVendor.length > 0) {
           return response(res, 'succes get vendor', { result: findVendor, length: findVendor.length })
@@ -302,7 +303,8 @@ module.exports = {
         ],
         order: [[sortValue, 'DESC']],
         limit: limit,
-        offset: (page - 1) * limit
+        offset: (page - 1) * limit,
+        distinct: true
       })
       const pageInfo = pagination('/vendor/get', req.query, page, limit, findVendor.count)
       if (findVendor) {

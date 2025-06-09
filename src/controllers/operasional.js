@@ -134,11 +134,7 @@ module.exports = {
               console.log(results.norek_ajuan)
               const findRek = await rekvendor.findOne({
                 where: {
-                  no_rekening: results.norek_ajuan,
-                  [Op.or]: [
-                    { nik: results.status_npwp === 0 && results.no_ktp !== '' ? results.no_ktp : 'undefined' },
-                    { npwp: results.status_npwp === 1 && results.no_npwp !== '' ? results.no_npwp : 'undefined' }
-                  ]
+                  no_rekening: results.norek_ajuan
                 }
               })
               if (findRek) {

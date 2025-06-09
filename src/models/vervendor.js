@@ -37,7 +37,9 @@ module.exports = (sequelize, DataTypes) => {
     no_skb: DataTypes.TEXT,
     no_skt: DataTypes.STRING,
     type_skb: DataTypes.STRING,
-    jenis_vendor: DataTypes.STRING
+    jenis_vendor: DataTypes.STRING,
+    tgl_veriffin: DataTypes.DATE,
+    tgl_veriftax: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'vervendor'

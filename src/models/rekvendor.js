@@ -17,7 +17,9 @@ module.exports = (sequelize, DataTypes) => {
     nik: DataTypes.STRING,
     npwp: DataTypes.STRING,
     bank: DataTypes.STRING,
-    no_rekening: DataTypes.STRING
+    no_rekening: DataTypes.STRING,
+    no_transaksi: DataTypes.STRING,
+    status: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'rekvendor'

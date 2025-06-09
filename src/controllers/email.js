@@ -158,17 +158,19 @@ module.exports = {
       const name = req.user.name
       const level = req.user.level
       const accKlaim = [3, 13, 23]
-      const { no, kode, tipe, menu, jenis, typeReject } = req.body
+      const { no, kode, tipe, menu, jenis, typeReject, typeAjuan } = req.body
       const transaksi = jenis === 'ikk' ? ikk : jenis === 'klaim' ? klaim : jenis === 'vendor' ? vervendor : ops
       const statVerif = (jenis === 'ikk' || jenis === 'ops') && level === 2
         ? 4
         : jenis === 'klaim' && level === 2
           ? 3
           : jenis === 'vendor' && level === 5
-            ? 4
-            : jenis === 'vendor' && level !== 5
+            ? 8
+            : jenis === 'vendor' && (level === 4 || (level === 8 && typeAjuan === 'rekening'))
               ? 5
-              : jenis === 'kasbon' && level === 2 ? 24 : 2
+              : jenis === 'vendor' && (level === 8 && typeAjuan === 'vendor')
+                ? 4
+                : jenis === 'kasbon' && level === 2 ? 24 : 2
 
       const findRole = await role.findOne({
         where: {
