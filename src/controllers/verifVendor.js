@@ -1782,11 +1782,11 @@ module.exports = {
           no_rekening: results.no_rekening
         }
         if (findRekven) {
-          return response(res, 'success add rekening vendor', { temp })
+          return response(res, 'success add rekening vendor1', { temp, findRekven, msg: 'sudah terdaftar' })
         } else {
           const creRekven = await rekvendor.create(data)
           if (creRekven) {
-            return response(res, 'success add rekening vendor', { temp })
+            return response(res, 'success add rekening vendor2', { temp, msg: 'berhasil dibuat' })
           } else {
             return response(res, 'failed add rekening vendor', {}, 400, false)
           }
