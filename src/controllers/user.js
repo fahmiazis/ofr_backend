@@ -1,6 +1,6 @@
 const joi = require('joi')
 const response = require('../helpers/response')
-const { user, role, depo, ttd, approve } = require('../models')
+const { user, role, depo, ttd, approve, role_user } = require('../models') // eslint-disable-line
 const bcrypt = require('bcryptjs')
 const { Op } = require('sequelize')
 const { pagination } = require('../helpers/pagination')
@@ -29,7 +29,8 @@ module.exports = {
         fullname: joi.string().required(),
         password: joi.string().required(),
         kode_plant: joi.string().allow(''),
-        level: joi.number().required()
+        level: joi.number().required(),
+        multi_role: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -69,7 +70,40 @@ module.exports = {
               results.password = await bcrypt.hash(results.password, await bcrypt.genSalt())
               const result = await user.create(results)
               if (result) {
-                return response(res, 'Add User succesfully', { result })
+                const listRole = results.multi_role.split(',')
+                if (listRole.length > 0) {
+                  const cek = []
+                  for (let i = 0; i < listRole.length; i++) {
+                    const find = await role_user.findOne({
+                      where: {
+                        [Op.and]: [
+                          { username: results.username },
+                          { id_role: listRole[i] }
+                        ]
+                      }
+                    })
+                    if (find) {
+                      cek.push(find)
+                    } else {
+                      const send = {
+                        username: results.username,
+                        id_role: listRole[i],
+                        status: 1
+                      }
+                      const createRole = await role_user.create(send)
+                      if (createRole) {
+                        cek.push(createRole)
+                      }
+                    }
+                  }
+                  if (cek.length > 0) {
+                    return response(res, 'Add User succesfully', { result })
+                  } else {
+                    return response(res, 'Add User succesfully', { result })
+                  }
+                } else {
+                  return response(res, 'Add User succesfully', { result })
+                }
               } else {
                 return response(res, 'Fail to create user', {}, 400, false)
               }
@@ -93,7 +127,8 @@ module.exports = {
         password: joi.string().allow(''),
         kode_plant: joi.string().allow(''),
         level: joi.number(),
-        email: joi.string().email()
+        email: joi.string().email(),
+        multi_role: joi.string().allow('')
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -174,6 +209,7 @@ module.exports = {
               }
             }
           } else {
+            const listRole = results.multi_role.split(',')
             const result = await user.findAll({
               where: {
                 username: results.username,
@@ -183,53 +219,130 @@ module.exports = {
             if (result.length > 0) {
               return response(res, 'username already exist', { result }, 404, false)
             } else {
-              if (results.fullname !== '' || results.fullname) {
-                const result = await user.findAll({
-                  where: {
-                    username: results.username,
-                    [Op.not]: { id: id }
-                  }
-                })
-                if (result.length > 0) {
-                  return response(res, 'fullname already use', { result }, 404, false)
-                } else {
-                  if (results.password) {
-                    results.password = await bcrypt.hash(results.password, await bcrypt.genSalt())
-                    const result = await user.findByPk(id)
-                    if (result) {
-                      await result.update(results)
-                      return response(res, 'update User succesfully', { result })
+              if (results.password) {
+                results.password = await bcrypt.hash(results.password, await bcrypt.genSalt())
+                const result = await user.findByPk(id)
+                const findName = await user.findByPk(id)
+                if (result) {
+                  const update = await result.update(results)
+                  if (update) {
+                    if (listRole.length > 0) {
+                      const findRole = await role_user.findAll({
+                        where: {
+                          username: result.username
+                        }
+                      })
+                      const cek = []
+                      for (let i = 0; i < listRole.length; i++) {
+                        const find = await role_user.findOne({
+                          where: {
+                            [Op.and]: [
+                              { username: findName.username },
+                              { id_role: listRole[i] }
+                            ]
+                          }
+                        })
+                        const send = {
+                          username: results.username,
+                          id_role: listRole[i],
+                          status: 1
+                        }
+                        if (find) {
+                          const updateRole = await find.update(send)
+                          if (updateRole) {
+                            cek.push(updateRole)
+                          }
+                        } else {
+                          const createRole = await role_user.create(send)
+                          if (createRole) {
+                            cek.push(createRole)
+                          }
+                        }
+                      }
+                      for (let i = 0; i < findRole.length; i++) {
+                        const cekRole = listRole.find(item => item === findRole[i].id_role)
+                        if (cekRole === undefined) {
+                          const findId = await role_user.findByPk(findRole[i].id)
+                          if (findId) {
+                            await findId.destroy()
+                          }
+                        }
+                      }
+                      if (cek.length > 0) {
+                        return response(res, 'Update User succesfully', { result })
+                      } else {
+                        return response(res, 'Update User succesfully', { result })
+                      }
                     } else {
-                      return response(res, 'Fail to update user', {}, 400, false)
+                      return response(res, 'Update User succesfully', { result })
                     }
                   } else {
-                    const result = await user.findByPk(id)
-                    if (result) {
-                      await result.update(results)
-                      return response(res, 'update User succesfully', { result })
-                    } else {
-                      return response(res, 'Fail to update user', {}, 400, false)
-                    }
+                    return response(res, 'Fail to update user', {}, 400, false)
                   }
+                } else {
+                  return response(res, 'Fail to update user', {}, 400, false)
                 }
               } else {
-                if (results.password) {
-                  results.password = await bcrypt.hash(results.password, await bcrypt.genSalt())
-                  const result = await user.findByPk(id)
-                  if (result) {
-                    await result.update(results)
-                    return response(res, 'update User succesfully', { result })
+                const result = await user.findByPk(id)
+                const findName = await user.findByPk(id)
+                if (result) {
+                  const update = await result.update(results)
+                  if (update) {
+                    if (listRole.length > 0) {
+                      const findRole = await role_user.findAll({
+                        where: {
+                          username: result.username
+                        }
+                      })
+                      const cek = []
+                      for (let i = 0; i < listRole.length; i++) {
+                        const find = await role_user.findOne({
+                          where: {
+                            [Op.and]: [
+                              { username: findName.username },
+                              { id_role: listRole[i] }
+                            ]
+                          }
+                        })
+                        const send = {
+                          username: results.username,
+                          id_role: listRole[i],
+                          status: 1
+                        }
+                        if (find) {
+                          const updateRole = await find.update(send)
+                          if (updateRole) {
+                            cek.push(updateRole)
+                          }
+                        } else {
+                          const createRole = await role_user.create(send)
+                          if (createRole) {
+                            cek.push(createRole)
+                          }
+                        }
+                      }
+                      for (let i = 0; i < findRole.length; i++) {
+                        const cekRole = listRole.find(item => item === findRole[i].id_role)
+                        if (cekRole === undefined) {
+                          const findId = await role_user.findByPk(findRole[i].id)
+                          if (findId) {
+                            await findId.destroy()
+                          }
+                        }
+                      }
+                      if (cek.length > 0) {
+                        return response(res, 'Update User succesfully', { result })
+                      } else {
+                        return response(res, 'Update User succesfully', { result })
+                      }
+                    } else {
+                      return response(res, 'Update User succesfully', { result })
+                    }
                   } else {
                     return response(res, 'Fail to update user', {}, 400, false)
                   }
                 } else {
-                  const result = await user.findByPk(id)
-                  if (result) {
-                    await result.update(results)
-                    return response(res, 'update User succesfully', { result })
-                  } else {
-                    return response(res, 'Fail to update user', {}, 400, false)
-                  }
+                  return response(res, 'Fail to update user', {}, 400, false)
                 }
               }
             }
@@ -333,6 +446,10 @@ module.exports = {
             {
               model: role,
               as: 'role'
+            },
+            {
+              model: role_user,
+              as: 'detail_role'
             }
           ],
           order: [[sortValue, 'ASC']],
@@ -363,6 +480,14 @@ module.exports = {
               {
                 model: role,
                 as: 'role'
+              },
+              {
+                model: role_user,
+                as: 'detail_role'
+                // ,
+                // where: {
+                //   id_role: findRole.level
+                // }
               }
             ],
             order: [[sortValue, 'ASC']],
@@ -386,7 +511,17 @@ module.exports = {
   getDetailUser: async (req, res) => {
     try {
       const id = req.params.id
-      const result = await user.findByPk(id)
+      const result = await user.findOne({
+        where: {
+          id: id
+        },
+        include: [
+          {
+            model: role_user,
+            as: 'detail_role'
+          }
+        ]
+      })
       if (result) {
         return response(res, `Profile of user with id ${id}`, { result })
       } else {

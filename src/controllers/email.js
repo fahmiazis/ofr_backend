@@ -1,4 +1,4 @@
-const { resmail, picklaim, spvklaim, email, ttd, role, finance, user, ops, klaim, ikk, vervendor } = require('../models')
+const { resmail, picklaim, spvklaim, email, ttd, role, finance, user, ops, klaim, ikk, vervendor, role_user } = require('../models') // eslint-disable-line
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -158,7 +158,7 @@ module.exports = {
       const name = req.user.name
       const level = req.user.level
       const accKlaim = [3, 13, 23]
-      const { no, kode, tipe, menu, jenis, typeReject, typeAjuan } = req.body
+      const { no, kode, tipe, menu, jenis, typeReject, typeAjuan, indexApp } = req.body
       const transaksi = jenis === 'ikk' ? ikk : jenis === 'klaim' ? klaim : jenis === 'vendor' ? vervendor : ops
       const statVerif = (jenis === 'ikk' || jenis === 'ops') && level === 2
         ? 4
@@ -231,7 +231,7 @@ module.exports = {
                   }
                 })
                 if (findLevel && findLevel.type === 'area') {
-                  const findDraftUser = await user.findAll({
+                  const findDataUser = await user.findAll({
                     where: {
                       level: findLevel.level
                     },
@@ -242,6 +242,29 @@ module.exports = {
                       }
                     ]
                   })
+                  const findRoleUser = await role_user.findAll({
+                    where: {
+                      id_role: findLevel.level
+                    },
+                    include: [
+                      {
+                        model: user,
+                        as: 'detail_user'
+                      },
+                      {
+                        model: role,
+                        as: 'detail_role'
+                      }
+                    ]
+                  })
+                  const dataRole = []
+                  for (let i = 0; i < findRoleUser.length; i++) {
+                    dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+                  }
+                  const findDraftUser = [
+                    ...findDataUser,
+                    ...dataRole
+                  ]
                   if (findDraftUser) {
                     for (let i = 0; i < findDraftUser.length; i++) {
                       const findName = findDraftUser[i].fullname === null ? '' : findDraftUser[i].fullname
@@ -272,8 +295,9 @@ module.exports = {
                 let noLevel = null
                 let arr = null
                 for (let i = 0; i < findApp.length; i++) {
-                  if (findRole.name === findApp[i].jabatan) {
-                    arr = i + 1
+                  if (level === 30) {
+                    const convIndex = (findApp.length - 1) - parseInt(indexApp === 'first' ? (findApp.length - 1) : indexApp)
+                    arr = convIndex + 1
                     const findLevel = await role.findOne({
                       where: {
                         name: findApp[arr].jabatan
@@ -282,10 +306,22 @@ module.exports = {
                     if (findLevel) {
                       noLevel = findLevel
                     }
+                  } else {
+                    if (findRole.name === findApp[i].jabatan) {
+                      arr = i + 1
+                      const findLevel = await role.findOne({
+                        where: {
+                          name: findApp[arr].jabatan
+                        }
+                      })
+                      if (findLevel) {
+                        noLevel = findLevel
+                      }
+                    }
                   }
                 }
                 if (noLevel.type === 'area') {
-                  const findUser = await user.findAll({
+                  const findDataUser = await user.findAll({
                     where: {
                       level: noLevel.level
                     },
@@ -296,6 +332,29 @@ module.exports = {
                       }
                     ]
                   })
+                  const findRoleUser = await role_user.findAll({
+                    where: {
+                      id_role: noLevel.level
+                    },
+                    include: [
+                      {
+                        model: user,
+                        as: 'detail_user'
+                      },
+                      {
+                        model: role,
+                        as: 'detail_role'
+                      }
+                    ]
+                  })
+                  const dataRole = []
+                  for (let i = 0; i < findRoleUser.length; i++) {
+                    dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+                  }
+                  const findUser = [
+                    ...findDataUser,
+                    ...dataRole
+                  ]
                   const cekName = []
                   if (findUser.length > 0) {
                     let toMail = null

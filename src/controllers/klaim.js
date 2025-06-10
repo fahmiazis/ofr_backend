@@ -1986,7 +1986,7 @@ module.exports = {
     try {
       const level = req.user.level
       const name = req.user.fullname
-      const { no } = req.body
+      const { no, indexApp } = req.body
       const findKlaim = await klaim.findAll({
         where: {
           no_transaksi: no
@@ -2013,10 +2013,16 @@ module.exports = {
             if (findTtd.length > 0) {
               let hasil = 0
               let arr = null
-              for (let i = 0; i < findTtd.length; i++) {
-                if (findRole.name === findTtd[i].jabatan) {
-                  hasil = findTtd[i].id
-                  arr = i
+              if (indexApp !== null) {
+                const convIndex = (findTtd.length - 1) - parseInt(indexApp)
+                hasil = findTtd[convIndex].id
+                arr = convIndex
+              } else {
+                for (let i = 0; i < findTtd.length; i++) {
+                  if (findRole.name === findTtd[i].jabatan) {
+                    hasil = findTtd[i].id
+                    arr = i
+                  }
                 }
               }
               if (hasil !== 0) {
@@ -2253,7 +2259,8 @@ module.exports = {
         menu: joi.string().required(),
         list: joi.array(),
         type: joi.string(),
-        type_reject: joi.string()
+        type_reject: joi.string(),
+        indexApp: joi.number()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -2330,10 +2337,16 @@ module.exports = {
                 if (findTtd.length > 0) {
                   let hasil = 0
                   let arr = null
-                  for (let i = 0; i < findTtd.length; i++) {
-                    if (findRole.name === findTtd[i].jabatan) {
-                      hasil = findTtd[i].id
-                      arr = i
+                  if (results.indexApp !== null) {
+                    const convIndex = (findTtd.length - 1) - parseInt(results.indexApp)
+                    hasil = findTtd[convIndex].id
+                    arr = convIndex
+                  } else {
+                    for (let i = 0; i < findTtd.length; i++) {
+                      if (findRole.name === findTtd[i].jabatan) {
+                        hasil = findTtd[i].id
+                        arr = i
+                      }
                     }
                   }
                   if (hasil !== 0) {

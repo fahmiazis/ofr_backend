@@ -1,4 +1,4 @@
-const { ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, bbm, user, resmail, rekvendor } = require('../models')
+const { ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, bbm, user, resmail, rekvendor, role_user } = require('../models') // eslint-disable-line
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -1374,7 +1374,7 @@ module.exports = {
     const level = req.user.level
     const kode = req.user.kode
     const idUser = req.user.id
-    const role = req.user.role
+    const roleUser = req.user.role
     const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
     const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi, search, jentrans, desttf } = req.query
     let { limit, page } = req.query
@@ -1402,7 +1402,18 @@ module.exports = {
     const timeVal2 = time2 === 'undefined' ? 'all' : time2
     const timeV1 = timeVal1 !== 'all' ? moment(timeVal1) : moment()
     const timeV2 = timeVal1 !== 'all' && timeVal1 === timeVal2 ? moment(timeVal2).add(1, 'd') : timeVal1 === 'all' ? moment() : moment(timeVal2).add(1, 'd')
-    const findUser = await user.findByPk(idUser)
+    const dataRole = await role.findAll()
+    const findUser = await user.findOne({
+      where: {
+        id: idUser
+      },
+      include: [
+        {
+          model: role_user,
+          as: 'detail_role'
+        }
+      ]
+    })
     if (findUser) {
       const name = findUser.fullname
       const email = findUser.email
@@ -1505,7 +1516,7 @@ module.exports = {
         // const set = new Set(data)
         // const noDis = [...set]
         if (findOps) {
-          const newOps = category === 'verif' ? filter(type, findOps.rows, statData, role) : filterApp(type, findOps.rows, role, level)
+          const newOps = category === 'verif' ? filter(type, findOps.rows, statData, roleUser) : filterApp(type, findOps.rows, roleUser, level, dataRole, findUser)
           const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
           return response(res, 'success get data ops', { result: findOps.rows, pageInfo, newOps, findDepo: [] })
         } else {
@@ -1542,7 +1553,7 @@ module.exports = {
             }
           })
           if (findDepo && findApp) {
-            const indexApp = findApp.map(item => item.jabatan).indexOf(role)
+            const indexApp = findApp.map(item => item.jabatan).indexOf(roleUser)
             const dataApp = findApp[indexApp - 1].jabatan
             const dataApp2 = findApp[indexApp - ((level === 12 || level === 11) ? 2 : 1)].jabatan
             const dataDepo = []
@@ -1578,7 +1589,7 @@ module.exports = {
                   { no_transaksi: { [Op.like]: '%OPS%' } },
                   {
                     [Op.and]: [
-                      { jabatan: { [Op.like]: `%${role}%` } }
+                      { jabatan: { [Op.like]: `%${roleUser}%` } }
                     ],
                     [Op.or]: [
                       { status: null },
@@ -1752,11 +1763,11 @@ module.exports = {
                   const result = hasil
                   if (statTrans === 'all') {
                     const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
-                    return response(res, 'success get ops', { result, findSign, newOps: result, pageInfo, dataCek, depoVacant })
+                    return response(res, 'success get ops22', { result, findSign, newOps: result, pageInfo, dataCek, depoVacant })
                   } else {
-                    const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
+                    const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, roleUser) : category === 'verif' ? filter(type, result, statData, roleUser, level) : filterApp(type, result, roleUser, level, dataRole, findUser)
                     const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
-                    return response(res, 'success get ops', { result, findSign, findSignVacant, newOps, pageInfo, dataCek, depoVacant })
+                    return response(res, 'success get ops23', { result, findSign, findSignVacant, newOps, pageInfo, dataCek, depoVacant })
                   }
                 } else {
                   const result = hasil
@@ -1919,15 +1930,15 @@ module.exports = {
                 const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
                 return response(res, 'success get ops', { result, findDepo, newOps: result, pageInfo, dataDepo })
               } else {
-                const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, role) : category === 'verif' ? filter(type, result, statData, role, level) : filterApp(type, result, role)
+                const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, roleUser) : category === 'verif' ? filter(type, result, statData, roleUser, level) : filterApp(type, result, roleUser, level, dataRole, findUser)
                 const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
-                return response(res, 'success get ops', { result, findDepo, newOps, pageInfo, dataDepo })
+                return response(res, 'success get ops24', { result, findDepo, newOps, pageInfo, dataDepo })
               }
             } else {
               const result = hasil
               // const noDis = []
               const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
-              return response(res, 'success get ops', { result, findDepo, pageInfo, newOps: [], dataDepo })
+              return response(res, 'success get ops25', { result, findDepo, pageInfo, newOps: [], dataDepo })
             }
           } else {
             return response(res, 'failed get ops', {}, 400, false)
@@ -2053,15 +2064,15 @@ module.exports = {
           if (findOps) {
             if (statTrans === 'all') {
               const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
-              return response(res, 'success get data ops', { result: findOps, pageInfo, findDepo, newOps: findOps })
+              return response(res, 'success get data ops32', { result: findOps, pageInfo, findDepo, newOps: findOps })
             } else {
-              const newOps = category === 'verif' ? filter(type, findOps, statData, role) : filterApp(type, findOps, role, level)
+              const newOps = category === 'verif' ? filter(type, findOps, statData, roleUser) : filterApp(type, findOps, roleUser, level, dataRole, findUser)
               const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
-              return response(res, 'success get data ops', { result: findOps, pageInfo, findDepo, newOps })
+              return response(res, 'success get data ops31', { result: findOps, pageInfo, findDepo, newOps })
             }
           } else {
             const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
-            return response(res, 'success get data ops', { result: findOps, pageInfo, findDepo, newOps: [] })
+            return response(res, 'success get data ops33', { result: findOps, pageInfo, findDepo, newOps: [] })
           }
         } else {
           return response(res, 'Failed get data ops', {}, 404, false)
@@ -2613,7 +2624,7 @@ module.exports = {
     try {
       const level = req.user.level
       const name = req.user.fullname
-      const { no } = req.body
+      const { no, indexApp } = req.body
       const findOps = await ops.findAll({
         where: {
           no_transaksi: no
@@ -2640,10 +2651,16 @@ module.exports = {
             if (findTtd.length > 0) {
               let hasil = 0
               let arr = null
-              for (let i = 0; i < findTtd.length; i++) {
-                if (findRole.name === findTtd[i].jabatan) {
-                  hasil = findTtd[i].id
-                  arr = i
+              if (indexApp !== null) {
+                const convIndex = (findTtd.length - 1) - parseInt(indexApp)
+                hasil = findTtd[convIndex].id
+                arr = convIndex
+              } else {
+                for (let i = 0; i < findTtd.length; i++) {
+                  if (findRole.name === findTtd[i].jabatan) {
+                    hasil = findTtd[i].id
+                    arr = i
+                  }
                 }
               }
               if (hasil !== 0) {
@@ -2883,7 +2900,8 @@ module.exports = {
         menu: joi.string().required(),
         list: joi.array(),
         type: joi.string(),
-        type_reject: joi.string()
+        type_reject: joi.string(),
+        indexApp: joi.number()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -3037,10 +3055,16 @@ module.exports = {
                 if (findTtd.length > 0) {
                   let hasil = 0
                   let arr = null
-                  for (let i = 0; i < findTtd.length; i++) {
-                    if (findRole.name === findTtd[i].jabatan) {
-                      hasil = findTtd[i].id
-                      arr = i
+                  if (results.indexApp !== null) {
+                    const convIndex = (findTtd.length - 1) - parseInt(results.indexApp)
+                    hasil = findTtd[convIndex].id
+                    arr = convIndex
+                  } else {
+                    for (let i = 0; i < findTtd.length; i++) {
+                      if (findRole.name === findTtd[i].jabatan) {
+                        hasil = findTtd[i].id
+                        arr = i
+                      }
                     }
                   }
                   if (hasil !== 0) {
