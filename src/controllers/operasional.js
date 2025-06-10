@@ -12,7 +12,7 @@ const nonPph = 'Non PPh'
 const spend = 'Rekening Spending Card'
 const zba = 'Rekening ZBA'
 const bankcoll = 'Rekening Bank Coll'
-const accarea = [10, 11]
+const accarea = [10, 11, 12]
 
 module.exports = {
   addCart: async (req, res) => {
@@ -1540,7 +1540,8 @@ module.exports = {
                 { spv_tax: level === 24 ? name : 'undefined' },
                 { asman_tax: level === 34 ? name : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
-                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
               ]
             }
           })
@@ -1802,7 +1803,8 @@ module.exports = {
                 { spv_tax: level === 24 ? name : 'undefined' },
                 { asman_tax: level === 34 ? name : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
-                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
               ]
             }
           })
@@ -4183,7 +4185,8 @@ module.exports = {
                 { spv_tax: level === 24 ? name : 'undefined' },
                 { asman_tax: level === 34 ? name : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
-                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
               ]
             }
           })
