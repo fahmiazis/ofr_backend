@@ -1318,7 +1318,7 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  EditVerven: async (req, res) => {
+  editVerven: async (req, res) => {
     try {
       const id = req.params.id
       const schema = joi.object({
@@ -1387,7 +1387,7 @@ module.exports = {
             ]
           }
         })
-        if (findNameVendor || findAjuanVendor) {
+        if ((findNameVendor || findAjuanVendor) && id === undefined) {
           return response(res, 'vendor telah terdftar', {}, 404, false)
         } else {
           const tipe = results.type_skb
