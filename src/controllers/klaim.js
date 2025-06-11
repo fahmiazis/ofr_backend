@@ -11,7 +11,7 @@ const uploadMaster = require('../helpers/uploadMaster')
 const fs = require('fs')
 const access = [10, 11, 12, 2, 7, 8, 9]
 const accKlaim = [3, 13, 23]
-const accarea = [10, 11]
+const accarea = [10, 11, 12]
 
 module.exports = {
   addCart: async (req, res) => {
@@ -749,7 +749,7 @@ module.exports = {
       const level = req.user.level
       const kode = req.user.kode
       const idUser = req.user.id
-      const role = req.user.role
+      const roleUser = req.user.role
       const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
       const { status, reject, menu, type, category, data, time1, time2, search } = req.query
       const searchValue = search || ''
@@ -862,7 +862,7 @@ module.exports = {
           const noDis = [...set]
           if (findKlaim) {
             const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
-            const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, role) : filterApp(type, findKlaim.rows, noDis, role)
+            const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, roleUser) : filterApp(type, findKlaim.rows, noDis, roleUser)
             return response(res, 'success get data klaim', { result: findKlaim.rows, noDis, newKlaim, findDepo: [], pageInfo })
           } else {
             const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
@@ -880,7 +880,8 @@ module.exports = {
                 { asman_finance: level === 8 ? name : 'undefined' },
                 { manager_finance: level === 9 ? name : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
-                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
               ]
             }
           })
@@ -908,7 +909,7 @@ module.exports = {
                 }
               })
               if (findApp.length > 0) {
-                const indexApp = findApp.map(item => item.jabatan).indexOf(role)
+                const indexApp = findApp.map(item => item.jabatan).indexOf(roleUser)
                 const dataApp = findApp[indexApp - 1].jabatan
                 const dataApp2 = findApp[indexApp - ((level === 12 || level === 11) ? 2 : 1)].jabatan
                 const dataDepo = []
@@ -944,7 +945,7 @@ module.exports = {
                       { no_transaksi: { [Op.like]: '%KLM%' } },
                       {
                         [Op.and]: [
-                          { jabatan: { [Op.like]: `%${role}%` } }
+                          { jabatan: { [Op.like]: `%${roleUser}%` } }
                         ],
                         [Op.or]: [
                           { status: null },
@@ -1105,7 +1106,7 @@ module.exports = {
                       const noDis = [...set]
                       const result = hasil
                       const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.length)
-                      const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
+                      const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser)
                       return response(res, 'success get klaim1', { result, noDis, findDepo, newKlaim, pageInfo, dataSign })
                     } else {
                       const result = hasil
@@ -1221,7 +1222,7 @@ module.exports = {
                 const noDis = [...set]
                 const result = hasil
                 const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.length)
-                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
+                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser)
                 return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim, pageInfo })
               } else {
                 const result = hasil
@@ -1380,7 +1381,7 @@ module.exports = {
                 const noDis = [...set]
                 const result = hasil.rows
                 const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.count.length)
-                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, role) : category === 'verif' ? filter(type, result, noDis, statData, role) : filterApp(type, result, noDis, role)
+                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser)
                 return response(res, 'success get klaim', { result, noDis, findDepo, pageInfo, newKlaim })
               } else {
                 const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.count.length)
@@ -1497,7 +1498,7 @@ module.exports = {
             const noDis = [...set]
             if (findKlaim) {
               const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
-              const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, role) : filterApp(type, findKlaim.rows, noDis, role)
+              const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, roleUser) : filterApp(type, findKlaim.rows, noDis, roleUser)
               return response(res, 'success get data klaim', { result: findKlaim.rows, noDis, newKlaim, findDepo, pageInfo })
             } else {
               const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
@@ -2005,113 +2006,126 @@ module.exports = {
             }
           })
           if (findRole) {
-            const findTtd = await ttd.findAll({
-              where: {
-                no_transaksi: no
-              }
-            })
-            if (findTtd.length > 0) {
-              let hasil = 0
-              let arr = null
-              if (indexApp !== null) {
-                const convIndex = (findTtd.length - 1) - parseInt(indexApp)
-                hasil = findTtd[convIndex].id
-                arr = convIndex
-              } else {
-                for (let i = 0; i < findTtd.length; i++) {
-                  if (findRole.name === findTtd[i].jabatan) {
-                    hasil = findTtd[i].id
-                    arr = i
+            const cekFalse = []
+            const cekTrue = []
+            if (indexApp !== undefined && indexApp !== null && indexApp.length > 0) {
+              for (let x = 0; x < indexApp.length; x++) {
+                const findTtd = await ttd.findAll({
+                  where: {
+                    no_transaksi: no
                   }
-                }
-              }
-              if (hasil !== 0) {
-                if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
-                  return response(res, 'Anda tidak memiliki akses lagi untuk mengapprove', {}, 404, false)
-                } else {
-                  console.log(findTtd[arr - 1])
-                  if (findTtd[arr - 1].status === '1') {
-                    const data = {
-                      nama: name,
-                      status: 1
+                })
+                if (findTtd.length > 0) {
+                  let hasil = 0
+                  let arr = null
+                  if (indexApp !== null) {
+                    const convIndex = (findTtd.length - 1) - parseInt(indexApp[x])
+                    hasil = findTtd[convIndex].id
+                    arr = convIndex
+                  } else {
+                    for (let i = 0; i < findTtd.length; i++) {
+                      if (findRole.name === findTtd[i].jabatan) {
+                        hasil = findTtd[i].id
+                        arr = i
+                      }
                     }
-                    const findApp = await ttd.findByPk(hasil)
-                    if (findApp) {
-                      const upttd = await findApp.update(data)
-                      if (upttd) {
-                        const findFull = await ttd.findAll({
-                          where: {
-                            [Op.and]: [
-                              { no_transaksi: no },
-                              { status: { [Op.like]: '%1%' } }
-                            ]
-                          }
-                        })
-                        if (findTtd.length === findFull.length) {
-                          const temp = []
-                          for (let i = 0; i < findKlaim.length; i++) {
-                            const send = {
-                              status_transaksi: 3,
-                              status_reject: null,
-                              isreject: null,
-                              tgl_fullarea: moment(),
-                              history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                  }
+                  if (hasil !== 0) {
+                    if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
+                      cekFalse.push('Anda tidak memiliki akses lagi untuk mengapprove')
+                    } else {
+                      console.log(findTtd[arr - 1])
+                      if (findTtd[arr - 1].status === '1') {
+                        const data = {
+                          nama: name,
+                          status: 1
+                        }
+                        const findApp = await ttd.findByPk(hasil)
+                        if (findApp) {
+                          const upttd = await findApp.update(data)
+                          if (upttd) {
+                            const findFull = await ttd.findAll({
+                              where: {
+                                [Op.and]: [
+                                  { no_transaksi: no },
+                                  { status: { [Op.like]: '%1%' } }
+                                ]
+                              }
+                            })
+                            if (findTtd.length === findFull.length) {
+                              const temp = []
+                              for (let i = 0; i < findKlaim.length; i++) {
+                                const send = {
+                                  status_transaksi: 3,
+                                  status_reject: null,
+                                  isreject: null,
+                                  tgl_fullarea: moment(),
+                                  history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                                }
+                                const findRes = await klaim.findByPk(findKlaim[i].id)
+                                if (findRes) {
+                                  await findRes.update(send)
+                                  temp.push(1)
+                                }
+                              }
+                              if (temp.length) {
+                                cekTrue.push('success approve klaim')
+                              } else {
+                                cekTrue.push('success approve klaim')
+                              }
+                            } else {
+                              const temp = []
+                              for (let i = 0; i < findKlaim.length; i++) {
+                                const send = {
+                                  status_reject: null,
+                                  isreject: null,
+                                  history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                                }
+                                const findRes = await klaim.findByPk(findKlaim[i].id)
+                                if (findRes) {
+                                  await findRes.update(send)
+                                  temp.push(1)
+                                }
+                              }
+                              if (temp.length) {
+                                cekTrue.push('success approve klaim')
+                              } else {
+                                cekTrue.push('success approve klaim')
+                              }
                             }
-                            const findRes = await klaim.findByPk(findKlaim[i].id)
-                            if (findRes) {
-                              await findRes.update(send)
-                              temp.push(1)
-                            }
-                          }
-                          if (temp.length) {
-                            return response(res, 'success approve klaim', {})
                           } else {
-                            return response(res, 'success approve klaim', {})
+                            cekFalse.push('failed approve klaim')
                           }
                         } else {
-                          const temp = []
-                          for (let i = 0; i < findKlaim.length; i++) {
-                            const send = {
-                              status_reject: null,
-                              isreject: null,
-                              history: `${findKlaim[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
-                            }
-                            const findRes = await klaim.findByPk(findKlaim[i].id)
-                            if (findRes) {
-                              await findRes.update(send)
-                              temp.push(1)
-                            }
-                          }
-                          if (temp.length) {
-                            return response(res, 'success approve klaim', {})
-                          } else {
-                            return response(res, 'success approve klaim', {})
-                          }
+                          cekFalse.push('failed approve klaim')
                         }
                       } else {
-                        return response(res, 'failed approve klaim', {}, 404, false)
+                        cekFalse.push(`${findTtd[arr - 1].jabatan} belum approve atau telah mereject`)
                       }
-                    } else {
-                      return response(res, 'failed approve klaim', {}, 404, false)
                     }
                   } else {
-                    return response(res, `${findTtd[arr - 1].jabatan} belum approve atau telah mereject`, {}, 404, false)
+                    cekFalse.push('failed approve klaim')
                   }
+                } else {
+                  cekFalse.push('failed approve klaim')
                 }
-              } else {
-                return response(res, 'failed approve klaim', {}, 404, false)
+              }
+              if (cekFalse.length > 0) {
+                return response(res, 'failed approve klaim1', { cekFalse }, 404, false)
+              } else if (cekTrue.length > 0) {
+                return response(res, 'success approve ops', { findKlaim })
               }
             } else {
-              return response(res, 'failed approve klaim', {}, 404, false)
+              return response(res, 'failed approve klaim2', {}, 404, false)
             }
           } else {
-            return response(res, 'failed approve klaim', {}, 404, false)
+            return response(res, 'failed approve klaim3', {}, 404, false)
           }
         } else {
-          return response(res, 'failed approve klaim', {}, 404, false)
+          return response(res, 'failed approve klaim4', {}, 404, false)
         }
       } else {
-        return response(res, 'failed approve klaim', {}, 404, false)
+        return response(res, 'failed approve klaim5', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
@@ -2979,7 +2993,8 @@ module.exports = {
                 { asman_finance: level === 8 ? name : 'undefined' },
                 { manager_finance: level === 9 ? name : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
-                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' }
+                accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
+                accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
               ]
             }
           })

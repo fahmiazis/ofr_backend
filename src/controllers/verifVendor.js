@@ -1760,9 +1760,9 @@ module.exports = {
       const schema = joi.object({
         no: joi.string().required(),
         nik: joi.string().allow(''),
-        npwp: joi.string().required(),
+        npwp: joi.string().allow(''),
         bank: joi.string().required(),
-        no_rekening: joi.number().required()
+        no_rekening: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -1802,9 +1802,9 @@ module.exports = {
         no: joi.string().required(),
         id: joi.number().required(),
         nik: joi.string().allow(''),
-        npwp: joi.string().required(),
+        npwp: joi.string().allow(''),
         bank: joi.string().required(),
-        no_rekening: joi.number().required()
+        no_rekening: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {

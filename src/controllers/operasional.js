@@ -2645,116 +2645,129 @@ module.exports = {
             }
           })
           if (findRole) {
-            const findTtd = await ttd.findAll({
-              where: {
-                no_transaksi: no
-              }
-            })
-            if (findTtd.length > 0) {
-              let hasil = 0
-              let arr = null
-              if (indexApp !== null) {
-                const convIndex = (findTtd.length - 1) - parseInt(indexApp)
-                hasil = findTtd[convIndex].id
-                arr = convIndex
-              } else {
-                for (let i = 0; i < findTtd.length; i++) {
-                  if (findRole.name === findTtd[i].jabatan) {
-                    hasil = findTtd[i].id
-                    arr = i
+            const cekFalse = []
+            const cekTrue = []
+            if (indexApp !== undefined && indexApp !== null && indexApp.length > 0) {
+              for (let x = 0; x < indexApp.length; x++) {
+                const findTtd = await ttd.findAll({
+                  where: {
+                    no_transaksi: no
                   }
-                }
-              }
-              if (hasil !== 0) {
-                if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
-                  return response(res, 'Anda tidak memiliki akses lagi untuk mengapprove', {}, 404, false)
-                } else {
-                  console.log(findTtd[arr - 1])
-                  if (findTtd[arr - 1].status === '1') {
-                    const data = {
-                      nama: name,
-                      status: 1
+                })
+                if (findTtd.length > 0) {
+                  let hasil = 0
+                  let arr = null
+                  if (indexApp !== null) {
+                    const convIndex = (findTtd.length - 1) - parseInt(indexApp[x])
+                    hasil = findTtd[convIndex].id
+                    arr = convIndex
+                  } else {
+                    for (let i = 0; i < findTtd.length; i++) {
+                      if (findRole.name === findTtd[i].jabatan) {
+                        hasil = findTtd[i].id
+                        arr = i
+                      }
                     }
-                    const findApp = await ttd.findByPk(hasil)
-                    if (findApp) {
-                      const upttd = await findApp.update(data)
-                      if (upttd) {
-                        const findFull = await ttd.findAll({
-                          where: {
-                            [Op.and]: [
-                              { no_transaksi: no },
-                              { status: { [Op.like]: '%1%' } }
-                            ]
-                          }
-                        })
-                        if (findTtd.length === findFull.length) {
-                          const temp = []
-                          const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
-                          // const resData = cekData === 'ya' ? 3 : 4
-                          const resData = 3
-                          for (let i = 0; i < findOps.length; i++) {
-                            const send = {
-                              status_transaksi: resData,
-                              status_reject: null,
-                              isreject: null,
-                              tgl_fullarea: moment(),
-                              history: `${findOps[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                  }
+                  if (hasil !== 0) {
+                    if (arr !== findTtd.length - 1 && (findTtd[arr + 1].status !== null || findTtd[arr + 1].status === 1 || findTtd[arr + 1].status === 0)) {
+                      cekFalse.push('Anda tidak memiliki akses lagi untuk mengapprove')
+                    } else {
+                      console.log(findTtd[arr - 1])
+                      if (findTtd[arr - 1].status === '1') {
+                        const data = {
+                          nama: name,
+                          status: 1
+                        }
+                        const findApp = await ttd.findByPk(hasil)
+                        if (findApp) {
+                          const upttd = await findApp.update(data)
+                          if (upttd) {
+                            const findFull = await ttd.findAll({
+                              where: {
+                                [Op.and]: [
+                                  { no_transaksi: no },
+                                  { status: { [Op.like]: '%1%' } }
+                                ]
+                              }
+                            })
+                            if (findTtd.length === findFull.length) {
+                              const temp = []
+                              const cekData = findOps.find(({stat_skb}) => stat_skb === 'ya') === undefined ? 'ya' : 'no' // eslint-disable-line
+                              // const resData = cekData === 'ya' ? 3 : 4
+                              const resData = 3
+                              for (let i = 0; i < findOps.length; i++) {
+                                const send = {
+                                  status_transaksi: resData,
+                                  status_reject: null,
+                                  isreject: null,
+                                  tgl_fullarea: moment(),
+                                  history: `${findOps[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                                }
+                                const findRes = await ops.findByPk(findOps[i].id)
+                                if (findRes) {
+                                  await findRes.update(send)
+                                  temp.push(1)
+                                }
+                              }
+                              if (temp.length) {
+                                cekTrue.push('success approve ops')
+                              } else {
+                                cekTrue.push('success approve ops')
+                              }
+                            } else {
+                              const temp = []
+                              for (let i = 0; i < findOps.length; i++) {
+                                const send = {
+                                  status_reject: null,
+                                  isreject: null,
+                                  history: `${findOps[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+                                }
+                                const findRes = await ops.findByPk(findOps[i].id)
+                                if (findRes) {
+                                  await findRes.update(send)
+                                  temp.push(1)
+                                }
+                              }
+                              if (temp.length) {
+                                cekTrue.push('success approve ops')
+                              } else {
+                                cekTrue.push('success approve ops')
+                              }
                             }
-                            const findRes = await ops.findByPk(findOps[i].id)
-                            if (findRes) {
-                              await findRes.update(send)
-                              temp.push(1)
-                            }
-                          }
-                          if (temp.length) {
-                            return response(res, 'success approve ops', {})
                           } else {
-                            return response(res, 'success approve ops', {})
+                            cekFalse.push('failed approve ops')
                           }
                         } else {
-                          const temp = []
-                          for (let i = 0; i < findOps.length; i++) {
-                            const send = {
-                              status_reject: null,
-                              isreject: null,
-                              history: `${findOps[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
-                            }
-                            const findRes = await ops.findByPk(findOps[i].id)
-                            if (findRes) {
-                              await findRes.update(send)
-                              temp.push(1)
-                            }
-                          }
-                          if (temp.length) {
-                            return response(res, 'success approve ops', {})
-                          } else {
-                            return response(res, 'success approve ops', {})
-                          }
+                          cekFalse.push('failed approve ops')
                         }
                       } else {
-                        return response(res, 'failed approve ops', {}, 404, false)
+                        cekFalse.push(`${findTtd[arr - 1].jabatan} belum approve atau telah mereject`)
                       }
-                    } else {
-                      return response(res, 'failed approve ops', {}, 404, false)
                     }
                   } else {
-                    return response(res, `${findTtd[arr - 1].jabatan} belum approve atau telah mereject`, {}, 404, false)
+                    cekFalse.push('failed approve ops')
                   }
+                } else {
+                  cekFalse.push('failed approve ops')
                 }
-              } else {
-                return response(res, 'failed approve ops', {}, 404, false)
+              }
+              if (cekFalse.length > 0) {
+                return response(res, 'failed approve ops1', { cekFalse }, 404, false)
+              } else if (cekTrue.length > 0) {
+                return response(res, 'success approve ops', { findOps })
               }
             } else {
-              return response(res, 'failed approve ops', {}, 404, false)
+              return response(res, 'failed approve ops2', {}, 404, false)
             }
           } else {
-            return response(res, 'failed approve ops', {}, 404, false)
+            return response(res, 'failed approve ops3', {}, 404, false)
           }
         } else {
-          return response(res, 'failed approve ops', {}, 404, false)
+          return response(res, 'failed approve ops4', {}, 404, false)
         }
       } else {
-        return response(res, 'failed approve ops', {}, 404, false)
+        return response(res, 'failed approve ops5', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
