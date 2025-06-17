@@ -1,4 +1,4 @@
-const { klaim, coa, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet, fakturkl, user } = require('../models')
+const { klaim, coa, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet, fakturkl, user, role_user } = require('../models') // eslint-disable-line
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -777,7 +777,18 @@ module.exports = {
         page = parseInt(page)
       }
 
-      const findUser = await user.findByPk(idUser)
+      const dataRole = await role.findAll()
+      const findUser = await user.findOne({
+        where: {
+          id: idUser
+        },
+        include: [
+          {
+            model: role_user,
+            as: 'detail_role'
+          }
+        ]
+      })
       if (findUser) {
         const name = findUser.fullname
         const email = findUser.email
@@ -862,7 +873,7 @@ module.exports = {
           const noDis = [...set]
           if (findKlaim) {
             const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
-            const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, roleUser) : filterApp(type, findKlaim.rows, noDis, roleUser)
+            const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, roleUser) : filterApp(type, findKlaim.rows, noDis, roleUser, dataRole, findUser)
             return response(res, 'success get data klaim', { result: findKlaim.rows, noDis, newKlaim, findDepo: [], pageInfo })
           } else {
             const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
@@ -1106,7 +1117,7 @@ module.exports = {
                       const noDis = [...set]
                       const result = hasil
                       const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.length)
-                      const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser)
+                      const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser, dataRole, findUser)
                       return response(res, 'success get klaim1', { result, noDis, findDepo, newKlaim, pageInfo, dataSign })
                     } else {
                       const result = hasil
@@ -1222,7 +1233,7 @@ module.exports = {
                 const noDis = [...set]
                 const result = hasil
                 const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.length)
-                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser)
+                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser, dataRole, findUser)
                 return response(res, 'success get klaim', { result, noDis, findDepo, newKlaim, pageInfo })
               } else {
                 const result = hasil
@@ -1381,7 +1392,7 @@ module.exports = {
                 const noDis = [...set]
                 const result = hasil.rows
                 const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.count.length)
-                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser)
+                const newKlaim = category === 'ajuan bayar' ? filterBayar(type, result, noDis, statTrans, roleUser) : category === 'verif' ? filter(type, result, noDis, statData, roleUser) : filterApp(type, result, noDis, roleUser, dataRole, findUser)
                 return response(res, 'success get klaim', { result, noDis, findDepo, pageInfo, newKlaim })
               } else {
                 const pageInfo = pagination('/klaim/get', req.query, page, limit, hasil.count.length)
@@ -1498,7 +1509,7 @@ module.exports = {
             const noDis = [...set]
             if (findKlaim) {
               const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)
-              const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, roleUser) : filterApp(type, findKlaim.rows, noDis, roleUser)
+              const newKlaim = category === 'verif' ? filter(type, findKlaim.rows, noDis, statData, roleUser) : filterApp(type, findKlaim.rows, noDis, roleUser, dataRole, findUser)
               return response(res, 'success get data klaim', { result: findKlaim.rows, noDis, newKlaim, findDepo, pageInfo })
             } else {
               const pageInfo = pagination('/klaim/get', req.query, page, limit, findKlaim.count.length)

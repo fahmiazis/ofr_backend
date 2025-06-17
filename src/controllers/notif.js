@@ -148,7 +148,8 @@ module.exports = {
             tipe === 'read' ? { [Op.not]: { status: null } } : tipe === 'unread' ? { status: null } : { [Op.not]: { id: null } }
           ]
         },
-        order: [['id', 'DESC']]
+        order: [['id', 'DESC']],
+        limit: 100
       })
       if (findNotif.length > 0) {
         return response(res, 'succes get notif', { result: findNotif, length: findNotif.length })

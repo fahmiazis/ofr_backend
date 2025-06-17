@@ -27,16 +27,33 @@ module.exports = {
     }
     return pageInfo
   },
-  filterApp: (type, dataAjuan, noDis, role) => {
+  filterApp: (type, dataAjuan, noDis, role, dataRole, detUser) => {
+    const arrRole = detUser.detail_role
+    const listRole = []
+    for (let i = 0; i < arrRole.length + 1; i++) {
+        if (detUser.level === 1) {
+            const data = {fullname: 'admin', name: 'admin', level: 1, type: 'all'}
+            listRole.push(data)
+        } else if (i === arrRole.length) {
+            const cek = dataRole.find(item => item.level === detUser.level)
+            listRole.push(cek)
+        } else {
+            const cek = dataRole.find(item => item.level === arrRole[i].id_role)
+            listRole.push(cek)
+        }
+    }
     if (type === 'available') {
       const newKlaim = []
-      for (let i = 0; i < noDis.length; i++) {
-        const index = dataAjuan.indexOf(dataAjuan.find(({ no_transaksi }) => no_transaksi === noDis[i]))
-        if ((dataAjuan[index].status_reject === 0 || dataAjuan[index].status_reject === null) && dataAjuan[index].status_transaksi === 2) {
-          const app = dataAjuan[index].appForm
-          const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-          if (app[find] !== undefined && app[find + 1].status === '1' && (app[find].status === null || app[find].status === '0')) {
-            newKlaim.push(dataAjuan[index])
+      for (let x = 0; x < listRole.length; x++) {
+        const finRole = listRole[x].name
+        for (let i = 0; i < noDis.length; i++) {
+          const index = dataAjuan.indexOf(dataAjuan.find(({ no_transaksi }) => no_transaksi === noDis[i]))
+          if ((dataAjuan[index].status_reject === 0 || dataAjuan[index].status_reject === null) && dataAjuan[index].status_transaksi === 2) {
+            const app = dataAjuan[index].appForm
+            const find = app.indexOf(app.find(({ jabatan }) => jabatan === finRole))
+            if (app[find] !== undefined && app[find + 1].status === '1' && (app[find].status === null || app[find].status === '0')) {
+              newKlaim.push(dataAjuan[index])
+            }
           }
         }
       }
