@@ -38,6 +38,7 @@ route.get('/report', ops.getReport)
 route.patch('/upniverif', ops.updateNilaiVerif)
 
 route.patch('/download', ops.downloadFormVerif)
+
 // bbm
 route.patch('/bbm/upload', ops.uploadBbm)
 route.patch('/bbm/update', ops.updateBbm)
@@ -50,5 +51,8 @@ route.patch('/sign/aos', ops.updateSignAos)
 
 // reject by system
 route.patch('/rejsys', ops.rejectSystem)
+
+// update approval nodm
+route.patch('/nodm', ops.addNodm)
 
 module.exports = route

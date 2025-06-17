@@ -5112,5 +5112,72 @@ module.exports = {
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
+  },
+  addNodm: async (req, res) => {
+    try {
+      const { no } = req.body
+      const findApp = await approve.findAll({
+        where: {
+          [Op.and]: [
+            { kode_plant: 'all' },
+            { nama_approve: 'Pengajuan Ops' }
+          ]
+        }
+      })
+      if (findApp.length > 0) {
+        const temp = []
+        for (let i = 0; i < findApp.length; i++) {
+          if (findApp[i].jabatan === 'NODM') {
+            console.log('')
+            const data = {
+              jabatan: findApp[i].jabatan,
+              nama: null,
+              status: null,
+              no_transaksi: no,
+              sebagai: findApp[i].sebagai,
+              jenis: findApp[i].jenis,
+              kategori: findApp[i].kategori
+            }
+            const send = await ttd.create(data)
+            if (send) {
+              temp.push(send)
+            }
+          }
+        }
+        if (temp.length > 0) {
+          const findTtd = await ttd.findAll({
+            where: {
+              no_transaksi: no
+            }
+          })
+          if (findTtd.length > 0) {
+            const penyetuju = []
+            const pembuat = []
+            const pemeriksa = []
+            const mengetahui = []
+            for (let i = 0; i < findTtd.length; i++) {
+              if (findTtd[i].sebagai === 'pembuat') {
+                pembuat.push(findTtd[i])
+              } else if (findTtd[i].sebagai === 'pemeriksa') {
+                pemeriksa.push(findTtd[i])
+              } else if (findTtd[i].sebagai === 'penyetuju') {
+                penyetuju.push(findTtd[i])
+              } else if (findTtd[i].sebagai === 'mengetahui') {
+                mengetahui.push(findTtd[i])
+              }
+            }
+            return response(res, 'succes get approval4', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd })
+          } else {
+            return response(res, 'failed get approval1', {}, 404, false)
+          }
+        } else {
+          return response(res, 'failed get approval2', {}, 404, false)
+        }
+      } else {
+        return response(res, 'failed get approval3', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   }
 }
