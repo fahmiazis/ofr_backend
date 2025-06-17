@@ -228,31 +228,33 @@ module.exports = {
           include: [
             {
               model: rekvendor,
-              as: 'reknik',
-              where: {
-                [Op.and]: [
-                  {
-                    [Op.not]: { nik: null }
-                  },
-                  {
-                    [Op.not]: { nik: '' }
-                  }
-                ]
-              }
+              as: 'reknik'
+              // ,
+              // where: {
+              //   [Op.and]: [
+              //     {
+              //       [Op.not]: { nik: null }
+              //     },
+              //     {
+              //       [Op.not]: { nik: '' }
+              //     }
+              //   ]
+              // }
             },
             {
               model: rekvendor,
-              as: 'reknpwp',
-              where: {
-                [Op.and]: [
-                  {
-                    [Op.not]: { npwp: null }
-                  },
-                  {
-                    [Op.not]: { npwp: '' }
-                  }
-                ]
-              }
+              as: 'reknpwp'
+              // ,
+              // where: {
+              //   [Op.and]: [
+              //     {
+              //       [Op.not]: { npwp: null }
+              //     },
+              //     {
+              //       [Op.not]: { npwp: '' }
+              //     }
+              //   ]
+              // }
             }
           ],
           distinct: true
@@ -314,31 +316,33 @@ module.exports = {
         include: [
           {
             model: rekvendor,
-            as: 'reknik',
-            where: {
-              [Op.and]: [
-                {
-                  [Op.not]: { nik: null }
-                },
-                {
-                  [Op.not]: { nik: '' }
-                }
-              ]
-            }
+            as: 'reknik'
+            // ,
+            // where: {
+            //   [Op.and]: [
+            //     {
+            //       [Op.not]: { nik: null }
+            //     },
+            //     {
+            //       [Op.not]: { nik: '' }
+            //     }
+            //   ]
+            // }
           },
           {
             model: rekvendor,
-            as: 'reknpwp',
-            where: {
-              [Op.and]: [
-                {
-                  [Op.not]: { npwp: null }
-                },
-                {
-                  [Op.not]: { npwp: '' }
-                }
-              ]
-            }
+            as: 'reknpwp'
+            // ,
+            // where: {
+            //   [Op.and]: [
+            //     {
+            //       [Op.not]: { npwp: null }
+            //     },
+            //     {
+            //       [Op.not]: { npwp: '' }
+            //     }
+            //   ]
+            // }
           }
         ],
         order: [[sortValue, 'DESC']],
