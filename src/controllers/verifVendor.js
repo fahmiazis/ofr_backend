@@ -1771,7 +1771,10 @@ module.exports = {
         const temp = []
         const findRekven = await rekvendor.findOne({
           where: {
-            no_rekening: results.no_rekening
+            [Op.and]: [
+              { no_rekening: results.no_rekening },
+              { no_transaksi: results.no }
+            ]
           }
         })
         const data = {
@@ -1812,7 +1815,10 @@ module.exports = {
       } else {
         const findRekven = await rekvendor.findOne({
           where: {
-            no_rekening: results.no_rekening,
+            [Op.and]: [
+              { no_rekening: results.no_rekening },
+              { no_transaksi: results.no }
+            ],
             [Op.not]: [
               { id: results.id }
             ]
