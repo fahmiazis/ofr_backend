@@ -13,4 +13,8 @@ route.get('/export', vendor.exportSqlVendor)
 route.patch('/upspar', vendor.updateSpar)
 route.patch('/sync', vendor.syncVerVendor)
 
+// rekening vendor
+route.patch('/rekven/update', vendor.updateRekven)
+route.delete('/rekven/del/:id', vendor.deleteRekven)
+
 module.exports = route

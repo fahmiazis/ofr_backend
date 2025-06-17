@@ -228,11 +228,31 @@ module.exports = {
           include: [
             {
               model: rekvendor,
-              as: 'reknik'
+              as: 'reknik',
+              where: {
+                [Op.and]: [
+                  {
+                    [Op.not]: { nik: null }
+                  },
+                  {
+                    [Op.not]: { nik: '' }
+                  }
+                ]
+              }
             },
             {
               model: rekvendor,
-              as: 'reknpwp'
+              as: 'reknpwp',
+              where: {
+                [Op.and]: [
+                  {
+                    [Op.not]: { npwp: null }
+                  },
+                  {
+                    [Op.not]: { npwp: '' }
+                  }
+                ]
+              }
             }
           ],
           distinct: true
@@ -294,11 +314,31 @@ module.exports = {
         include: [
           {
             model: rekvendor,
-            as: 'reknik'
+            as: 'reknik',
+            where: {
+              [Op.and]: [
+                {
+                  [Op.not]: { nik: null }
+                },
+                {
+                  [Op.not]: { nik: '' }
+                }
+              ]
+            }
           },
           {
             model: rekvendor,
-            as: 'reknpwp'
+            as: 'reknpwp',
+            where: {
+              [Op.and]: [
+                {
+                  [Op.not]: { npwp: null }
+                },
+                {
+                  [Op.not]: { npwp: '' }
+                }
+              ]
+            }
           }
         ],
         order: [[sortValue, 'DESC']],
@@ -535,6 +575,71 @@ module.exports = {
         }
       } else {
         return response(res, 'failed sync vervendor', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  updateRekven: async (req, res) => {
+    try {
+      const schema = joi.object({
+        id: joi.number().required(),
+        nik: joi.string().allow(''),
+        npwp: joi.string().allow(''),
+        bank: joi.string().required(),
+        no_rekening: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findRekven = await rekvendor.findOne({
+          where: {
+            [Op.and]: [
+              { no_rekening: results.no_rekening },
+              {
+                [Op.or]: [
+                  { nik: results.nik === '' || results.nik === null || results.nik === undefined ? 'undefined' : results.nik },
+                  { npwp: results.npwp === '' || results.npwp === null || results.npwp === undefined ? 'undefined' : results.npwp }
+                ]
+              }
+            ],
+            [Op.not]: [
+              { id: results.id }
+            ]
+          }
+        })
+        const data = {
+          nik: results.nik,
+          npwp: results.npwp,
+          bank: results.bank,
+          no_rekening: results.no_rekening
+        }
+        if (findRekven) {
+          return response(res, 'failed update rekening vendor', {}, 400, false)
+        } else {
+          const findId = await rekvendor.findByPk(results.id)
+          if (findId) {
+            await findId.update(data)
+            return response(res, 'success update rekening vendor')
+          } else {
+            return response(res, 'failed update rekening vendor', {}, 400, false)
+          }
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  deleteRekven: async (req, res) => {
+    try {
+      const id = req.params.id
+      const findRekven = await rekvendor.findByPk(id)
+      if (findRekven) {
+        await findRekven.destroy()
+        return response(res, 'success delete rekening vendor', { result: findRekven })
+      } else {
+        return response(res, 'failed get cart', {}, 404, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
