@@ -2537,16 +2537,19 @@ module.exports = {
         const pembuat = []
         const mengetahui = []
         const penyetuju = []
+        const pemeriksa = []
         for (let i = 0; i < findTtd.length; i++) {
           if (findTtd[i].sebagai === 'pembuat') {
             pembuat.push(findTtd[i])
           } else if (findTtd[i].sebagai === 'mengetahui') {
             mengetahui.push(findTtd[i])
+          } else if (findTtd[i].sebagai === 'pemeriksa') {
+            pemeriksa.push(findTtd[i])
           } else if (findTtd[i].sebagai === 'penyetuju') {
             penyetuju.push(findTtd[i])
           }
         }
-        return response(res, 'succes get approval', { result: { pembuat, penyetuju, mengetahui }, findTtd })
+        return response(res, 'succes get approval', { result: { pembuat, penyetuju, mengetahui, pemeriksa }, findTtd })
       } else {
         const findOps = await ops.findOne({
           where: {
@@ -2592,16 +2595,19 @@ module.exports = {
                   const penyetuju = []
                   const pembuat = []
                   const mengetahui = []
+                  const pemeriksa = []
                   for (let i = 0; i < findTtd.length; i++) {
                     if (findTtd[i].sebagai === 'pembuat') {
                       pembuat.push(findTtd[i])
                     } else if (findTtd[i].sebagai === 'mengetahui') {
                       mengetahui.push(findTtd[i])
+                    } else if (findTtd[i].sebagai === 'pemeriksa') {
+                      pemeriksa.push(findTtd[i])
                     } else if (findTtd[i].sebagai === 'penyetuju') {
                       penyetuju.push(findTtd[i])
                     }
                   }
-                  return response(res, 'succes get approval', { result: { pembuat, penyetuju, mengetahui }, findTtd })
+                  return response(res, 'succes get approval', { result: { pembuat, penyetuju, mengetahui, pemeriksa }, findTtd })
                 } else {
                   return response(res, 'failed get approval1', {}, 404, false)
                 }
