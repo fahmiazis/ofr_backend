@@ -1157,7 +1157,7 @@ module.exports = {
               where: {
                 kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
-                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : (statTrans === 2 && level === 8) ? { [Op.or]: [{ status_transaksi: 2 }, { status_transaksi: 5 }] } : { status_transaksi: statTrans },
+                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : (parseInt(statTrans) === 2 && level === 8) ? { [Op.or]: [{ status_transaksi: 2 }, { status_transaksi: 5 }] } : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { start_transaksi: null } } : { status_reject: statRej },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
