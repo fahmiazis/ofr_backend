@@ -5,6 +5,7 @@ const response = require('../helpers/response')
 const { pagination } = require('../helpers/pagination')
 const wrapMail = require('../helpers/wrapMail')
 const moment = require('moment')
+const cekCoa = 'mr p'
 
 module.exports = {
   addEmail: async (req, res) => {
@@ -653,8 +654,7 @@ module.exports = {
                     if (accKlaim.find(item => item === noLevel.level)) {
                       const namePic = findUser[i].fullname
                       const dataPic = findPic.dataValues
-                      const agr1 = dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase()) !== -1)].toLowerCase()
-                      // const agr1 = dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()
+                      const agr1 = dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase() === 'mcp' ? cekCoa : x.toLowerCase()) !== -1)].toLowerCase()
                       const agr2 = namePic.toLowerCase()
                       if (agr1 === agr2) {
                         toMail = findUser[i]
@@ -936,8 +936,7 @@ module.exports = {
                       for (let i = 0; i < findUser.length; i++) {
                         const namePic = findUser[i].fullname
                         const dataPic = findPic.dataValues
-                        const agr1 = dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase()) !== -1)].toLowerCase()
-                        // const agr1 = dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()
+                        const agr1 = dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase() === 'mcp' ? cekCoa : x.toLowerCase()) !== -1)].toLowerCase()
                         const agr2 = namePic.toLowerCase()
                         if (agr1 === agr2) {
                           toMail = findUser[i]
@@ -960,10 +959,8 @@ module.exports = {
                           const namePic = findUser[i].fullname
                           const dataPic = findPic.dataValues
                           const dataSpv = findSpv.dataValues
-                          // const agr0 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()).spv_klaim.toLowerCase() // eslint-disable-line
-                          // const agr1 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => x.toLowerCase() === findTrans.nama_coa.split(' ')[(findTrans.nama_coa.split(' ').length) - 1].toLowerCase())].toLowerCase()).manager_klaim.toLowerCase() // eslint-disable-line
-                          const agr0 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase()))].toLowerCase()).spv_klaim.toLowerCase() // eslint-disable-line
-                          const agr1 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase()))].toLowerCase()).manager_klaim.toLowerCase() // eslint-disable-line
+                          const agr0 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase() === 'mcp' ? cekCoa : x.toLowerCase()))].toLowerCase()).spv_klaim.toLowerCase() // eslint-disable-line
+                          const agr1 = dataSpv.find(({pic_klaim}) => pic_klaim.toLowerCase() === dataPic[Object.keys(dataPic).find(x => findTrans.nama_coa.toLowerCase().indexOf(x.toLowerCase() === 'mcp' ? cekCoa : x.toLowerCase()))].toLowerCase()).manager_klaim.toLowerCase() // eslint-disable-line
                           const agrconv = level === 13 ? agr1 : agr0
                           const agr2 = namePic.toLowerCase()
                           if (agrconv === agr2) {
