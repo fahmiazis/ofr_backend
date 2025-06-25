@@ -1555,8 +1555,8 @@ module.exports = {
           })
           if (findDepo && findApp) {
             const indexApp = findApp.map(item => item.jabatan).indexOf(roleUser)
-            const dataApp = findApp[indexApp - 1].jabatan
-            const dataApp2 = findApp[indexApp - ((level === 12 || level === 11) ? 2 : 1)].jabatan
+            const dataApp = findApp[indexApp - (indexApp <= 0 ? 0 : 1)].jabatan
+            const dataApp2 = findApp[indexApp - (indexApp <= 0 ? 0 : (level === 12 || level === 11) ? 2 : 1)].jabatan
             const dataDepo = []
             const depoVacant = []
             for (let i = 0; i < findDepo.length; i++) {

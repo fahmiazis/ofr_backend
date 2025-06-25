@@ -35,17 +35,17 @@ module.exports = {
             const data = {fullname: 'admin', name: 'admin', level: 1, type: 'all'}
             listRole.push(data)
         } else if (i === arrRole.length) {
-            const cek = dataRole.find(item => item.level === detUser.level)
+            const cek = dataRole.find(item => parseInt(item.level) === parseInt(detUser.level))
             listRole.push(cek)
         } else {
-            const cek = dataRole.find(item => item.level === arrRole[i].id_role)
+            const cek = dataRole.find(item => parseInt(item.level) === parseInt(arrRole[i].id_role))
             listRole.push(cek)
         }
     }
     if (type === 'available') {
       const newKlaim = []
       for (let x = 0; x < listRole.length; x++) {
-        const finRole = listRole[x].name
+        const finRole = listRole[x].name === undefined ? '' : listRole[x].name 
         for (let i = 0; i < noDis.length; i++) {
           const index = dataAjuan.indexOf(dataAjuan.find(({ no_transaksi }) => no_transaksi === noDis[i]))
           if ((dataAjuan[index].status_reject === 0 || dataAjuan[index].status_reject === null) && dataAjuan[index].status_transaksi === 2) {
