@@ -38,10 +38,14 @@ module.exports = {
             listRole.push(data)
         } else if (i === arrRole.length) {
             const cek = dataRole.find(item => parseInt(item.level) === parseInt(detUser.level))
-            listRole.push(cek)
+            if (cek !== undefined) {
+              listRole.push(cek)
+            }
         } else {
             const cek = dataRole.find(item => parseInt(item.level) === parseInt(arrRole[i].id_role))
-            listRole.push(cek)
+            if (cek !== undefined) {
+              listRole.push(cek)
+            }
         }
     }
     if (type === 'available') {

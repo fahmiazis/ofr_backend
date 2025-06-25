@@ -1375,6 +1375,7 @@ module.exports = {
     const kode = req.user.kode
     const idUser = req.user.id
     const roleUser = req.user.role
+    console.log(roleUser)
     const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
     const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi, search, jentrans, desttf } = req.query
     let { limit, page } = req.query
