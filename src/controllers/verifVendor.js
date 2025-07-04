@@ -306,6 +306,12 @@ module.exports = {
           no_transaksi: no
         }
       })
+      const findRek = await rekvendor.findAll({
+        where: {
+          no_transaksi: no
+        }
+      })
+      const cekRek = findRek.find(item => item.tujuan_tf !== 'id')
       if (findDoc.length > 0) {
         const findReser = await reservoir.findOne({
           where: {
@@ -404,7 +410,7 @@ module.exports = {
                       }
                     })
                     if (findFinDoc.length > 0) {
-                      return response(res, 'success get dokumen flowles3', { result: findFinDoc })
+                      return response(res, 'success get dokumen flowles3-1', { result: findFinDoc })
                     } else {
                       return response(res, 'success get dokumen gagl3', { result: findDoc })
                     }
@@ -458,6 +464,36 @@ module.exports = {
                 cekDoc.push(1)
               }
             }
+            const findDokRek = findDoc.find(({ desc }) => desc === 'Dokumen Scan Buku Tabungan')
+            if (cekRek !== undefined) {
+              if (findDokRek === undefined) {
+                const dataSend = {
+                  desc: 'Dokumen Scan Buku Tabungan',
+                  jenis_form: findMaster[0].jenis,
+                  no_transaksi: no,
+                  tipe: findMaster[0].type,
+                  stat_upload: 1
+                }
+                const creDoc = await docuser.create(dataSend)
+                if (creDoc) {
+                  cekDoc.push(creDoc)
+                }
+              } else {
+                cekDoc.push(1)
+              }
+            } else if (cekRek === undefined) {
+              if (findDokRek !== undefined) {
+                const findId = await docuser.findByPk(findDokRek.id)
+                if (findId) {
+                  await findId.destroy()
+                  cekDoc.push(1)
+                }
+              } else {
+                cekDoc.push(1)
+              }
+            } else {
+              cekDoc.push(1)
+            }
             if (cekDoc.length > 0) {
               if (cek === 'tidak') {
                 const findSkb = findDoc.find(({ desc }) => desc === 'Dokumen SKB/SKT')
@@ -494,7 +530,7 @@ module.exports = {
                     }
                   })
                   if (findFinDoc.length > 0) {
-                    return response(res, 'success get dokumen flowles3', { result: findFinDoc })
+                    return response(res, 'success get dokumen flowles3-2', { result: findFinDoc, cekRek, findDokRek })
                   } else {
                     return response(res, 'success get dokumen gagl3', { result: findDoc })
                   }
@@ -561,16 +597,20 @@ module.exports = {
                     }
                   }
                 } else {
-                  const data = {
-                    desc: findMaster[i].name,
-                    jenis_form: findMaster[i].jenis,
-                    no_transaksi: no,
-                    tipe: findMaster[i].type,
-                    stat_upload: findMaster[i].stat_upload
-                  }
-                  const creDoc = await docuser.create(data)
-                  if (creDoc) {
-                    temp.push(creDoc)
+                  if (findMaster[i].name === 'Dokumen Scan Buku Tabungan' && cekRek === undefined) {
+                    temp.push()
+                  } else {
+                    const data = {
+                      desc: findMaster[i].name,
+                      jenis_form: findMaster[i].jenis,
+                      no_transaksi: no,
+                      tipe: findMaster[i].type,
+                      stat_upload: findMaster[i].stat_upload
+                    }
+                    const creDoc = await docuser.create(data)
+                    if (creDoc) {
+                      temp.push(creDoc)
+                    }
                   }
                 }
               }
@@ -590,16 +630,20 @@ module.exports = {
                   }
                 }
               } else {
-                const data = {
-                  desc: findMaster[i].name,
-                  jenis_form: findMaster[i].jenis,
-                  no_transaksi: no,
-                  tipe: findMaster[i].type,
-                  stat_upload: findMaster[i].stat_upload
-                }
-                const creDoc = await docuser.create(data)
-                if (creDoc) {
-                  temp.push(creDoc)
+                if (findMaster[i].name === 'Dokumen Scan Buku Tabungan' && cekRek === undefined) {
+                  temp.push()
+                } else {
+                  const data = {
+                    desc: findMaster[i].name,
+                    jenis_form: findMaster[i].jenis,
+                    no_transaksi: no,
+                    tipe: findMaster[i].type,
+                    stat_upload: findMaster[i].stat_upload
+                  }
+                  const creDoc = await docuser.create(data)
+                  if (creDoc) {
+                    temp.push(creDoc)
+                  }
                 }
               }
             }
@@ -637,6 +681,11 @@ module.exports = {
       if (findDoc.length > 0) {
         return response(res, 'success get dokumen1', { result: findDoc })
       } else {
+        const findRek = await rekvendor.findAll({
+          where: {
+            no_transaksi: no
+          }
+        })
         const findMaster = await document.findAll({
           where: {
             [Op.and]: [
@@ -650,16 +699,19 @@ module.exports = {
           for (let i = 0; i < findMaster.length; i++) {
             if (typeAjuan === 'rekening') {
               if (findMaster[i].name === 'Dokumen Scan Buku Tabungan') {
-                const data = {
-                  desc: findMaster[i].name,
-                  jenis_form: findMaster[i].jenis,
-                  no_transaksi: no,
-                  tipe: findMaster[i].type,
-                  stat_upload: findMaster[i].stat_upload
-                }
-                const creDoc = await docuser.create(data)
-                if (creDoc) {
-                  temp.push(creDoc)
+                const cekRek = findRek.find(item => item.tujuan_tf !== 'id')
+                if (cekRek !== undefined) {
+                  const data = {
+                    desc: findMaster[i].name,
+                    jenis_form: findMaster[i].jenis,
+                    no_transaksi: no,
+                    tipe: findMaster[i].type,
+                    stat_upload: findMaster[i].stat_upload
+                  }
+                  const creDoc = await docuser.create(data)
+                  if (creDoc) {
+                    temp.push(creDoc)
+                  }
                 }
               }
             } else {
@@ -1761,8 +1813,9 @@ module.exports = {
         no: joi.string().required(),
         nik: joi.string().allow(''),
         npwp: joi.string().allow(''),
-        bank: joi.string().required(),
-        no_rekening: joi.string().required()
+        bank: joi.string().allow(''),
+        no_rekening: joi.string().required(),
+        tujuan_tf: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -1782,7 +1835,8 @@ module.exports = {
           nik: results.nik,
           npwp: results.npwp,
           bank: results.bank,
-          no_rekening: results.no_rekening
+          no_rekening: results.no_rekening,
+          tujuan_tf: results.tujuan_tf
         }
         if (findRekven) {
           return response(res, 'success add rekening vendor1', { temp, findRekven, msg: 'sudah terdaftar' })
@@ -1807,7 +1861,8 @@ module.exports = {
         nik: joi.string().allow(''),
         npwp: joi.string().allow(''),
         bank: joi.string().required(),
-        no_rekening: joi.string().required()
+        no_rekening: joi.string().required(),
+        tujuan_tf: joi.string().required()
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -1829,7 +1884,8 @@ module.exports = {
           nik: results.nik,
           npwp: results.npwp,
           bank: results.bank,
-          no_rekening: results.no_rekening
+          no_rekening: results.no_rekening,
+          tujuan_tf: results.tujuan_tf
         }
         if (findRekven) {
           return response(res, 'success update rekening vendor')

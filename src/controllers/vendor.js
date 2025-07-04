@@ -237,6 +237,9 @@ module.exports = {
                   },
                   {
                     [Op.not]: { nik: '' }
+                  },
+                  {
+                    [Op.not]: { tujuan_tf: 'id' }
                   }
                 ]
               }
@@ -252,6 +255,9 @@ module.exports = {
                   },
                   {
                     [Op.not]: { npwp: '' }
+                  },
+                  {
+                    [Op.not]: { tujuan_tf: 'id' }
                   }
                 ]
               }
@@ -325,6 +331,9 @@ module.exports = {
                 },
                 {
                   [Op.not]: { nik: '' }
+                },
+                {
+                  [Op.not]: { tujuan_tf: 'id' }
                 }
               ]
             }
@@ -340,6 +349,9 @@ module.exports = {
                 },
                 {
                   [Op.not]: { npwp: '' }
+                },
+                {
+                  [Op.not]: { tujuan_tf: 'id' }
                 }
               ]
             }

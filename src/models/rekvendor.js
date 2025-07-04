@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     bank: DataTypes.STRING,
     no_rekening: DataTypes.STRING,
     no_transaksi: DataTypes.STRING,
-    status: DataTypes.INTEGER
+    status: DataTypes.INTEGER,
+    tujuan_tf: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'rekvendor'
