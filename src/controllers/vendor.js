@@ -237,10 +237,11 @@ module.exports = {
                   },
                   {
                     [Op.not]: { nik: '' }
-                  },
-                  {
-                    [Op.not]: { tujuan_tf: 'id' }
                   }
+                ],
+                [Op.or]: [
+                  { tujuan_tf: null },
+                  { tujuan_tf: 'rekening' }
                 ]
               }
             },
@@ -255,10 +256,11 @@ module.exports = {
                   },
                   {
                     [Op.not]: { npwp: '' }
-                  },
-                  {
-                    [Op.not]: { tujuan_tf: 'id' }
                   }
+                ],
+                [Op.or]: [
+                  { tujuan_tf: null },
+                  { tujuan_tf: 'rekening' }
                 ]
               }
             }
@@ -331,10 +333,11 @@ module.exports = {
                 },
                 {
                   [Op.not]: { nik: '' }
-                },
-                {
-                  [Op.not]: { tujuan_tf: 'id' }
                 }
+              ],
+              [Op.or]: [
+                { tujuan_tf: null },
+                { tujuan_tf: 'rekening' }
               ]
             }
           },
@@ -349,10 +352,11 @@ module.exports = {
                 },
                 {
                   [Op.not]: { npwp: '' }
-                },
-                {
-                  [Op.not]: { tujuan_tf: 'id' }
                 }
+              ],
+              [Op.or]: [
+                { tujuan_tf: null },
+                { tujuan_tf: 'rekening' }
               ]
             }
           }
