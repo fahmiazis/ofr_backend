@@ -484,7 +484,7 @@ module.exports = {
                 }
               }
               if (noLevel.type === 'area') {
-                const findUser = await user.findAll({
+                const findDataUser = await user.findAll({
                   where: {
                     level: noLevel.level
                   },
@@ -495,6 +495,29 @@ module.exports = {
                     }
                   ]
                 })
+                const findRoleUser = await role_user.findAll({
+                  where: {
+                    id_role: noLevel.level
+                  },
+                  include: [
+                    {
+                      model: user,
+                      as: 'detail_user'
+                    },
+                    {
+                      model: role,
+                      as: 'detail_role'
+                    }
+                  ]
+                })
+                const dataRole = []
+                for (let i = 0; i < findRoleUser.length; i++) {
+                  dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+                }
+                const findUser = [
+                  ...findDataUser,
+                  ...dataRole
+                ]
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
@@ -637,7 +660,7 @@ module.exports = {
                 }
               }
               if (noLevel.type === 'area') {
-                const findUser = await user.findAll({
+                const findDataUser = await user.findAll({
                   where: {
                     level: noLevel.level
                   },
@@ -648,6 +671,29 @@ module.exports = {
                     }
                   ]
                 })
+                const findRoleUser = await role_user.findAll({
+                  where: {
+                    id_role: noLevel.level
+                  },
+                  include: [
+                    {
+                      model: user,
+                      as: 'detail_user'
+                    },
+                    {
+                      model: role,
+                      as: 'detail_role'
+                    }
+                  ]
+                })
+                const dataRole = []
+                for (let i = 0; i < findRoleUser.length; i++) {
+                  dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+                }
+                const findUser = [
+                  ...findDataUser,
+                  ...dataRole
+                ]
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
@@ -777,7 +823,7 @@ module.exports = {
                 }
               }
               if (noLevel.type === 'area') {
-                const findUser = await user.findAll({
+                const findDataUser = await user.findAll({
                   where: {
                     level: noLevel.level
                   },
@@ -788,6 +834,29 @@ module.exports = {
                     }
                   ]
                 })
+                const findRoleUser = await role_user.findAll({
+                  where: {
+                    id_role: noLevel.level
+                  },
+                  include: [
+                    {
+                      model: user,
+                      as: 'detail_user'
+                    },
+                    {
+                      model: role,
+                      as: 'detail_role'
+                    }
+                  ]
+                })
+                const dataRole = []
+                for (let i = 0; i < findRoleUser.length; i++) {
+                  dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+                }
+                const findUser = [
+                  ...findDataUser,
+                  ...dataRole
+                ]
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
@@ -918,7 +987,7 @@ module.exports = {
                 }
               }
               if (noLevel.type === 'area') {
-                const findUser = await user.findAll({
+                const findDataUser = await user.findAll({
                   where: {
                     level: noLevel.level
                   },
@@ -929,6 +998,29 @@ module.exports = {
                     }
                   ]
                 })
+                const findRoleUser = await role_user.findAll({
+                  where: {
+                    id_role: noLevel.level
+                  },
+                  include: [
+                    {
+                      model: user,
+                      as: 'detail_user'
+                    },
+                    {
+                      model: role,
+                      as: 'detail_role'
+                    }
+                  ]
+                })
+                const dataRole = []
+                for (let i = 0; i < findRoleUser.length; i++) {
+                  dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+                }
+                const findUser = [
+                  ...findDataUser,
+                  ...dataRole
+                ]
                 if (findUser.length > 0) {
                   if (accKlaim.find(item => item === noLevel.level)) {
                     if (noLevel.level === 3) {
@@ -1146,7 +1238,7 @@ module.exports = {
                 }
               }
               if (noLevel.type === 'area') {
-                const findUser = await user.findAll({
+                const findDataUser = await user.findAll({
                   where: {
                     level: noLevel.level
                   },
@@ -1157,6 +1249,29 @@ module.exports = {
                     }
                   ]
                 })
+                const findRoleUser = await role_user.findAll({
+                  where: {
+                    id_role: noLevel.level
+                  },
+                  include: [
+                    {
+                      model: user,
+                      as: 'detail_user'
+                    },
+                    {
+                      model: role,
+                      as: 'detail_role'
+                    }
+                  ]
+                })
+                const dataRole = []
+                for (let i = 0; i < findRoleUser.length; i++) {
+                  dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+                }
+                const findUser = [
+                  ...findDataUser,
+                  ...dataRole
+                ]
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
@@ -1313,7 +1428,7 @@ module.exports = {
               }
             } else {
               if (noLevel.type === 'area') {
-                const findUser = await user.findAll({
+                const findDataUser = await user.findAll({
                   where: {
                     level: noLevel.level
                   },
@@ -1324,6 +1439,29 @@ module.exports = {
                     }
                   ]
                 })
+                const findRoleUser = await role_user.findAll({
+                  where: {
+                    id_role: noLevel.level
+                  },
+                  include: [
+                    {
+                      model: user,
+                      as: 'detail_user'
+                    },
+                    {
+                      model: role,
+                      as: 'detail_role'
+                    }
+                  ]
+                })
+                const dataRole = []
+                for (let i = 0; i < findRoleUser.length; i++) {
+                  dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+                }
+                const findUser = [
+                  ...findDataUser,
+                  ...dataRole
+                ]
                 if (findUser.length > 0) {
                   let toMail = null
                   for (let i = 0; i < findUser.length; i++) {
@@ -1444,7 +1582,7 @@ module.exports = {
               }
             }
             if (noLevel.type === 'area') {
-              const findUser = await user.findAll({
+              const findDataUser = await user.findAll({
                 where: {
                   level: noLevel.level
                 },
@@ -1455,6 +1593,29 @@ module.exports = {
                   }
                 ]
               })
+              const findRoleUser = await role_user.findAll({
+                where: {
+                  id_role: noLevel.level
+                },
+                include: [
+                  {
+                    model: user,
+                    as: 'detail_user'
+                  },
+                  {
+                    model: role,
+                    as: 'detail_role'
+                  }
+                ]
+              })
+              const dataRole = []
+              for (let i = 0; i < findRoleUser.length; i++) {
+                dataRole.push({ ...findRoleUser[i].detail_user.dataValues, role: findRoleUser[i].detail_role })
+              }
+              const findUser = [
+                ...findDataUser,
+                ...dataRole
+              ]
               if (findUser.length > 0) {
                 let toMail = null
                 for (let i = 0; i < findUser.length; i++) {
