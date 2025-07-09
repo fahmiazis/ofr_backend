@@ -270,14 +270,14 @@ module.exports = {
         if (findVendor.length > 0) {
           return response(res, 'succes get vendor', { result: findVendor, length: findVendor.length })
         } else {
-          return response(res, 'failed get vendor', {}, 404, false)
+          return response(res, 'failed get vendor1', {}, 404, false)
         }
       } else {
         const findVendor = await vendor.findAll()
         if (findVendor.length > 0) {
           return response(res, 'succes get vendor', { result: findVendor, length: findVendor.length })
         } else {
-          return response(res, 'failed get vendor', {}, 404, false)
+          return response(res, 'failed get vendor2', {}, 404, false)
         }
       }
     } catch (error) {

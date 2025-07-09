@@ -218,7 +218,7 @@ module.exports = {
           }
         })
         if (findFaktur.length > 0) {
-          return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+          return response(res, 'succes get faktur1', { result: findFaktur, length: findFaktur.length })
         } else {
           return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
         }
@@ -264,7 +264,7 @@ module.exports = {
                       status: null
                     }
                   })
-                  return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+                  return response(res, 'succes get faktur2', { result: findFinal, length: findFinal.length })
                 }
               }
             } else {
@@ -302,7 +302,7 @@ module.exports = {
                           status: null
                         }
                       })
-                      return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+                      return response(res, 'succes get faktur6', { result: findFinal, length: findFinal.length })
                     }
                   }
                 } else {
@@ -313,7 +313,7 @@ module.exports = {
               }
             }
           } else {
-            return response(res, 'succes get faktur', { result: findFaktur, length: findFaktur.length })
+            return response(res, 'succes get faktur4', { result: findFaktur, length: findFaktur.length })
           }
         } else if (findFaktur.length === 0) {
           const findShel = await shelfaktur.findAll({
@@ -342,7 +342,7 @@ module.exports = {
                   status: null
                 }
               })
-              return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+              return response(res, 'succes get faktur7', { result: findFinal, length: findFinal.length })
             }
           } else {
             const findApi = await axios({
@@ -382,7 +382,7 @@ module.exports = {
                       status: null
                     }
                   })
-                  return response(res, 'succes get faktur', { result: findFinal, length: findFinal.length })
+                  return response(res, 'succes get faktur3', { result: findFinal, length: findFinal.length })
                 }
               } else {
                 return response(res, 'failed get faktur', { result: findFaktur, length: findFaktur.length })
