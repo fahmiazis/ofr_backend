@@ -4326,26 +4326,26 @@ module.exports = {
             attributes: ['kode_plant'],
             where: {
               [Op.or]: [
-                { bm: level === 10 ? name : null },
-                { rom: level === 11 ? name : null },
-                { nom: level === 12 ? name : null },
-                { pic_finance: level === 2 ? name : null },
-                { spv_finance: level === 7 ? name : null },
-                { spv2_finance: level === 17 ? name : null },
-                { asman_finance: level === 8 ? name : null },
-                { manager_finance: level === 9 ? name : null },
-                { pic_tax: level === 4 ? name : null },
-                { manager_tax: level === 14 ? name : null },
-                { spv_tax: level === 24 ? name : null },
-                { asman_tax: level === 34 ? name : null },
+                { bm: level === 10 ? name : 'undefined' },
+                { rom: level === 11 ? name : 'undefined' },
+                { nom: level === 12 ? name : 'undefined' },
+                { pic_finance: level === 2 ? name : 'undefined' },
+                { spv_finance: level === 7 ? name : 'undefined' },
+                { spv2_finance: level === 17 ? name : 'undefined' },
+                { asman_finance: level === 8 ? name : 'undefined' },
+                { manager_finance: level === 9 ? name : 'undefined' },
+                { pic_tax: level === 4 ? name : 'undefined' },
+                { manager_tax: level === 14 ? name : 'undefined' },
+                { spv_tax: level === 24 ? name : 'undefined' },
+                { asman_tax: level === 34 ? name : 'undefined' },
                 ...(accarea.includes(level)
                   ? [
-                      { bm: level === 10 ? email : null },
-                      { rom: level === 11 ? email : null },
-                      { nom: level === 12 ? email : null }
+                      { bm: level === 10 ? email : 'undefined' },
+                      { rom: level === 11 ? email : 'undefined' },
+                      { nom: level === 12 ? email : 'undefined' }
                     ]
                   : [])
-              ].filter(Boolean) // buang null/nullish
+              ].filter(Boolean)
             }
           })
 

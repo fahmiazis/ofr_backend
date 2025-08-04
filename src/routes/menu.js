@@ -8,6 +8,7 @@ route.get('/all/:type', menu.getAllMenu)
 route.get('/detail/:nama', menu.getDetailMenu)
 route.get('/name', menu.getNameMenu)
 route.patch('/update/:id', menu.updateMenu)
+route.patch('/submenu', menu.getSubMenu)
 route.delete('/delete/:id', menu.deleteMenu)
 
 module.exports = route

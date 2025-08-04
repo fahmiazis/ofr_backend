@@ -247,6 +247,26 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
+  getSubMenu: async (req, res) => {
+    try {
+      const { kdMenu, subMenu } = req.body
+      const result = await listmenu.findOne({
+        where: {
+          [Op.and]: [
+            { kode_menu: kdMenu },
+            { name: subMenu }
+          ]
+        }
+      })
+      if (result) {
+        return response(res, 'success get list menu', { result })
+      } else {
+        return response(res, 'failed get list menu', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
   getNameMenu: async (req, res) => {
     try {
       let { limit, page, search, sort } = req.query

@@ -1,4 +1,5 @@
-const { vendor, vervendor, reservoir, finance, docuser, document, rekvendor } = require('../models')
+const { vendor, vervendor, reservoir, finance, docuser, document, rekvendor, listmenu, role } = require('../models')
+const roleModel = role
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -12,7 +13,8 @@ const vs = require('fs-extra')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const { APP_URL } = process.env
-const access = [4, 14, 8]
+const access = [4, 14, 8, 7, 17, 2, 9]
+const accessFi = [8, 7, 17, 2, 9]
 const { filter } = require('../helpers/pagination')
 
 module.exports = {
@@ -1198,10 +1200,28 @@ module.exports = {
             [Op.or]: [
               { pic_tax: level === 4 ? name : 'undefined' },
               { manager_tax: level === 14 ? name : 'undefined' },
-              { asman_finance: level === 8 ? name : 'undefined' }
+              { asman_finance: level === 8 ? name : 'undefined' },
+              { spv_finance: level === 7 ? name : 'undefined' },
+              { spv2_finance: level === 17 ? name : 'undefined' },
+              { pic_finance: level === 2 ? name : 'undefined' },
+              { manager_finance: level === 9 ? name : 'undefined' }
             ]
           }
         })
+        const subMenu = await listmenu.findOne({
+          where: {
+            [Op.and]: [
+              { kode_menu: 'Verifikasi Data Vendor' },
+              { name: 'Verifikasi Finance' }
+            ]
+          }
+        })
+        const cekAccess = accessFi.find(x => x === level)
+        const listRole = await roleModel.findAll()
+        const listSub = subMenu.access.split(',')
+        const cekRole = listRole.find(x => x.name === listSub[0])
+        const levelFinal = cekRole.level === undefined || cekRole.level === null ? 8 : cekRole.level
+        const cekUser = levelFinal === level
         if (findDepo) {
           const hasil = []
           for (let i = 0; i < findDepo.length; i++) {
@@ -1209,7 +1229,13 @@ module.exports = {
               where: {
                 kode_plant: findDepo[i].kode_plant,
                 [Op.and]: [
-                  statTrans === 'all' ? { [Op.not]: { status_transaksi: null } } : (parseInt(statTrans) === 2 && level === 8) ? { [Op.or]: [{ status_transaksi: 2 }, { status_transaksi: 5 }] } : { status_transaksi: statTrans },
+                  statTrans === 'all'
+                    ? { [Op.not]: { status_transaksi: null } }
+                    : cekAccess !== undefined && !cekUser
+                      ? { status_transaksi: 'undefined' }
+                      : (parseInt(statTrans) === 2 && level === levelFinal)
+                          ? { [Op.or]: [{ status_transaksi: 2 }, { status_transaksi: 5 }] }
+                          : { status_transaksi: statTrans },
                   statRej === 'all' ? { [Op.not]: { start_transaksi: null } } : { status_reject: statRej },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
@@ -1256,7 +1282,7 @@ module.exports = {
             const noDis = [...set]
             const result = hasil
             const newVerven = filter(type, result, noDis, statData, role)
-            return response(res, 'success get verven', { result, noDis, findDepo, newVerven })
+            return response(res, 'success get verven', { result, noDis, findDepo, newVerven, cekRole, cekAccess, cekUser })
           } else {
             const result = hasil
             const noDis = []

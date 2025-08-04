@@ -519,6 +519,10 @@ module.exports = {
           {
             model: role_user,
             as: 'detail_role'
+          },
+          {
+            model: role,
+            as: 'role'
           }
         ]
       })

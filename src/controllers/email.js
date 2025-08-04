@@ -1,4 +1,4 @@
-const { resmail, picklaim, spvklaim, email, ttd, role, finance, user, ops, klaim, ikk, vervendor, role_user } = require('../models') // eslint-disable-line
+const { resmail, picklaim, spvklaim, email, ttd, role, finance, user, ops, klaim, ikk, vervendor, role_user, listmenu } = require('../models') // eslint-disable-line
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -161,15 +161,34 @@ module.exports = {
       const accKlaim = [3, 13, 23]
       const { no, kode, tipe, menu, jenis, typeReject, typeAjuan, indexApp } = req.body
       const transaksi = jenis === 'ikk' ? ikk : jenis === 'klaim' ? klaim : jenis === 'vendor' ? vervendor : ops
+      let subMenu = {}
+      let listRole = []
+      if (jenis === 'vendor') {
+        const result = await listmenu.findOne({
+          where: {
+            [Op.and]: [
+              { kode_menu: 'Verifikasi Data Vendor' },
+              { name: 'Verifikasi Finance' }
+            ]
+          }
+        })
+        const findRole = await role.findAll()
+        listRole = findRole
+        subMenu = result
+      }
+      const listSub = subMenu.access.split(',')
+      const cekEmail = listRole.find(x => x.name === listSub[0])
+      const levelFinal = cekEmail.level === undefined || cekEmail.level === null ? 8 : cekEmail.level
+
       const statVerif = (jenis === 'ikk' || jenis === 'ops') && level === 2
         ? 4
         : jenis === 'klaim' && level === 2
           ? 3
           : jenis === 'vendor' && level === 5
             ? 8
-            : jenis === 'vendor' && (level === 4 || (level === 8 && typeAjuan === 'rekening'))
+            : jenis === 'vendor' && (level === 4 || (level === levelFinal && typeAjuan === 'rekening'))
               ? 5
-              : jenis === 'vendor' && (level === 8 && typeAjuan === 'vendor')
+              : jenis === 'vendor' && (level === levelFinal && typeAjuan === 'vendor')
                 ? 4
                 : jenis === 'kasbon' && level === 2 ? 24 : 2
 
