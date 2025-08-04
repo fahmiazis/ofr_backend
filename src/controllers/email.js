@@ -176,7 +176,7 @@ module.exports = {
         listRole = findRole
         subMenu = result
       }
-      const listSub = subMenu.access.split(',')
+      const listSub = subMenu.access !== undefined ? subMenu.access.split(',') : 'undefined'
       const cekEmail = listRole.find(x => x.name === listSub[0])
       const levelFinal = cekEmail.level === undefined || cekEmail.level === null ? 8 : cekEmail.level
 
