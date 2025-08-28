@@ -9,4 +9,6 @@ route.delete('/delall', reservoir.deleteAll)
 route.patch('/gentrans', reservoir.genTrans)
 route.patch('/genpemb', reservoir.genPemb)
 
+route.get('/gettime', reservoir.getTimeReser)
+
 module.exports = route

@@ -794,9 +794,9 @@ module.exports = {
             }
           }
           if (temp.length > 0) {
-            return response(res, getInvoice.message, { result: getInvoice.data.data })
+            return response(res, getInvoice.message, { result: getInvoice.data.data, create: temp })
           } else {
-            return response(res, getInvoice.message, { result: getInvoice.data.data })
+            return response(res, getInvoice.message, { result: getInvoice.data.data, create: temp })
           }
         } else {
           return response(res, 'failed get data', { result: getInvoice.data.data }, 400, false)

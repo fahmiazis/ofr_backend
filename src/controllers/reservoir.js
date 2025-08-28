@@ -3,6 +3,7 @@ const { reservoir, depo, klaim, ikk, ops } = require('../models')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
 const { pagination } = require('../helpers/pagination')
+const moment = require('moment')
 // const fs = require('fs')
 // const uploadMaster = require('../helpers/uploadMaster')
 // const readXlsxFile = require('read-excel-file/node')
@@ -328,6 +329,28 @@ module.exports = {
         }
       } else {
         return response(res, 'failed generate no transaksi', {}, 404, false)
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  getTimeReser: async (req, res) => {
+    try {
+      const time = moment().subtract(5, 'd').format('DD MMMM YYYY')
+      const time2 = moment().subtract(1, 'd').format('DD MMMM YYYY')
+      const findData = await reservoir.findAll({
+        where: {
+          status: 'used',
+          start_ops: {
+            [Op.gte]: time,
+            [Op.lt]: time2
+          }
+        }
+      })
+      if (findData.length > 0) {
+        return response(res, 'get data reser', { findData })
+      } else {
+        return response(res, 'get data reser failed', {}, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
