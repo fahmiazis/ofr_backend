@@ -348,7 +348,7 @@ module.exports = {
         }
       })
       if (findData.length > 0) {
-        return response(res, 'get data reser', { findData })
+        return response(res, 'get data reser', { findData, count: findData.length })
       } else {
         return response(res, 'get data reser failed', {}, 400, false)
       }
