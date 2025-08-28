@@ -343,7 +343,7 @@ module.exports = {
           status: 'used',
           createdAt: {
             [Op.gte]: time,
-            [Op.lt]: time2
+            [Op.lte]: time2
           }
         }
       })
