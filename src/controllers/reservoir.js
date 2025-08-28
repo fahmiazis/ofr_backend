@@ -336,14 +336,14 @@ module.exports = {
   },
   getTimeReser: async (req, res) => {
     try {
-      const time = moment().subtract(5, 'd').format('DD MMMM YYYY')
-      const time2 = moment().subtract(1, 'd').format('DD MMMM YYYY')
+      const time = moment().subtract(5, 'd')
+      const time2 = moment()
       const findData = await reservoir.findAll({
         where: {
           status: 'used',
           createdAt: {
             [Op.gte]: time,
-            [Op.lte]: time2
+            [Op.lt]: time2
           }
         }
       })
