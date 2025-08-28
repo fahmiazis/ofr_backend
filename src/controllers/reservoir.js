@@ -341,7 +341,7 @@ module.exports = {
       const findData = await reservoir.findAll({
         where: {
           status: 'used',
-          start_ops: {
+          createdAt: {
             [Op.gte]: time,
             [Op.lt]: time2
           }
