@@ -1,4 +1,4 @@
-const { reservoir, depo, klaim, ikk, ops } = require('../models')
+const { reservoir, depo, klaim, ikk, ops, docuser } = require('../models')
 // const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -338,6 +338,7 @@ module.exports = {
     try {
       const time = moment().subtract(5, 'd')
       const time2 = moment().subtract(1, 'd')
+
       const findData = await reservoir.findAll({
         where: {
           status: 'used',
@@ -347,8 +348,33 @@ module.exports = {
           }
         }
       })
+
       if (findData.length > 0) {
-        return response(res, 'get data reser', { findData, count: findData.length })
+        const dataDoc = []
+
+        for (let i = 0; i < findData.length; i++) {
+          const findDoc = await docuser.findAll({
+            where: {
+              no_transaksi: findData[i].no_transaksi
+            }
+          })
+
+          if (findDoc.length > 0) {
+            for (let x = 0; x < findDoc.length; x++) {
+              if (findDoc[x].path !== null) {
+                const conv = findDoc[x].path.split('/')
+                dataDoc.push(conv[conv.length - 1])
+              }
+            }
+          }
+        }
+
+        // === Buat konten TXT untuk download ===
+        const fileContent = dataDoc.join('\n')
+
+        res.setHeader('Content-Disposition', 'attachment; filename="filelist.txt"')
+        res.setHeader('Content-Type', 'text/plain')
+        return res.send(fileContent)
       } else {
         return response(res, 'get data reser failed', {}, 400, false)
       }
