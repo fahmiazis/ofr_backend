@@ -178,14 +178,14 @@ module.exports = {
       }
       const listSub = subMenu.access !== undefined ? subMenu.access.split(',') : 'undefined'
       const cekEmail = listRole.find(x => x.name === listSub[0])
-      const levelFinal = cekEmail === undefined || cekEmail === null ? 8 : cekEmail.level
+      const levelFinal = cekEmail === undefined || cekEmail === null ? 17 : cekEmail.level
 
       const statVerif = (jenis === 'ikk' || jenis === 'ops') && level === 2
         ? 4
         : jenis === 'klaim' && level === 2
           ? 3
           : jenis === 'vendor' && level === 5
-            ? 8
+            ? 17
             : jenis === 'vendor' && (level === 4 || (level === levelFinal && typeAjuan === 'rekening'))
               ? 5
               : jenis === 'vendor' && (level === levelFinal && typeAjuan === 'vendor')
