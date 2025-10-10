@@ -275,7 +275,7 @@ module.exports = {
                   'x-api-key': 'fEIoWslIEYpqtbzOdbTzq7p1C3SgHwn2gytQ3xCqFnsezSHdJxFkWjkbyuixGMkl'
                 }
               }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
-              if (findApi.status === 200) {
+              if (findApi.status === 200 && findApi.data.data !== null) {
                 const resdata = findApi.data.data
                 if (resdata.approval_status !== undefined && resdata.approval_status !== null && resdata.approval_status === 1 && resdata.principal_id === 4) {
                   const data = {
