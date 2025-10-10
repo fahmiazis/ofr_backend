@@ -277,7 +277,7 @@ module.exports = {
               }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
               if (findApi.status === 200) {
                 const resdata = findApi.data.data
-                if (resdata.approval_status !== undefined && resdata.approval_status === 1 && resdata.principal_id === 4) {
+                if (resdata.approval_status !== undefined && resdata.approval_status !== null && resdata.approval_status === 1 && resdata.principal_id === 4) {
                   const data = {
                     force: 1
                   }
@@ -354,7 +354,7 @@ module.exports = {
             }).then(response => { console.log(response); return (response) }).catch(err => { console.log(err); return (err) })
             if (findApi.status === 200) {
               const resdata = findApi.data.data
-              if (resdata.approval_status !== undefined && resdata.approval_status === 1 && resdata.principal_id === 4) {
+              if (resdata.approval_status !== undefined && resdata.approval_status !== null && resdata.approval_status === 1 && resdata.principal_id === 4) {
                 const data = {
                   force: 1,
                   no_faktur: resdata.serial_number,
@@ -674,7 +674,7 @@ module.exports = {
         console.log(findApi.status)
         if (findApi.status === 200 && findApi.data.data !== null) {
           const resdata = findApi.data.data
-          if (resdata.approval_status !== undefined && resdata.approval_status === 1 && resdata.principal_id === 4) {
+          if (resdata.approval_status !== undefined && resdata.approval_status !== null && resdata.approval_status === 1 && resdata.principal_id === 4) {
             const data = {
               no_faktur: resdata.serial_number,
               nama: resdata.seller,
@@ -781,7 +781,7 @@ module.exports = {
               } else {
                 temp.push(findData)
               }
-            } else if (dataInvoice[i].approval_status !== undefined && dataInvoice[i].approval_status === 1 && dataInvoice[i].principal_id === 4) {
+            } else if (dataInvoice[i].approval_status !== undefined && dataInvoice[i].approval_status !== null && dataInvoice[i].approval_status === 1 && dataInvoice[i].principal_id === 4) {
               const createData = await shelfaktur.create(data)
               if (createData) {
                 if (findFaktur) {
