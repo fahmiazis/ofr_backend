@@ -1142,7 +1142,14 @@ module.exports = {
         return response(res, 'failed get email 1', { findRole, findDepo, findTrans }, 404, false)
       }
     } catch (error) {
-      return response(res, error.message, { line: error.lineNumber }, 500, false)
+      const stackLines = error.stack?.split('\n')
+      const location = stackLines?.[1]?.trim() || 'unknown location'
+
+      const fullMessage = `${error.message} (${location})`
+
+      console.error(fullMessage) // log juga ke console
+
+      return response(res, fullMessage, {}, 500, false)
     }
   },
   draftEmailAjuan: async (req, res) => {
