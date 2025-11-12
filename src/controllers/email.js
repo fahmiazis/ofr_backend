@@ -315,7 +315,7 @@ module.exports = {
                 let noLevel = null
                 let arr = null
                 for (let i = 0; i < findApp.length; i++) {
-                  if (level === 30) {
+                  if (level === 30 || level === 40) {
                     const convIndex = (findApp.length - 1) - parseInt(indexApp === 'first' ? (findApp.length - 1) : indexApp)
                     arr = convIndex + 1
                     const findLevel = await role.findOne({
