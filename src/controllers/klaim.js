@@ -1134,7 +1134,7 @@ module.exports = {
                   return response(res, 'success get klaim4', { result: [], findSign, pageInfo, newKlaim: [] })
                 }
               } else {
-                return response(res, 'failed get klaim', {}, 400, false)
+                return response(res, 'failed get klaim 1', {}, 400, false)
               }
             } else {
               const hasil = await klaim.findAll({
@@ -1243,7 +1243,7 @@ module.exports = {
               }
             }
           } else {
-            return response(res, 'failed get klaim', {}, 400, false)
+            return response(res, 'failed get klaim 2', {}, 400, false)
           }
         } else if (accKlaim.find(item => item === level)) {
           const findPic = await spvklaim.findAll({
@@ -1407,7 +1407,7 @@ module.exports = {
               return response(res, 'success get klaim', { result, noDis, findDepo, pageInfo, newKlaim: [] })
             }
           } else {
-            return response(res, 'failed get klaim', {}, 400, false)
+            return response(res, 'failed get klaim 3', {}, 400, false)
           }
         } else {
           const findDepo = await finance.findAll()
@@ -3109,7 +3109,7 @@ module.exports = {
               return response(res, 'success get klaim', { result })
             }
           } else {
-            return response(res, 'failed get klaim', {}, 400, false)
+            return response(res, 'failed get klaim 4', {}, 400, false)
           }
         } else if (accKlaim.find(item => item === level)) {
           const findPic = await spvklaim.findAll({
@@ -3240,7 +3240,7 @@ module.exports = {
               return response(res, 'success get klaim', { result: [] })
             }
           } else {
-            return response(res, 'failed get klaim', {}, 400, false)
+            return response(res, 'failed get klaim 5', {}, 400, false)
           }
         } else {
           const findKlaim = await klaim.findAll({
