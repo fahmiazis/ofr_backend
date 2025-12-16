@@ -751,7 +751,7 @@ module.exports = {
       const idUser = req.user.id
       const roleUser = req.user.role
       const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
-      const { status, reject, menu, type, category, data, time1, time2, search } = req.query
+      const { status, reject, menu, type, category, data, time1, time2, search, type_time } = req.query
       const searchValue = search || ''
       const statTrans = status === 'undefined' || status === null ? 2 : status
       const statRej = reject === 'undefined' ? null : reject
@@ -802,7 +802,12 @@ module.exports = {
                 statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                 timeVal1 === 'all'
                   ? { [Op.not]: { id: null } }
-                  : {
+                  : type_time === 'last' ? {
+                      updatedAt: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                    } : {
                       start_klaim: {
                         [Op.gte]: timeV1,
                         [Op.lt]: timeV2
@@ -1044,7 +1049,12 @@ module.exports = {
                                     [Op.lt]: timeV2
                                   }
                                 }
-                              : {
+                              : type_time === 'last' ? {
+                                  updatedAt: {
+                                    [Op.gte]: timeV1,
+                                    [Op.lt]: timeV2
+                                  }
+                                } : {
                                   start_klaim: {
                                     [Op.gte]: timeV1,
                                     [Op.lt]: timeV2
@@ -1160,7 +1170,12 @@ module.exports = {
                               [Op.lt]: timeV2
                             }
                           }
-                        : {
+                        : type_time === 'last' ? {
+                            updatedAt: {
+                              [Op.gte]: timeV1,
+                              [Op.lt]: timeV2
+                            }
+                          } : {
                             start_klaim: {
                               [Op.gte]: timeV1,
                               [Op.lt]: timeV2
@@ -1312,7 +1327,12 @@ module.exports = {
                     category === 'ajuan bayar' ? { [Op.not]: { no_pembayaran: null } } : { [Op.not]: { id: null } },
                     timeVal1 === 'all'
                       ? { [Op.not]: { id: null } }
-                      : {
+                      : type_time === 'last' ? {
+                          updatedAt: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        } : {
                           start_klaim: {
                             [Op.gte]: timeV1,
                             [Op.lt]: timeV2
@@ -1436,7 +1456,12 @@ module.exports = {
                   statMenu === 'all' ? { [Op.not]: { id: null } } : { menu_rev: { [Op.like]: `%${statMenu}%` } },
                   timeVal1 === 'all'
                     ? { [Op.not]: { id: null } }
-                    : {
+                    : type_time === 'last' ? {
+                      updatedAt: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                    } : {
                         start_klaim: {
                           [Op.gte]: timeV1,
                           [Op.lt]: timeV2

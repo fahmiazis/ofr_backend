@@ -1142,8 +1142,8 @@ module.exports = {
         return response(res, 'failed get email 1', { findRole, findDepo, findTrans }, 404, false)
       }
     } catch (error) {
-      const stackLines = error.stack?.split('\n')
-      const location = stackLines?.[1]?.trim() || 'unknown location'
+      const stackLines = !error.stack && error.stack.split('\n')
+      const location = (!stackLines && !stackLines[1] && stackLines[1].trim()) || 'unknown location'
 
       const fullMessage = `${error.message} (${location})`
 
@@ -1980,10 +1980,10 @@ module.exports = {
             const mailOptions = {
               from: 'noreply_ofr@pinusmerahabadi.co.id',
               replyTo: 'noreply_ofr@pinusmerahabadi.co.id',
-              to: `${to}`,
-              cc: cc.split(','),
-              // to: 'fahmi_aziz@pinusmerahabadi.co.id',
-              // cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
+              // to: `${to}`,
+              // cc: cc.split(','),
+              to: 'fahmi_aziz@pinusmerahabadi.co.id',
+              cc: 'fahmi_aziz@pinusmerahabadi.co.id, noreplyofr@gmail.com',
               subject: `${subject}`,
               html: `
                   <head>

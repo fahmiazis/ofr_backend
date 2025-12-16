@@ -1,6 +1,6 @@
-const { ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, bbm, user, resmail, rekvendor, role_user } = require('../models') // eslint-disable-line
+const { sequelize, ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, bbm, user, resmail, rekvendor, role_user } = require('../models') // eslint-disable-line
 const joi = require('joi')
-const { Op } = require('sequelize')
+const { Op, QueryTypes } = require('sequelize')
 const response = require('../helpers/response')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
@@ -1377,7 +1377,7 @@ module.exports = {
     const roleUser = req.user.role
     console.log(roleUser)
     const listDepo = req.body.depo === undefined || req.body.depo === 'all' || req.body.depo === 'pilih' ? 'all' : req.body.depo
-    const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi, search, jentrans, desttf } = req.query
+    const { status, reject, menu, type, category, data, time1, time2, kasbon, realisasi, search, jentrans, desttf, type_time } = req.query
     let { limit, page } = req.query
     if (!limit) {
       limit = 10
@@ -1440,7 +1440,12 @@ module.exports = {
                     },
               timeVal1 === 'all'
                 ? { [Op.not]: { id: null } }
-                : {
+                : type_time === 'last' ? {
+                      updatedAt: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                  } : {
                     start_ops: {
                       [Op.gte]: timeV1,
                       [Op.lt]: timeV2
@@ -1519,10 +1524,34 @@ module.exports = {
         if (findOps) {
           const newOps = category === 'verif' ? filter(type, findOps.rows, statData, roleUser) : filterApp(type, findOps.rows, roleUser, level, dataRole, findUser)
           const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
-          return response(res, 'success get data ops', { result: findOps.rows, pageInfo, newOps, findDepo: [] })
+          
+          const transactionsFiltered = newOps.map(d => d.no_transaksi)
+
+          let vendorList = []
+          if (transactionsFiltered.length > 0) {
+            const vendors = await ops.sequelize.query(`
+              SELECT 
+                no_npwp,
+                no_ktp,
+                nama_vendor,
+                no_transaksi,
+                no_pembayaran
+              FROM ops
+              WHERE no_transaksi IN (:transactions)
+                AND nama_vendor IS NOT NULL 
+                AND nama_vendor != ''
+              ORDER BY no_transaksi, nama_vendor
+            `, {
+              replacements: { transactions: transactionsFiltered },
+              type: QueryTypes.SELECT
+            })
+            vendorList = vendors
+          }
+
+          return response(res, 'success get data ops', { result: findOps.rows, pageInfo, newOps, findDepo: [], vendorList })
         } else {
           const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.count.length)
-          return response(res, 'success get data ops', { result: findOps.rows, pageInfo, newOps: [], findDepo: [] })
+          return response(res, 'success get data ops', { result: findOps.rows, pageInfo, newOps: [], findDepo: [], vendorList: [] })
         }
       } else if (access.find(item => item === level) !== undefined) {
         if (parseInt(statTrans) === 2) {
@@ -1693,7 +1722,12 @@ module.exports = {
                                 [Op.lt]: timeV2
                               }
                             }
-                          : {
+                          : type_time === 'last' ? {
+                              updatedAt: {
+                                [Op.gte]: timeV1,
+                                [Op.lt]: timeV2
+                              }
+                            } : {
                               start_ops: {
                                 [Op.gte]: timeV1,
                                 [Op.lt]: timeV2
@@ -1765,11 +1799,59 @@ module.exports = {
                   const result = hasil
                   if (statTrans === 'all') {
                     const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
-                    return response(res, 'success get ops22', { result, findSign, newOps: result, pageInfo, dataCek, depoVacant })
+
+                    const transactionsAll = result.map(d => d.no_transaksi)
+
+                    let vendorList = []
+                    if (transactionsAll.length > 0) {
+                      const vendors = await ops.sequelize.query(`
+                        SELECT 
+                          no_npwp,
+                          no_ktp,
+                          nama_vendor,
+                          no_transaksi,
+                          no_pembayaran
+                        FROM ops
+                        WHERE no_transaksi IN (:transactions)
+                          AND nama_vendor IS NOT NULL 
+                          AND nama_vendor != ''
+                        ORDER BY no_transaksi, nama_vendor
+                      `, {
+                        replacements: { transactions: transactionsAll },
+                        type: QueryTypes.SELECT
+                      })
+                      vendorList = vendors
+                    }
+
+                    return response(res, 'success get ops22', { result, findSign, newOps: result, pageInfo, dataCek, depoVacant, vendorList })
                   } else {
                     const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, roleUser) : category === 'verif' ? filter(type, result, statData, roleUser, level) : filterApp(type, result, roleUser, level, dataRole, findUser)
                     const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
-                    return response(res, 'success get ops23', { result, findSign, findSignVacant, newOps, pageInfo, dataCek, depoVacant })
+
+                    const transactionsFiltered = newOps.map(d => d.no_transaksi)
+
+                    let vendorList = []
+                    if (transactionsFiltered.length > 0) {
+                      const vendors = await ops.sequelize.query(`
+                        SELECT 
+                          no_npwp,
+                          no_ktp,
+                          nama_vendor,
+                          no_transaksi,
+                          no_pembayaran
+                        FROM ops
+                        WHERE no_transaksi IN (:transactions)
+                          AND nama_vendor IS NOT NULL 
+                          AND nama_vendor != ''
+                        ORDER BY no_transaksi, nama_vendor
+                      `, {
+                        replacements: { transactions: transactionsFiltered },
+                        type: QueryTypes.SELECT
+                      })
+                      vendorList = vendors
+                    }
+
+                    return response(res, 'success get ops23', { result, findSign, findSignVacant, newOps, pageInfo, dataCek, depoVacant, vendorList })
                   }
                 } else {
                   const result = hasil
@@ -1860,7 +1942,12 @@ module.exports = {
                             [Op.lt]: timeV2
                           }
                         }
-                      : {
+                      : type_time === 'last' ? {
+                          updatedAt: {
+                            [Op.gte]: timeV1,
+                            [Op.lt]: timeV2
+                          }
+                        } : {
                           start_ops: {
                             [Op.gte]: timeV1,
                             [Op.lt]: timeV2
@@ -1931,11 +2018,59 @@ module.exports = {
               const result = hasil
               if (statTrans === 'all') {
                 const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
-                return response(res, 'success get ops', { result, findDepo, newOps: result, pageInfo, dataDepo })
+
+                const transactionsAll = result.map(d => d.no_transaksi)
+
+                let vendorList = []
+                if (transactionsAll.length > 0) {
+                  const vendors = await ops.sequelize.query(`
+                    SELECT 
+                      no_npwp,
+                      no_ktp,
+                      nama_vendor,
+                      no_transaksi,
+                      no_pembayaran
+                    FROM ops
+                    WHERE no_transaksi IN (:transactions)
+                      AND nama_vendor IS NOT NULL 
+                      AND nama_vendor != ''
+                    ORDER BY no_transaksi, nama_vendor
+                  `, {
+                    replacements: { transactions: transactionsAll },
+                    type: QueryTypes.SELECT
+                  })
+                  vendorList = vendors
+                }
+
+                return response(res, 'success get ops', { result, findDepo, newOps: result, pageInfo, dataDepo, vendorList })
               } else {
                 const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, roleUser) : category === 'verif' ? filter(type, result, statData, roleUser, level) : filterApp(type, result, roleUser, level, dataRole, findUser)
                 const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
-                return response(res, 'success get ops24', { result, findDepo, newOps, pageInfo, dataDepo })
+
+                const transactionsFiltered = newOps.map(d => d.no_transaksi)
+
+                let vendorList = []
+                if (transactionsFiltered.length > 0) {
+                  const vendors = await ops.sequelize.query(`
+                    SELECT 
+                      no_npwp,
+                      no_ktp,
+                      nama_vendor,
+                      no_transaksi,
+                      no_pembayaran
+                    FROM ops
+                    WHERE no_transaksi IN (:transactions)
+                      AND nama_vendor IS NOT NULL 
+                      AND nama_vendor != ''
+                    ORDER BY no_transaksi, nama_vendor
+                  `, {
+                    replacements: { transactions: transactionsFiltered },
+                    type: QueryTypes.SELECT
+                  })
+                  vendorList = vendors
+                }
+
+                return response(res, 'success get ops24', { result, findDepo, newOps, pageInfo, dataDepo, vendorList })
               }
             } else {
               const result = hasil
@@ -1984,7 +2119,12 @@ module.exports = {
                       },
                 timeVal1 === 'all'
                   ? { [Op.not]: { id: null } }
-                  : {
+                  : type_time === 'last' ? {
+                      updatedAt: {
+                        [Op.gte]: timeV1,
+                        [Op.lt]: timeV2
+                      }
+                  } : {
                       start_ops: {
                         [Op.gte]: timeV1,
                         [Op.lt]: timeV2
@@ -2066,12 +2206,59 @@ module.exports = {
           // const noDis = [...set]
           if (findOps) {
             if (statTrans === 'all') {
+              const transactionsAll = findOps.map(d => d.no_transaksi)
+
+              let vendorList = []
+              if (transactionsAll.length > 0) {
+                const vendors = await ops.sequelize.query(`
+                  SELECT 
+                    no_npwp,
+                    no_ktp,
+                    nama_vendor,
+                    no_transaksi,
+                    no_pembayaran
+                  FROM ops
+                  WHERE no_transaksi IN (:transactions)
+                    AND nama_vendor IS NOT NULL 
+                    AND nama_vendor != ''
+                  ORDER BY no_transaksi, nama_vendor
+                `, {
+                  replacements: { transactions: transactionsAll },
+                  type: QueryTypes.SELECT
+                })
+                vendorList = vendors
+              }
+
               const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
-              return response(res, 'success get data ops32', { result: findOps, pageInfo, findDepo, newOps: findOps })
+              return response(res, 'success get data ops32', { result: findOps, pageInfo, findDepo, newOps: findOps, vendorList })
             } else {
               const newOps = category === 'verif' ? filter(type, findOps, statData, roleUser) : filterApp(type, findOps, roleUser, level, dataRole, findUser)
               const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
-              return response(res, 'success get data ops31', { result: findOps, pageInfo, findDepo, newOps })
+
+              const transactionsFiltered = newOps.map(d => d.no_transaksi)
+
+              let vendorList = []
+              if (transactionsFiltered.length > 0) {
+                const vendors = await ops.sequelize.query(`
+                  SELECT 
+                    no_npwp,
+                    no_ktp,
+                    nama_vendor,
+                    no_transaksi,
+                    no_pembayaran
+                  FROM ops
+                  WHERE no_transaksi IN (:transactions)
+                    AND nama_vendor IS NOT NULL 
+                    AND nama_vendor != ''
+                  ORDER BY no_transaksi, nama_vendor
+                `, {
+                  replacements: { transactions: transactionsFiltered },
+                  type: QueryTypes.SELECT
+                })
+                vendorList = vendors
+              }
+
+              return response(res, 'success get data ops31', { result: findOps, pageInfo, findDepo, newOps, vendorList })
             }
           } else {
             const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
