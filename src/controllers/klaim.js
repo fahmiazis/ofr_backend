@@ -2747,7 +2747,7 @@ module.exports = {
             return response(res, 'failed edit verif klaim', {}, 404, false)
           }
         } else {
-          return response(res, 'failed edit verif klaim king', {}, 404, false)
+          return response(res, 'failed edit verif klaim', {}, 404, false)
         }
       }
     } catch (error) {
