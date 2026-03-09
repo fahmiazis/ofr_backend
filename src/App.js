@@ -111,7 +111,7 @@ app.use('/redpine', redpineRoute)
 app.use('/bracket', bracketRoute)
 
 // show document
-app.use('/show', authMiddleware, showRoute)
+app.use('/show', showRoute)
 
 // tes email
 app.use('/tesemail', emailRoute)
