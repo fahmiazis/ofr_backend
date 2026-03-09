@@ -63,10 +63,10 @@ const showRoute = require('./routes/show')
 
 const authMiddleware = require('./middlewares/auth')
 
-app.use('/uploads', authMiddleware, express.static('assets/documents'))
-app.use('/masters', authMiddleware, express.static('assets/masters'))
-app.use('/download', authMiddleware, express.static('assets/exports'))
-app.use('/assets/documents', authMiddleware, express.static('assets/documents'))
+app.use('/uploads', express.static('assets/documents'))
+app.use('/masters', express.static('assets/masters'))
+app.use('/download', express.static('assets/exports'))
+app.use('/assets/documents', express.static('assets/documents'))
 
 app.use('/auth', authRoute)
 
@@ -111,7 +111,7 @@ app.use('/redpine', redpineRoute)
 app.use('/bracket', bracketRoute)
 
 // show document
-app.use('/show', showRoute)
+app.use('/show', authMiddleware, showRoute)
 
 // tes email
 app.use('/tesemail', emailRoute)
