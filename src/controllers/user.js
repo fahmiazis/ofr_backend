@@ -425,25 +425,31 @@ module.exports = {
   getDetailUser: async (req, res) => {
     try {
       const id = req.params.id
-      const result = await user.findOne({
-        where: {
-          id: id
-        },
-        include: [
-          {
-            model: role_user,
-            as: 'detail_role'
+      const idUser = req.user.id
+      const level = req.user.level
+      if (id === idUser || level) {
+        const result = await user.findOne({
+          where: {
+            id: id
           },
-          {
-            model: role,
-            as: 'role'
-          }
-        ]
-      })
-      if (result) {
-        return response(res, `Profile of user with id ${id}`, { result })
+          include: [
+            {
+              model: role_user,
+              as: 'detail_role'
+            },
+            {
+              model: role,
+              as: 'role'
+            }
+          ]
+        })
+        if (result) {
+          return response(res, `Profile of user with id ${id}`, { result })
+        } else {
+          return response(res, 'fail to get user', {}, 400, false)
+        }
       } else {
-        return response(res, 'fail to get user', {}, 400, false)
+        return response(res, "You don't have access to see this detail user", {}, 400, false)
       }
     } catch (error) {
       return response(res, error.message, {}, 500, false)
