@@ -1,11 +1,42 @@
+// controllers/auth.js
 const joi = require('joi')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 const response = require('../helpers/response')
-const { user, role } = require('../models')
+const { user, role, user_session } = require('../models')
 const { Op } = require('sequelize')
 
-const { APP_KEY } = process.env
+const {
+  APP_KEY,
+  REFRESH_TOKEN_SECRET,
+  ACCESS_TOKEN_EXPIRES = '15m',
+  REFRESH_TOKEN_EXPIRES_DAYS = 30
+} = process.env
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+const generateAccessToken = (payload) =>
+  jwt.sign(payload, APP_KEY, { expiresIn: ACCESS_TOKEN_EXPIRES })
+
+const generateRefreshToken = () =>
+  crypto.randomBytes(64).toString('hex') // opaque token, disimpan di DB
+
+const getRefreshTokenExpiry = () => {
+  const date = new Date()
+  date.setDate(date.getDate() + Number(REFRESH_TOKEN_EXPIRES_DAYS))
+  return date
+}
+
+const buildUserPayload = (userData, costCenter = null) => {
+  const { id, kode_plant, level, username, fullname, email, role } = userData
+  const base = { id, level, kode: kode_plant, name: username, fullname, role: role.name }
+  if (costCenter) base.cost_center = costCenter
+  if (role.type) base.typerole = role.type
+  return base
+}
+
+// ── login ─────────────────────────────────────────────────────────────────────
 
 module.exports = {
   login: async (req, res) => {
@@ -13,84 +44,125 @@ module.exports = {
       const schema = joi.object({
         username: joi.string().required(),
         password: joi.string().required(),
-        cost_center: joi.string().allow('')
+        cost_center: joi.string().allow(''),
+        device_info: joi.string().allow('').default('unknown')
       })
-      const { value: results, error } = schema.validate(req.body)
-      if (error) {
-        return response(res, 'Error', { error: error.message }, 401, false)
-      } else {
-        if (results.username === 'p000' || results.username === 'P000') {
-          const result = await user.findOne({
-            where: {
-              username: { [Op.like]: `%${results.username}%` }
-            },
-            include: [{ model: role, as: 'role' }]
-          }
-          )
-          if (result) {
-            const { id, kode_plant, level, username, fullname, email, role } = result // eslint-disable-line
-            bcrypt.compare(results.password, result.password, function (_err, result) {
-              if (result) {
-                jwt.sign({ id: id, level: level, kode: kode_plant, name: username, fullname: fullname, role: role.name, typerole: role.type }, `${APP_KEY}`, (_err, token) => {
-                  return response(res, 'login success', { user: { id, kode_plant, level, username, fullname, email, role: role.name, cost_center: results.cost_center, typerole: role.type }, Token: `${token}` })
-                })
-              } else {
-                return response(res, 'Wrong password', {}, 400, false)
-              }
-            })
-          } else {
-            return response(res, 'username is not registered', {}, 400, false)
-          }
-        } else {
-          const result = await user.findOne({ where: { username: results.username }, include: [{ model: role, as: 'role' }] })
-          if (result) {
-            const { id, kode_plant, level, username, fullname, email, role } = result // eslint-disable-line
-            bcrypt.compare(results.password, result.password, function (_err, result) {
-              if (result) {
-                jwt.sign({ id: id, level: level, kode: kode_plant, name: username, fullname: fullname, role: role.name, email: email }, `${APP_KEY}`, (_err, token) => {
-                  return response(res, 'login success', { user: { id, kode_plant, level, username, fullname, email, role: role.name }, Token: `${token}` })
-                })
-              } else {
-                return response(res, 'Wrong password', {}, 400, false)
-              }
-            })
-          } else {
-            return response(res, 'username is not registered', {}, 400, false)
-          }
-        }
-      }
-    } catch (error) {
-      return response(res, error.message, {}, 500, false)
+
+      const { value: body, error } = schema.validate(req.body)
+      if (error) return response(res, 'Validation error', { error: error.message }, 400, false)
+
+      // cari user (case-insensitive untuk p000)
+      const isSpecialUser = body.username.toLowerCase() === 'p000'
+      const whereClause = isSpecialUser
+        ? { username: { [Op.like]: `%${body.username}%` } }
+        : { username: body.username }
+
+      const found = await user.findOne({
+        where: whereClause,
+        include: [{ model: role, as: 'role' }]
+      })
+
+      if (!found) return response(res, 'Username is not registered', {}, 400, false)
+
+      // validasi password
+      const passwordMatch = await bcrypt.compare(body.password, found.password)
+      if (!passwordMatch) return response(res, 'Wrong password', {}, 400, false)
+
+      // buat token
+      const payload = buildUserPayload(found, body.cost_center)
+      const accessToken = generateAccessToken(payload)
+      const refreshToken = generateRefreshToken()
+
+      // simpan session ke DB (hapus session lama dari device yang sama kalau mau strict)
+      await user_session.create({
+        user_id: found.id,
+        refresh_token: refreshToken,
+        device_info: body.device_info,
+        ip_address: req.ip,
+        expires_at: getRefreshTokenExpiry()
+      })
+
+      const { id, kode_plant, level, username, fullname, email } = found
+      return response(res, 'Login success', {
+        user: { id, kode_plant, level, username, fullname, email, role: found.role.name },
+        access_token: accessToken,
+        refresh_token: refreshToken
+      })
+    } catch (err) {
+      return response(res, err.message, {}, 500, false)
     }
   },
-  register: async (req, res) => {
+
+// ── refresh token ─────────────────────────────────────────────────────────────
+
+  refreshToken: async (req, res) => {
     try {
-      const schema = joi.object({
-        username: joi.string().required(),
-        password: joi.string().required(),
-        kode_plant: joi.string().allow(''),
-        level: joi.number().required(),
-        email: joi.string().email().required()
+      const { refresh_token } = req.body
+      if (!refresh_token) return response(res, 'Refresh token required', {}, 401, false)
+
+      // cari session aktif
+      const session = await user_session.findOne({
+        where: {
+          refresh_token,
+          is_active: true,
+          expires_at: { [Op.gt]: new Date() }
+        },
+        include: [{ model: user, as: 'user', include: [{ model: role, as: 'role' }] }]
       })
-      const { value: results, error } = schema.validate(req.body)
-      if (error) {
-        return response(res, 'Error', { error: error.message }, 401, false)
-      } else {
-        const result = await user.findOne({ where: { username: results.username } })
-        if (result) {
-          return response(res, 'username already use', {}, 404, false)
-        } else {
-          results.password = await bcrypt.hash(results.password, await bcrypt.genSalt())
-          const result = await user.create(results)
-          if (result) {
-            return response(res, 'Add User succesfully', { result })
-          } else {
-            return response(res, 'Fail to create user', {}, 400, false)
-          }
-        }
-      }
-    } catch (error) {
-      return response(res, error.message, {}, 500, false)
+
+      if (!session) return response(res, 'Invalid or expired refresh token', {}, 401, false)
+
+      // rotate refresh token (best practice — token lama langsung invalid)
+      const newRefreshToken = generateRefreshToken()
+      await session.update({
+        refresh_token: newRefreshToken,
+        expires_at: getRefreshTokenExpiry()
+      })
+
+      const payload = buildUserPayload(session.user)
+      const newAccessToken = generateAccessToken(payload)
+
+      return response(res, 'Token refreshed', {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken
+      })
+    } catch (err) {
+      return response(res, err.message, {}, 500, false)
+    }
+  },
+
+// ── logout ────────────────────────────────────────────────────────────────────
+
+  logout: async (req, res) => {
+    try {
+      const { refresh_token } = req.body
+
+      // nonaktifkan hanya session device ini
+      await user_session.update(
+        { is_active: false },
+        { where: { refresh_token } }
+      )
+
+      return response(res, 'Logout success', {})
+    } catch (err) {
+      return response(res, err.message, {}, 500, false)
+    }
+  },
+
+// ── logout semua device ───────────────────────────────────────────────────────
+
+  logoutAll: async (req, res) => {
+    try {
+      const userId = req.user.id // dari middleware auth
+
+      await user_session.update(
+        { is_active: false },
+        { where: { user_id: userId, is_active: true } }
+      )
+
+      return response(res, 'Logged out from all devices', {})
+    } catch (err) {
+      return response(res, err.message, {}, 500, false)
     }
   }
 }

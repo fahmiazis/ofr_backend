@@ -21,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
         as: 'detail_role',
         sourceKey: 'username'
       })
+      user.hasMany(models.user_session, {
+        foreignKey: 'user_id',
+        as: 'sessions'
+      })
     }
   }
   user.init({

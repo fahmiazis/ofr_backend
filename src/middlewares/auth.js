@@ -1,24 +1,19 @@
+// middlewares/auth.js
 const jwt = require('jsonwebtoken')
-const responseStandard = require('../helpers/response')
-const { APP_KEY } = process.env
+const response = require('../helpers/response')
 
 module.exports = (req, res, next) => {
-  const { authorization } = req.headers
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1] // Bearer <token>
 
-  if (authorization && authorization.startsWith('Bearer ')) {
-    const token = authorization.slice(7, authorization.length)
-    try {
-      const payload = jwt.verify(token, `${APP_KEY}`)
-      if (payload) {
-        req.user = payload
-        next()
-      } else {
-        return responseStandard(res, 'Unauthorized', {}, 401, false)
-      }
-    } catch (err) {
-      return responseStandard(res, err.message, {}, 500, false)
+  if (!token) return response(res, 'Token required', {}, 401, false)
+
+  jwt.verify(token, process.env.APP_KEY, (err, decoded) => {
+    if (err) {
+      const msg = err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token'
+      return response(res, msg, { expired: err.name === 'TokenExpiredError' }, 401, false)
     }
-  } else {
-    return responseStandard(res, 'Forbidden Access', {}, 403, false)
-  }
+    req.user = decoded
+    next()
+  })
 }
