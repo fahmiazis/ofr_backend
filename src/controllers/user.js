@@ -711,6 +711,7 @@ module.exports = {
   resetPassword: async (req, res) => {
     try {
       const id = req.params.id
+      const idUser = req.user.id
       const schema = joi.object({
         new: joi.string().required()
       })
@@ -718,20 +719,24 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 401, false)
       } else {
-        const send = await bcrypt.hash(results.new, await bcrypt.genSalt())
-        const findUser = await user.findByPk(id)
-        if (findUser) {
-          const data = {
-            password: send
-          }
-          const updatePass = findUser.update(data)
-          if (updatePass) {
-            return response(res, 'success reset password')
+        if (parseInt(id) === parseInt(idUser) || level === 1) {
+          const send = await bcrypt.hash(results.new, await bcrypt.genSalt())
+          const findUser = await user.findByPk(id)
+          if (findUser) {
+            const data = {
+              password: send
+            }
+            const updatePass = findUser.update(data)
+            if (updatePass) {
+              return response(res, 'success reset password')
+            } else {
+              return response(res, 'success reset password2')
+            }
           } else {
-            return response(res, 'success reset password2')
+            return response(res, 'failed reset password', {}, 400, false)
           }
         } else {
-          return response(res, 'failed reset password', {}, 400, false)
+          return response(res, "You don't have access to see this detail user", {}, 400, false)
         }
       }
     } catch (error) {
