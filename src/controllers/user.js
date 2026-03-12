@@ -135,7 +135,7 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 401, false)
       } else {
-        if (level === 1 || id === idUser) {
+        if (level === 1 || parseInt(id) === parseInt(idUser)) {
           if (level === 5) {
             const result = await user.findAll({
               where: {
@@ -427,7 +427,7 @@ module.exports = {
       const id = req.params.id
       const idUser = req.user.id
       const level = req.user.level
-      if (id === idUser || level === 1) {
+      if (parseInt(id) === parseInt(idUser) || level === 1) {
         const result = await user.findOne({
           where: {
             id: id
