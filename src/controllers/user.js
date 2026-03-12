@@ -427,7 +427,7 @@ module.exports = {
       const id = req.params.id
       const idUser = req.user.id
       const level = req.user.level
-      if (id === idUser || level) {
+      if (id === idUser || level === 1) {
         const result = await user.findOne({
           where: {
             id: id
