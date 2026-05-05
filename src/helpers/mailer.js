@@ -1,16 +1,16 @@
 const nodemailer = require('nodemailer')
-// const { HOST, PORT, USER, PASS } = process.env
+const { EMAIL_USER, EMAIL_PASS, EMAIL_HOST, EMAIL_PORT } = process.env
 
 const transporter = nodemailer.createTransport({
   connectionTimeout: 60000,
   socketTimeout: 120000,
   greetingTimeout: 30000,
-  host: '192.168.35.203',
+  host: EMAIL_HOST,
   secure: false,
-  port: 587,
+  port: EMAIL_PORT,
   auth: {
-    user: 'sys_adm@pinusmerahabadi.co.id',
-    pass: 'sys0911'
+    user: EMAIL_USER,
+    pass: EMAIL_PASS
   },
   tls: {
     rejectUnauthorized: false
