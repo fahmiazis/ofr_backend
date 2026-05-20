@@ -3684,7 +3684,7 @@ module.exports = {
                       no_transaksi: dataKlaim[0]
                     }
                   })
-                  if (findKlaim.status_transaksi === 4) {
+                  if (findKlaim && findKlaim.status_transaksi === 4) {
                     const upUser = await findKlaim.update(data)
                     if (upUser) {
                       arr.push(upUser)
