@@ -55,7 +55,7 @@ module.exports = {
         const finRole = listRole[x].name === undefined ? '' : listRole[x].name 
         for (let i = 0; i < dataAjuan.length; i++) {
           if ((dataAjuan[i].status_reject === 0 || dataAjuan[i].status_reject === null) && (dataAjuan[i].status_transaksi === 2 || dataAjuan[i].status_transaksi === 6)) {
-            const app = dataAjuan[i].appForm
+            const app =  dataAjuan[i].status_transaksi === 6 ? dataAjuan[i].appList : dataAjuan[i].appForm
             const find = app.indexOf(app.find(({ jabatan }) => jabatan === finRole))
             if (level !== 5 && (app[find] !== undefined && app[find + 1] !== undefined) && app[find + 1].status === '1' && (app[find].status === null || app[find].status === '0')) {
               console.log('masuk if available')
