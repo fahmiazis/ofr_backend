@@ -2190,7 +2190,7 @@ module.exports = {
             ],
             limit: limit,
             offset: (page - 1) * limit,
-            group: ['ops.no_transaksi'],
+            group: [category === 'ajuan bayar' ? 'ops.no_pembayaran' : 'ops.no_transaksi'],
             distinct: true
           })
           // const data = []
