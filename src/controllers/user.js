@@ -710,6 +710,7 @@ module.exports = {
   },
   resetPassword: async (req, res) => {
     try {
+      const level = req.user.level
       const id = req.params.id
       const idUser = req.user.id
       const schema = joi.object({
