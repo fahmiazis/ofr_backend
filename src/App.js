@@ -61,6 +61,9 @@ const bracketRoute = require('./routes/bracket')
 // show document
 const showRoute = require('./routes/show')
 
+// dashboard
+const dashboardRoute = require('./routes/dashboard')
+
 const authMiddleware = require('./middlewares/auth')
 
 app.use('/uploads', authMiddleware, express.static('assets/documents'))
@@ -112,6 +115,9 @@ app.use('/bracket', bracketRoute)
 
 // show document
 app.use('/show', authMiddleware, showRoute)
+
+// dashboard
+app.use('/dashboard', authMiddleware, dashboardRoute)
 
 // tes email
 app.use('/tesemail', emailRoute)
