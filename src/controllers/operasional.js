@@ -1,6 +1,7 @@
 const { sequelize, ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, bbm, user, resmail, rekvendor, role_user } = require('../models') // eslint-disable-line
 const joi = require('joi')
 const { Op, QueryTypes } = require('sequelize')
+const { findListRows, findListCount } = require('../helpers/listQuery')
 const response = require('../helpers/response')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
@@ -1427,7 +1428,7 @@ module.exports = {
       const name = findUser.fullname
       const email = findUser.email
       if (level === 5) {
-        const findOps = await ops.findAndCountAll({
+        const findOps = await findListCount(ops, {
           where: {
             kode_plant: kode,
             [Op.and]: [
@@ -1463,7 +1464,7 @@ module.exports = {
               { [Op.not]: { status_transaksi: 1 } },
               category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
             ],
-            [Op.or]: [
+            [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
               { no_coa: { [Op.like]: `%${searchValue}%` } },
               { sub_coa: { [Op.like]: `%${searchValue}%` } },
               { nama_coa: { [Op.like]: `%${searchValue}%` } },
@@ -1482,18 +1483,20 @@ module.exports = {
             ]
           },
           order: [
-            ['start_ops', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+            ['start_ops', 'DESC']
           ],
           include: [
             {
               model: ttd,
-              as: 'appForm'
+              as: 'appForm',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             {
               model: ttd,
-              as: 'appList'
+              as: 'appList',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             // {
             //   model: finance,
@@ -1510,7 +1513,8 @@ module.exports = {
             // },
             {
               model: bbm,
-              as: 'bbm'
+              as: 'bbm',
+              separate: true
             }
           ],
           limit: limit,
@@ -1693,7 +1697,7 @@ module.exports = {
                 }
               }
               if (dataSign.length > 0) {
-                const hasil = await ops.findAll({
+                const hasil = await findListRows(ops, {
                   where: {
                     [Op.and]: [
                       {
@@ -1744,7 +1748,7 @@ module.exports = {
                       jentrans === 'undefined' || jentrans === undefined || jentrans === '' || jentrans === null || jentrans === 'all' ? { [Op.not]: { id: null } } : { sub_coa: jentrans },
                       desttf === 'undefined' || desttf === undefined || desttf === '' || desttf === null || desttf === 'all' ? { [Op.not]: { id: null } } : { tujuan_tf: desttf }
                     ],
-                    [Op.or]: [
+                    [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
                       { kode_plant: { [Op.like]: `%${searchValue}%` } },
                       { area: { [Op.like]: `%${searchValue}%` } },
                       { cost_center: { [Op.like]: `%${searchValue}%` } },
@@ -1766,19 +1770,20 @@ module.exports = {
                     ]
                   },
                   order: [
-                    ['start_ops', 'DESC'],
-                    [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                    [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                    ['start_ops', 'DESC']
                   ],
                   include: [
                     {
                       model: ttd,
-                      as: 'appForm'
+                      as: 'appForm',
+                      separate: true,
+                      order: [['id', 'DESC']]
                     },
                     {
                       model: ttd,
                       as: 'appList',
-                      subQuery: false
+                      separate: true,
+                      order: [['id', 'DESC']]
                     },
                     // {
                     //   model: finance,
@@ -1795,7 +1800,8 @@ module.exports = {
                     // },
                     {
                       model: bbm,
-                      as: 'bbm'
+                      as: 'bbm',
+                      separate: true
                     }
                   ],
                   limit: limit,
@@ -1913,7 +1919,7 @@ module.exports = {
                 dataDepo.push(data)
               }
             }
-            const hasil = await ops.findAll({
+            const hasil = await findListRows(ops, {
               where: {
                 [Op.and]: [
                   {
@@ -1964,7 +1970,7 @@ module.exports = {
                   jentrans === 'undefined' || jentrans === undefined || jentrans === '' || jentrans === null || jentrans === 'all' ? { [Op.not]: { id: null } } : { sub_coa: jentrans },
                   desttf === 'undefined' || desttf === undefined || desttf === '' || desttf === null || desttf === 'all' ? { [Op.not]: { id: null } } : { tujuan_tf: desttf }
                 ],
-                [Op.or]: [
+                [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
                   { kode_plant: { [Op.like]: `%${searchValue}%` } },
                   { area: { [Op.like]: `%${searchValue}%` } },
                   { cost_center: { [Op.like]: `%${searchValue}%` } },
@@ -1986,18 +1992,20 @@ module.exports = {
                 ]
               },
               order: [
-                ['start_ops', 'DESC'],
-                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                ['start_ops', 'DESC']
               ],
               include: [
                 {
                   model: ttd,
-                  as: 'appForm'
+                  as: 'appForm',
+                  separate: true,
+                  order: [['id', 'DESC']]
                 },
                 {
                   model: ttd,
-                  as: 'appList'
+                  as: 'appList',
+                  separate: true,
+                  order: [['id', 'DESC']]
                 },
                 // {
                 //   model: finance,
@@ -2014,7 +2022,8 @@ module.exports = {
                 // },
                 {
                   model: bbm,
-                  as: 'bbm'
+                  as: 'bbm',
+                  separate: true
                 }
               ],
               limit: limit,
@@ -2106,7 +2115,7 @@ module.exports = {
           }
         }
         if (dataDepo.length > 0) {
-          const findOps = await ops.findAll({
+          const findOps = await findListRows(ops, {
             where: {
               [Op.and]: [
                 listDepo !== 'all' ? { [Op.or]: dataDepo } : { [Op.not]: { id: null } },
@@ -2139,7 +2148,7 @@ module.exports = {
                       }
                     }
               ],
-              [Op.or]: [
+              [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
                 { kode_plant: { [Op.like]: `%${searchValue}%` } },
                 { area: { [Op.like]: `%${searchValue}%` } },
                 { cost_center: { [Op.like]: `%${searchValue}%` } },
@@ -2161,18 +2170,20 @@ module.exports = {
               ]
             },
             order: [
-              ['start_ops', 'DESC'],
-              [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-              [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+              ['start_ops', 'DESC']
             ],
             include: [
               {
                 model: ttd,
-                as: 'appForm'
+                as: 'appForm',
+                separate: true,
+                order: [['id', 'DESC']]
               },
               {
                 model: ttd,
-                as: 'appList'
+                as: 'appList',
+                separate: true,
+                order: [['id', 'DESC']]
               },
               // {
               //   model: finance,
@@ -2193,7 +2204,8 @@ module.exports = {
               // },
               {
                 model: bbm,
-                as: 'bbm'
+                as: 'bbm',
+                separate: true
               }
             ],
             limit: limit,
@@ -2295,18 +2307,20 @@ module.exports = {
             }
           },
           order: [
-            ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+            ['id', 'ASC']
           ],
           include: [
             {
               model: ttd,
-              as: 'appForm'
+              as: 'appForm',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             {
               model: ttd,
-              as: 'appList'
+              as: 'appList',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             // {
             //   model: finance,
@@ -2323,7 +2337,8 @@ module.exports = {
             // },
             {
               model: bbm,
-              as: 'bbm'
+              as: 'bbm',
+              separate: true
             }
           ]
         })
@@ -2338,18 +2353,20 @@ module.exports = {
             no_transaksi: no
           },
           order: [
-            ['id', 'ASC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+            ['id', 'ASC']
           ],
           include: [
             {
               model: ttd,
-              as: 'appForm'
+              as: 'appForm',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             {
               model: ttd,
-              as: 'appList'
+              as: 'appList',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             {
               model: finance,
@@ -2362,7 +2379,8 @@ module.exports = {
             },
             {
               model: bbm,
-              as: 'bbm'
+              as: 'bbm',
+              separate: true
             }
           ]
         })

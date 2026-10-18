@@ -1,6 +1,7 @@
 const { klaim, coa, finance, docuser, approve, ttd, role, document, reservoir, picklaim, spvklaim, kliring, outlet, fakturkl, user, role_user } = require('../models') // eslint-disable-line
 const joi = require('joi')
 const { Op } = require('sequelize')
+const { findListRows, findListCount } = require('../helpers/listQuery')
 const response = require('../helpers/response')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
@@ -793,7 +794,7 @@ module.exports = {
         const name = findUser.fullname
         const email = findUser.email
         if (level === 5) {
-          const findKlaim = await klaim.findAndCountAll({
+          const findKlaim = await findListCount(klaim, {
             where: {
               kode_plant: kode,
               [Op.and]: [
@@ -817,7 +818,7 @@ module.exports = {
                 { [Op.not]: { status_transaksi: 1 } },
                 category === 'revisi' ? { [Op.not]: { status_transaksi: 0 } } : { [Op.not]: { id: null } }
               ],
-              [Op.or]: [
+              [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
                 { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
                 { nama_ktp: { [Op.like]: `%${searchValue}%` } },
                 { dn_area: { [Op.like]: `%${searchValue}%` } },
@@ -840,13 +841,14 @@ module.exports = {
               ]
             },
             order: [
-              ['start_klaim', 'DESC'],
-              [{ model: ttd, as: 'appForm' }, 'id', 'DESC']
+              ['start_klaim', 'DESC']
             ],
             include: [
               {
                 model: ttd,
-                as: 'appForm'
+                as: 'appForm',
+                separate: true,
+                order: [['id', 'DESC']]
               },
               {
                 model: finance,
@@ -862,7 +864,8 @@ module.exports = {
               },
               {
                 model: fakturkl,
-                as: 'faktur'
+                as: 'faktur',
+                separate: true
               }
             ],
             limit: limit,
@@ -1026,7 +1029,7 @@ module.exports = {
                     }
                   }
                   if (dataSign.length > 0) {
-                    const hasil = await klaim.findAll({
+                    const hasil = await findListRows(klaim, {
                       where: {
                         [Op.and]: [
                           {
@@ -1061,7 +1064,7 @@ module.exports = {
                                   }
                                 }
                         ],
-                        [Op.or]: [
+                        [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
                           { kode_plant: { [Op.like]: `%${searchValue}%` } },
                           { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
                           { dn_area: { [Op.like]: `%${searchValue}%` } },
@@ -1082,18 +1085,20 @@ module.exports = {
                         ]
                       },
                       order: [
-                        ['start_klaim', 'DESC'],
-                        [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                        [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                        ['start_klaim', 'DESC']
                       ],
                       include: [
                         {
                           model: ttd,
-                          as: 'appForm'
+                          as: 'appForm',
+                          separate: true,
+                          order: [['id', 'DESC']]
                         },
                         {
                           model: ttd,
-                          as: 'appList'
+                          as: 'appList',
+                          separate: true,
+                          order: [['id', 'DESC']]
                         },
                         {
                           model: finance,
@@ -1109,7 +1114,8 @@ module.exports = {
                         },
                         {
                           model: fakturkl,
-                          as: 'faktur'
+                          as: 'faktur',
+                          separate: true
                         }
                       ],
                       limit: limit,
@@ -1147,7 +1153,7 @@ module.exports = {
                 return response(res, 'failed get klaim 1', {}, 400, false)
               }
             } else {
-              const hasil = await klaim.findAll({
+              const hasil = await findListRows(klaim, {
                 where: {
                   [Op.and]: [
                     {
@@ -1182,7 +1188,7 @@ module.exports = {
                             }
                           }
                   ],
-                  [Op.or]: [
+                  [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
                     { kode_plant: { [Op.like]: `%${searchValue}%` } },
                     { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
                     { dn_area: { [Op.like]: `%${searchValue}%` } },
@@ -1203,18 +1209,20 @@ module.exports = {
                   ]
                 },
                 order: [
-                  ['start_klaim', 'DESC'],
-                  [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                  [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                  ['start_klaim', 'DESC']
                 ],
                 include: [
                   {
                     model: ttd,
-                    as: 'appForm'
+                    as: 'appForm',
+                    separate: true,
+                    order: [['id', 'DESC']]
                   },
                   {
                     model: ttd,
-                    as: 'appList'
+                    as: 'appList',
+                    separate: true,
+                    order: [['id', 'DESC']]
                   },
                   {
                     model: finance,
@@ -1230,7 +1238,8 @@ module.exports = {
                   },
                   {
                     model: fakturkl,
-                    as: 'faktur'
+                    as: 'faktur',
+                    separate: true
                   }
                 ],
                 limit: limit,
@@ -1314,7 +1323,7 @@ module.exports = {
               }
               // const hasil = []
               // for (let i = 0; i < findDepo.length; i++) {
-              const hasil = await klaim.findAndCountAll({
+              const hasil = await findListCount(klaim, {
                 where: {
                   // kode_plant: findDepo[i].kode_plant,
                   [Op.and]: [
@@ -1339,7 +1348,7 @@ module.exports = {
                           }
                         }
                   ],
-                  [Op.or]: [
+                  [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
                     { kode_plant: { [Op.like]: `%${searchValue}%` } },
                     { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
                     { dn_area: { [Op.like]: `%${searchValue}%` } },
@@ -1360,18 +1369,20 @@ module.exports = {
                   ]
                 },
                 order: [
-                  ['start_klaim', 'DESC'],
-                  [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                  [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                  ['start_klaim', 'DESC']
                 ],
                 include: [
                   {
                     model: ttd,
-                    as: 'appForm'
+                    as: 'appForm',
+                    separate: true,
+                    order: [['id', 'DESC']]
                   },
                   {
                     model: ttd,
-                    as: 'appList'
+                    as: 'appList',
+                    separate: true,
+                    order: [['id', 'DESC']]
                   },
                   {
                     model: finance,
@@ -1387,7 +1398,8 @@ module.exports = {
                   },
                   {
                     model: fakturkl,
-                    as: 'faktur'
+                    as: 'faktur',
+                    separate: true
                   }
                 ],
                 limit: limit,
@@ -1445,7 +1457,7 @@ module.exports = {
             }
           }
           if (dataDepo.length > 0) {
-            const findKlaim = await klaim.findAndCountAll({
+            const findKlaim = await findListCount(klaim, {
               where: {
                 [Op.and]: [
                   {
@@ -1468,7 +1480,7 @@ module.exports = {
                         }
                       }
                 ],
-                [Op.or]: [
+                [Op.or]: searchValue === '' ? [{ [Op.not]: { id: null } }] : [
                   { kode_plant: { [Op.like]: `%${searchValue}%` } },
                   { nama_tujuan: { [Op.like]: `%${searchValue}%` } },
                   { nama_ktp: { [Op.like]: `%${searchValue}%` } },
@@ -1489,18 +1501,20 @@ module.exports = {
                 ]
               },
               order: [
-                ['start_klaim', 'DESC'],
-                [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-                [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+                ['start_klaim', 'DESC']
               ],
               include: [
                 {
                   model: ttd,
-                  as: 'appForm'
+                  as: 'appForm',
+                  separate: true,
+                  order: [['id', 'DESC']]
                 },
                 {
                   model: ttd,
-                  as: 'appList'
+                  as: 'appList',
+                  separate: true,
+                  order: [['id', 'DESC']]
                 },
                 {
                   model: finance,
@@ -1516,7 +1530,8 @@ module.exports = {
                 },
                 {
                   model: fakturkl,
-                  as: 'faktur'
+                  as: 'faktur',
+                  separate: true
                 }
               ],
               limit: limit,
@@ -1563,18 +1578,20 @@ module.exports = {
             }
           },
           order: [
-            ['start_klaim', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+            ['start_klaim', 'DESC']
           ],
           include: [
             {
               model: ttd,
-              as: 'appForm'
+              as: 'appForm',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             {
               model: ttd,
-              as: 'appList'
+              as: 'appList',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             {
               model: finance,
@@ -1586,7 +1603,8 @@ module.exports = {
             },
             {
               model: fakturkl,
-              as: 'faktur'
+              as: 'faktur',
+              separate: true
             },
             {
               model: kliring,
@@ -1605,18 +1623,20 @@ module.exports = {
             no_transaksi: no
           },
           order: [
-            ['start_klaim', 'DESC'],
-            [{ model: ttd, as: 'appForm' }, 'id', 'DESC'],
-            [{ model: ttd, as: 'appList' }, 'id', 'DESC']
+            ['start_klaim', 'DESC']
           ],
           include: [
             {
               model: ttd,
-              as: 'appForm'
+              as: 'appForm',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             {
               model: ttd,
-              as: 'appList'
+              as: 'appList',
+              separate: true,
+              order: [['id', 'DESC']]
             },
             {
               model: finance,
@@ -1624,7 +1644,8 @@ module.exports = {
             },
             {
               model: fakturkl,
-              as: 'faktur'
+              as: 'faktur',
+              separate: true
             }
           ]
         })
