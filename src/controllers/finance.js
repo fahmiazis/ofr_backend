@@ -46,7 +46,8 @@ module.exports = {
         rom: joi.string().required(),
         bm: joi.string().required(),
         nom: joi.string().required(),
-        rbm: joi.string().required()
+        rbm: joi.string().required(),
+        config_only: joi.number().valid(0, 1)
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -101,7 +102,8 @@ module.exports = {
         rom: joi.string().required(),
         bm: joi.string().required(),
         nom: joi.string().required(),
-        rbm: joi.string().required()
+        rbm: joi.string().required(),
+        config_only: joi.number().valid(0, 1)
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {

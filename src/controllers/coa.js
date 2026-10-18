@@ -4,6 +4,7 @@ const { Op } = require('sequelize')
 const response = require('../helpers/response')
 const fs = require('fs')
 const { pagination } = require('../helpers/pagination')
+const { getFilterJenis } = require('../helpers/configTransaksi')
 const uploadMaster = require('../helpers/uploadMaster')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
@@ -276,13 +277,16 @@ module.exports = {
         })
         if (findDepo) {
           const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
+          // jenis transaksi yang dibatasi untuk area lain (menu konfigurasi transaksi)
+          const filterJenis = await getFilterJenis(findDepo.kode_plant)
           const findTarif = await veriftax.findAll({
             where: {
               [Op.and]: [
                 { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: 'KASBON' }
               ],
-              end_period: null
+              end_period: null,
+              ...filterJenis
             },
             group: ['gl_account']
           })
@@ -293,7 +297,8 @@ module.exports = {
                   { system: { [Op.like]: `%${cekLive}` } },
                   { grouping: 'KASBON' }
                 ],
-                end_period: null
+                end_period: null,
+                ...filterJenis
               },
               group: ['jenis_transaksi']
             })
@@ -304,7 +309,8 @@ module.exports = {
                     { system: { [Op.like]: `%${cekLive}` } },
                     { grouping: 'KASBON' }
                   ],
-                  end_period: null
+                  end_period: null,
+                  ...filterJenis
                 }
               })
               if (findNomTarif.length > 0) {
@@ -329,13 +335,16 @@ module.exports = {
         })
         if (findDepo) {
           const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
+          // jenis transaksi yang dibatasi untuk area lain (menu konfigurasi transaksi)
+          const filterJenis = await getFilterJenis(findDepo.kode_plant)
           const findTarif = await veriftax.findAll({
             where: {
               [Op.and]: [
                 { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: { [Op.like]: '%NON KASBON' } }
               ],
-              end_period: null
+              end_period: null,
+              ...filterJenis
             },
             group: ['gl_account']
           })
@@ -346,7 +355,8 @@ module.exports = {
                   { system: { [Op.like]: `%${cekLive}` } },
                   { grouping: { [Op.like]: '%NON KASBON' } }
                 ],
-                end_period: null
+                end_period: null,
+                ...filterJenis
               },
               group: ['jenis_transaksi']
             })
@@ -357,7 +367,8 @@ module.exports = {
                     { system: { [Op.like]: `%${cekLive}` } },
                     { grouping: { [Op.like]: '%NON KASBON' } }
                   ],
-                  end_period: null
+                  end_period: null,
+                  ...filterJenis
                 }
               })
               if (findNomTarif.length > 0) {

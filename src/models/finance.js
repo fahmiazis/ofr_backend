@@ -70,7 +70,8 @@ module.exports = (sequelize, DataTypes) => {
     bm: DataTypes.STRING,
     nom: DataTypes.STRING,
     rbm: DataTypes.STRING,
-    channel: DataTypes.STRING
+    channel: DataTypes.STRING,
+    config_only: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'finance'

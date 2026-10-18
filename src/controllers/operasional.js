@@ -6,6 +6,7 @@ const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { pagination, filterApp, filter, filterBayar } = require('../helpers/newPagination')
+const { isJenisAllowed } = require('../helpers/configTransaksi')
 const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34]
 const taxAcc = [4, 14, 24, 34, 102]
 const nonPph = 'Non PPh'
@@ -76,6 +77,9 @@ module.exports = {
         })
         if (findDepo.length > 0) {
           const result = await veriftax.findByPk(idTrans)
+          if (result && !(await isJenisAllowed(result.jenis_transaksi, findDepo[0].kode_plant))) {
+            return response(res, 'Jenis transaksi ini tidak dapat diajukan oleh area anda', {}, 400, false)
+          }
           if (result) {
             const send = {
               kode_plant: findDepo[0].kode_plant,
@@ -267,6 +271,10 @@ module.exports = {
 
         if (findDepo.length > 0 && findUpdate) {
           const result = await veriftax.findByPk(idTrans)
+          // jenis transaksi lama tetap boleh disimpan, hanya penggantian ke jenis yang dibatasi yang ditolak
+          if (result && findUpdate.sub_coa !== result.jenis_transaksi && !(await isJenisAllowed(result.jenis_transaksi, findDepo[0].kode_plant))) {
+            return response(res, 'Jenis transaksi ini tidak dapat diajukan oleh area anda', {}, 400, false)
+          }
           if (result) {
             const findDraft = await ops.findOne({
               where: {
