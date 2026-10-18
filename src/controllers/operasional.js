@@ -1,7 +1,7 @@
 const { sequelize, ops, glikk, docuser, approve, ttd, role, document, veriftax, faktur, reservoir, finance, kliring, kpp, bbm, user, resmail, rekvendor, role_user } = require('../models') // eslint-disable-line
 const joi = require('joi')
 const { Op, QueryTypes } = require('sequelize')
-const { findListRows, findListCount } = require('../helpers/listQuery')
+const { findListCount } = require('../helpers/listQuery')
 const response = require('../helpers/response')
 const moment = require('moment')
 const uploadHelper = require('../helpers/upload')
@@ -1697,7 +1697,7 @@ module.exports = {
                 }
               }
               if (dataSign.length > 0) {
-                const hasil = await findListRows(ops, {
+                const { rows: hasil, count: countAll } = await findListCount(ops, {
                   where: {
                     [Op.and]: [
                       {
@@ -1812,7 +1812,7 @@ module.exports = {
                 if (hasil.length > 0) {
                   const result = hasil
                   if (statTrans === 'all') {
-                    const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
+                    const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
 
                     const transactionsAll = result.map(d => d.no_transaksi)
 
@@ -1840,7 +1840,7 @@ module.exports = {
                     return response(res, 'success get ops22', { result, findSign, newOps: result, pageInfo, dataCek, depoVacant, vendorList })
                   } else {
                     const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, roleUser) : category === 'verif' ? filter(type, result, statData, roleUser, level) : filterApp(type, result, roleUser, level, dataRole, findUser)
-                    const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
+                    const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
 
                     const transactionsFiltered = newOps.map(d => d.no_transaksi)
 
@@ -1870,7 +1870,7 @@ module.exports = {
                 } else {
                   const result = hasil
                   // const noDis = []
-                  const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
+                  const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
                   return response(res, 'success get ops3', { result, findSign, pageInfo, newOps: [], dataSign })
                 }
               } else {
@@ -1919,7 +1919,7 @@ module.exports = {
                 dataDepo.push(data)
               }
             }
-            const hasil = await findListRows(ops, {
+            const { rows: hasil, count: countAll } = await findListCount(ops, {
               where: {
                 [Op.and]: [
                   {
@@ -2034,7 +2034,7 @@ module.exports = {
             if (hasil.length > 0) {
               const result = hasil
               if (statTrans === 'all') {
-                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
+                const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
 
                 const transactionsAll = result.map(d => d.no_transaksi)
 
@@ -2062,7 +2062,7 @@ module.exports = {
                 return response(res, 'success get ops', { result, findDepo, newOps: result, pageInfo, dataDepo, vendorList })
               } else {
                 const newOps = category === 'ajuan bayar' ? filterBayar(type, result, statTrans, roleUser) : category === 'verif' ? filter(type, result, statData, roleUser, level) : filterApp(type, result, roleUser, level, dataRole, findUser)
-                const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
+                const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
 
                 const transactionsFiltered = newOps.map(d => d.no_transaksi)
 
@@ -2092,7 +2092,7 @@ module.exports = {
             } else {
               const result = hasil
               // const noDis = []
-              const pageInfo = pagination('/ops/get', req.query, page, limit, hasil.length)
+              const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
               return response(res, 'success get ops25', { result, findDepo, pageInfo, newOps: [], dataDepo })
             }
           } else {
@@ -2115,7 +2115,7 @@ module.exports = {
           }
         }
         if (dataDepo.length > 0) {
-          const findOps = await findListRows(ops, {
+          const { rows: findOps, count: countAll } = await findListCount(ops, {
             where: {
               [Op.and]: [
                 listDepo !== 'all' ? { [Op.or]: dataDepo } : { [Op.not]: { id: null } },
@@ -2249,11 +2249,11 @@ module.exports = {
                 vendorList = vendors
               }
 
-              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
+              const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
               return response(res, 'success get data ops32', { result: findOps, pageInfo, findDepo, newOps: findOps, vendorList })
             } else {
               const newOps = category === 'verif' ? filter(type, findOps, statData, roleUser) : filterApp(type, findOps, roleUser, level, dataRole, findUser)
-              const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
+              const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
 
               const transactionsFiltered = newOps.map(d => d.no_transaksi)
 
@@ -2281,7 +2281,7 @@ module.exports = {
               return response(res, 'success get data ops31', { result: findOps, pageInfo, findDepo, newOps, vendorList })
             }
           } else {
-            const pageInfo = pagination('/ops/get', req.query, page, limit, findOps.length)
+            const pageInfo = pagination('/ops/get', req.query, page, limit, countAll.length)
             return response(res, 'success get data ops33', { result: findOps, pageInfo, findDepo, newOps: [] })
           }
         } else {
