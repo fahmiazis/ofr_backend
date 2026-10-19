@@ -37,7 +37,9 @@ module.exports = (sequelize, DataTypes) => {
     min_nominal: DataTypes.STRING,
     max_nominal: DataTypes.STRING,
     start_period: DataTypes.DATE,
-    end_period: DataTypes.DATE
+    end_period: DataTypes.DATE,
+    history_end_period: DataTypes.DATE,
+    updated_by: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'veriftax'

@@ -5,6 +5,7 @@ const response = require('../helpers/response')
 const fs = require('fs')
 const { pagination } = require('../helpers/pagination')
 const { getFilterJenis } = require('../helpers/configTransaksi')
+const { activeEnd } = require('../helpers/tarif')
 const uploadMaster = require('../helpers/uploadMaster')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
@@ -230,7 +231,7 @@ module.exports = {
                 { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: { [Op.like]: '%NON KASBON' } }
               ],
-              end_period: null
+              end_period: activeEnd()
             },
             group: ['gl_account']
           })
@@ -241,7 +242,7 @@ module.exports = {
                   { system: { [Op.like]: `%${cekLive}` } },
                   { grouping: { [Op.like]: '%NON KASBON' } }
                 ],
-                end_period: null
+                end_period: activeEnd()
               },
               group: ['jenis_transaksi']
             })
@@ -252,7 +253,7 @@ module.exports = {
                     { system: { [Op.like]: `%${cekLive}` } },
                     { grouping: { [Op.like]: '%NON KASBON' } }
                   ],
-                  end_period: null
+                  end_period: activeEnd()
                 }
               })
               if (findNomTarif.length > 0) {
@@ -285,7 +286,7 @@ module.exports = {
                 { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: 'KASBON' }
               ],
-              end_period: null,
+              end_period: activeEnd(),
               ...filterJenis
             },
             group: ['gl_account']
@@ -297,7 +298,7 @@ module.exports = {
                   { system: { [Op.like]: `%${cekLive}` } },
                   { grouping: 'KASBON' }
                 ],
-                end_period: null,
+                end_period: activeEnd(),
                 ...filterJenis
               },
               group: ['jenis_transaksi']
@@ -309,7 +310,7 @@ module.exports = {
                     { system: { [Op.like]: `%${cekLive}` } },
                     { grouping: 'KASBON' }
                   ],
-                  end_period: null,
+                  end_period: activeEnd(),
                   ...filterJenis
                 }
               })
@@ -343,7 +344,7 @@ module.exports = {
                 { system: { [Op.like]: `%${cekLive}` } },
                 { grouping: { [Op.like]: '%NON KASBON' } }
               ],
-              end_period: null,
+              end_period: activeEnd(),
               ...filterJenis
             },
             group: ['gl_account']
@@ -355,7 +356,7 @@ module.exports = {
                   { system: { [Op.like]: `%${cekLive}` } },
                   { grouping: { [Op.like]: '%NON KASBON' } }
                 ],
-                end_period: null,
+                end_period: activeEnd(),
                 ...filterJenis
               },
               group: ['jenis_transaksi']
@@ -367,7 +368,7 @@ module.exports = {
                     { system: { [Op.like]: `%${cekLive}` } },
                     { grouping: { [Op.like]: '%NON KASBON' } }
                   ],
-                  end_period: null,
+                  end_period: activeEnd(),
                   ...filterJenis
                 }
               })
@@ -388,21 +389,21 @@ module.exports = {
       } else if (tipe === 'opskasbon') {
         const findTarif = await veriftax.findAll({
           where: {
-            end_period: null
+            end_period: activeEnd()
           },
           group: ['gl_account']
         })
         if (findTarif.length > 0) {
           const findAllTarif = await veriftax.findAll({
             where: {
-              end_period: null
+              end_period: activeEnd()
             },
             group: ['jenis_transaksi']
           })
           if (findAllTarif.length > 0) {
             const findNomTarif = await veriftax.findAll({
               where: {
-                end_period: null
+                end_period: activeEnd()
               }
             })
             if (findNomTarif.length > 0) {

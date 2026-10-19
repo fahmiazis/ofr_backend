@@ -3,6 +3,7 @@ const { Op } = require('sequelize')
 const joi = require('joi')
 const response = require('../helpers/response')
 const { pagination } = require('../helpers/pagination')
+const { activeEnd } = require('../helpers/tarif')
 
 const schemaConfig = joi.object({
   jenis_transaksi: joi.string().required(),
@@ -131,7 +132,7 @@ module.exports = {
       // lengkapi dengan GL dari master tarif untuk ditampilkan
       const listJenis = result.rows.map(item => item.jenis_transaksi)
       const listGl = listJenis.length === 0 ? [] : await veriftax.findAll({
-        where: { jenis_transaksi: listJenis, end_period: null },
+        where: { jenis_transaksi: listJenis, end_period: activeEnd() },
         attributes: ['jenis_transaksi', 'gl_account', 'gl_name', 'system', 'grouping'],
         group: ['jenis_transaksi', 'gl_account', 'gl_name', 'system', 'grouping']
       })
@@ -149,7 +150,7 @@ module.exports = {
   getOptions: async (req, res) => {
     try {
       const listTarif = await veriftax.findAll({
-        where: { end_period: null },
+        where: { end_period: activeEnd() },
         attributes: ['jenis_transaksi', 'gl_account', 'gl_name', 'system', 'grouping'],
         group: ['jenis_transaksi', 'gl_account', 'gl_name', 'system', 'grouping'],
         order: [['jenis_transaksi', 'ASC']]

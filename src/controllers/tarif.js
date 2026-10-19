@@ -1,4 +1,5 @@
-const { veriftax, depo } = require('../models')
+const { veriftax, depo, sequelize } = require('../models')
+const { activeEnd, inactiveEnd, toPersen, toDate } = require('../helpers/tarif')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -19,42 +20,80 @@ const borderStyles = {
   right: { style: 'thin' }
 }
 
+const schemaTarif = joi.object({
+  system: joi.string().required(),
+  gl_account: joi.string().required(),
+  gl_name: joi.string().required(),
+  gl_jurnal: joi.string().allow('', null),
+  jenis_transaksi: joi.string().required(),
+  type_transaksi: joi.string().required(),
+  jenis_pph: joi.string().required(),
+  grouping: joi.string().required(),
+  po: joi.string().allow('', null),
+  status_npwp: joi.string().required(),
+  status_ident: joi.string().allow('', null),
+  tarif_pph: joi.string().required(),
+  dpp_nongrossup: joi.string().required(),
+  dpp_grossup: joi.string().required(),
+  tax_type: joi.string().allow('', null),
+  tax_code: joi.string().allow('', null),
+  min_nominal: joi.string().allow('', null),
+  max_nominal: joi.string().allow('', null),
+  start_period: joi.string().allow('', null),
+  end_period: joi.string().allow('', null),
+  // update: ubah data ini saja, new: data lama jadi non active & dibuat baris baru
+  mode: joi.string().valid('update', 'new').default('update')
+})
+
+const toNominal = (val) => val === '' || val === null || val === undefined || isNaN(parseFloat(val)) ? null : parseFloat(val)
+const toEmpty = (val) => val === '' || val === undefined ? null : val
+
+// data simpan dari form add / update
+const buildTarif = ({ mode, ...results }, req) => ({
+  ...results,
+  gl_jurnal: toEmpty(results.gl_jurnal),
+  po: toEmpty(results.po),
+  status_ident: toEmpty(results.status_ident),
+  tax_type: toEmpty(results.tax_type),
+  tax_code: toEmpty(results.tax_code),
+  tarif_pph: toPersen(results.tarif_pph),
+  dpp_nongrossup: toPersen(results.dpp_nongrossup),
+  dpp_grossup: toPersen(results.dpp_grossup),
+  min_nominal: toNominal(results.min_nominal),
+  max_nominal: toNominal(results.max_nominal),
+  // start periode kosong pakai tanggal hari ini
+  start_period: toDate(results.start_period) || new Date(),
+  end_period: toDate(results.end_period),
+  updated_by: req.user.fullname || req.user.name
+})
+
+// tarif aktif lain dengan kombinasi gl, jenis, op/badan, npwp dan range nominal yang sama
+const findSameTarif = (data, id) => veriftax.findOne({
+  where: {
+    gl_account: data.gl_account,
+    jenis_transaksi: data.jenis_transaksi,
+    type_transaksi: data.type_transaksi,
+    status_npwp: data.status_npwp,
+    min_nominal: data.min_nominal,
+    max_nominal: data.max_nominal,
+    end_period: activeEnd(),
+    ...(id ? { [Op.not]: { id: id } } : {})
+  }
+})
+
 module.exports = {
   addTarif: async (req, res) => {
     try {
-      const schema = joi.object({
-        system: joi.string().required(),
-        gl_account: joi.string().required(),
-        gl_name: joi.string().required(),
-        jenis_transaksi: joi.string().required(),
-        type_transaksi: joi.string().required(),
-        jenis_pph: joi.string().required(),
-        grouping: joi.string().required(),
-        po: joi.string().required(),
-        status_npwp: joi.string().required(),
-        status_ident: joi.string().required(),
-        tarif_pph: joi.string().required(),
-        dpp_nongrossup: joi.string().required(),
-        dpp_grossup: joi.string().required(),
-        tax_type: joi.string().required(),
-        tax_code: joi.string().required()
-      })
-      const { value: results, error } = schema.validate(req.body)
+      const { value: results, error } = schemaTarif.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findTarif = await veriftax.findOne({
-          where: {
-            gl_account: { [Op.like]: `%${results.gl_account}` },
-            jenis_transaksi: { [Op.like]: `%${results.jenis_transaksi}` },
-            type_transaksi: { [Op.like]: `%${results.type_transaksi}` },
-            status_npwp: { [Op.like]: `%${results.type_transaksi}` }
-          }
-        })
+        const data = buildTarif(results, req)
+        const findTarif = await findSameTarif(data)
         if (findTarif) {
-          return response(res, 'data telah terdftar', {}, 404, false)
+          return response(res, 'data telah terdaftar', {}, 404, false)
         } else {
-          const createTarif = await veriftax.create(results)
+          const createTarif = await veriftax.create(data)
           if (createTarif) {
             return response(res, 'success create tarif')
           } else {
@@ -69,44 +108,29 @@ module.exports = {
   updateTarif: async (req, res) => {
     try {
       const id = req.params.id
-      const schema = joi.object({
-        system: joi.string().required(),
-        gl_account: joi.string().required(),
-        gl_name: joi.string().required(),
-        jenis_transaksi: joi.string().required(),
-        type_transaksi: joi.string().required(),
-        jenis_pph: joi.string().required(),
-        grouping: joi.string().required(),
-        po: joi.string().required(),
-        status_npwp: joi.string().required(),
-        status_ident: joi.string().required(),
-        tarif_pph: joi.string().required(),
-        dpp_nongrossup: joi.string().required(),
-        dpp_grossup: joi.string().required(),
-        tax_type: joi.string().required(),
-        tax_code: joi.string().required()
-      })
-      const { value: results, error } = schema.validate(req.body)
+      const { value: results, error } = schemaTarif.validate(req.body)
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
-        const findTarif = await veriftax.findOne({
-          where: {
-            gl_account: { [Op.like]: `%${results.gl_account}` },
-            jenis_transaksi: { [Op.like]: `%${results.jenis_transaksi}` },
-            type_transaksi: { [Op.like]: `%${results.type_transaksi}` },
-            status_npwp: { [Op.like]: `%${results.status_npwp}` },
-            [Op.not]: {
-              id: id
-            }
-          }
-        })
+        const data = buildTarif(results, req)
+        const findTarif = await findSameTarif(data, id)
         if (findTarif) {
           return response(res, 'data telah terdaftar', {}, 404, false)
         } else {
           const findTarif = await veriftax.findByPk(id)
-          if (findTarif) {
-            const updateTarif = await findTarif.update(results)
+          if (findTarif && results.mode === 'new') {
+            // data lama jadi non active, perubahan disimpan sebagai baris baru
+            const createTarif = await sequelize.transaction(async (t) => {
+              await findTarif.update({
+                end_period: moment(),
+                history_end_period: moment(),
+                updated_by: data.updated_by
+              }, { transaction: t })
+              return veriftax.create(data, { transaction: t })
+            })
+            return response(res, 'success update tarif', { result: createTarif })
+          } else if (findTarif) {
+            const updateTarif = await findTarif.update(data)
             if (updateTarif) {
               return response(res, 'success update tarif')
             } else {
@@ -136,6 +160,7 @@ module.exports = {
           return response(res, err.message, {}, 401, false)
         }
         const dokumen = `assets/masters/${req.files[0].filename}`
+        const updatedBy = req.user.fullname || req.user.name
         const rows = await readXlsxFile(dokumen)
         const count = []
         const cek = [
@@ -208,7 +233,7 @@ module.exports = {
                     minNom === null ? { [Op.not]: { id: null } } : { min_nominal: minNom },
                     maxNom === null ? { [Op.not]: { id: null } } : { max_nominal: maxNom }
                   ],
-                  end_period: null
+                  end_period: activeEnd()
                 }
               })
               const findTarif = await veriftax.findOne({
@@ -217,7 +242,7 @@ module.exports = {
                   jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
                   type_transaksi: { [Op.like]: `%${dataTarif[7]}` },
                   status_npwp: { [Op.like]: `%${dataTarif[9]}` },
-                  end_period: null
+                  end_period: activeEnd()
                 }
               })
               const findPph = await veriftax.findOne({
@@ -225,7 +250,7 @@ module.exports = {
                   gl_account: { [Op.like]: `%${dataTarif[1]}` },
                   jenis_transaksi: { [Op.like]: `%${dataTarif[4]}` },
                   jenis_pph: { [Op.like]: `%${nonPph}` },
-                  end_period: null
+                  end_period: activeEnd()
                 }
               })
               const data = {
@@ -243,14 +268,18 @@ module.exports = {
                 tax_code: dataTarif[11],
                 min_nominal: minNom,
                 max_nominal: maxNom,
-                tarif_pph: parseFloat(dataTarif[14]) + '%',
-                dpp_nongrossup: parseFloat(dataTarif[15]) + '%',
-                dpp_grossup: parseFloat(dataTarif[16]) + '%',
-                start_period: dataTarif[17],
-                end_period: null
+                tarif_pph: toPersen(dataTarif[14]),
+                dpp_nongrossup: toPersen(dataTarif[15]),
+                dpp_grossup: toPersen(dataTarif[16]),
+                start_period: toDate(dataTarif[17]) || new Date(),
+                end_period: toDate(dataTarif[18]),
+                updated_by: updatedBy
               }
+              // tarif lama digantikan data baru
               const expired = {
-                end_period: moment()
+                end_period: moment(),
+                history_end_period: moment(),
+                updated_by: updatedBy
               }
 
               if (findPph && dataTarif[8] !== nonPph) {
@@ -365,7 +394,7 @@ module.exports = {
   },
   getTarif: async (req, res) => {
     try {
-      let { limit, page, search, sort } = req.query
+      let { limit, page, search, sort, status } = req.query
       let searchValue = ''
       let sortValue = ''
       if (typeof search === 'object') {
@@ -381,8 +410,8 @@ module.exports = {
       if (!limit) {
         limit = 10
       } else if (limit === 'all') {
-        const findLimit = await veriftax.findAll()
-        limit = findLimit.length
+        const findLimit = await veriftax.count()
+        limit = findLimit > 0 ? findLimit : 10
       } else {
         limit = parseInt(limit)
       }
@@ -391,8 +420,12 @@ module.exports = {
       } else {
         page = parseInt(page)
       }
+      const filterStatus = status === 'active'
+        ? { end_period: activeEnd() }
+        : status === 'non_active' ? { end_period: inactiveEnd() } : {}
       const findTarif = await veriftax.findAndCountAll({
         where: {
+          ...filterStatus,
           [Op.or]: [
             { system: { [Op.like]: `%${searchValue}%` } },
             { gl_account: { [Op.like]: `%${searchValue}%` } },
@@ -406,7 +439,8 @@ module.exports = {
             { grouping: { [Op.like]: `%${searchValue}%` } },
             { po: { [Op.like]: `%${searchValue}%` } },
             { min_nominal: { [Op.like]: `%${searchValue}%` } },
-            { max_nominal: { [Op.like]: `%${searchValue}%` } }
+            { max_nominal: { [Op.like]: `%${searchValue}%` } },
+            { updated_by: { [Op.like]: `%${searchValue}%` } }
           ]
         },
         order: [[sortValue, 'ASC']],
@@ -458,7 +492,7 @@ module.exports = {
     try {
       const result = await veriftax.findAll({
         where: {
-          end_period: null
+          end_period: activeEnd()
         }
       })
       if (result) {
