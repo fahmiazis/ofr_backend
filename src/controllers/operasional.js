@@ -1379,7 +1379,7 @@ module.exports = {
     }
   },
   getOps: async (req, res) => {
-    // try {
+    try {
     const level = req.user.level
     const kode = req.user.kode
     const idUser = req.user.id
@@ -2291,9 +2291,9 @@ module.exports = {
     } else {
       return response(res, 'Failed get data ops', {}, 404, false)
     }
-    // } catch (error) {
-    //   return response(res, error.message, {}, 500, false)
-    // }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
   },
   getDetailOps: async (req, res) => {
     try {
@@ -3689,6 +3689,69 @@ module.exports = {
           }
         } else {
           return response(res, 'failed revisi ops', {}, 404, false)
+        }
+      }
+    } catch (error) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  verifUlangOps: async (req, res) => {
+    try {
+      const name = req.user.fullname
+      const schema = joi.object({
+        no: joi.string().required()
+      })
+      const { value: results, error } = schema.validate(req.body)
+      if (error) {
+        return response(res, 'Error', { error: error.message }, 404, false)
+      } else {
+        const findOps = await ops.findAll({
+          where: {
+            no_transaksi: results.no
+          }
+        })
+        if (findOps.length > 0) {
+          const findTtd = await ttd.findAll({
+            where: {
+              no_transaksi: results.no
+            }
+          })
+          const findFull = await ttd.findAll({
+            where: {
+              [Op.and]: [
+                { no_transaksi: results.no },
+                { status: { [Op.like]: '%1%' } }
+              ]
+            }
+          })
+
+          // Jika tanda tangan area lengkap, kembalikan ke status 3 (Verifikasi Finance).
+          // Jika belum lengkap, kembalikan ke status 2 (Approval Area).
+          const targetStatus = (findTtd.length > 0 && findTtd.length === findFull.length) ? 3 : 2
+          const histText = `verifikasi ulang by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
+
+          const temp = []
+          for (let i = 0; i < findOps.length; i++) {
+            const send = {
+              status_transaksi: targetStatus,
+              status_reject: null,
+              isreject: null,
+              menu_rev: null,
+              history: `${findOps[i].history}, ${histText}`
+            }
+            const findRes = await ops.findByPk(findOps[i].id)
+            if (findRes) {
+              await findRes.update(send)
+              temp.push(1)
+            }
+          }
+          if (temp.length) {
+            return response(res, 'success verif ulang ops', { targetStatus, no_transaksi: results.no })
+          } else {
+            return response(res, 'failed verif ulang ops', {}, 400, false)
+          }
+        } else {
+          return response(res, 'failed verif ulang ops, data not found', {}, 404, false)
         }
       }
     } catch (error) {
