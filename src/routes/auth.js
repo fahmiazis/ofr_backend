@@ -7,5 +7,6 @@ router.post('/login', auth.login)
 router.post('/refresh', auth.refreshToken)
 router.post('/logout', auth.logout)
 router.post('/logout-all', authMiddleware, auth.logoutAll)
+router.post('/switch-area', authMiddleware, auth.switchArea)
 
 module.exports = router

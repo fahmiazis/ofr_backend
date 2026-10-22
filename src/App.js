@@ -66,6 +66,7 @@ const dashboardRoute = require('./routes/dashboard')
 
 // konfigurasi transaksi
 const configTransaksiRoute = require('./routes/configTransaksi')
+const mappingArcRoute = require('./routes/mappingArc')
 
 const authMiddleware = require('./middlewares/auth')
 
@@ -124,6 +125,7 @@ app.use('/dashboard', authMiddleware, dashboardRoute)
 
 // konfigurasi transaksi
 app.use('/configtrans', authMiddleware, configTransaksiRoute)
+app.use('/arc', authMiddleware, mappingArcRoute)
 
 // tes email
 app.use('/tesemail', emailRoute)

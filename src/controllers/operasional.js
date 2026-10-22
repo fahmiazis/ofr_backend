@@ -8,7 +8,8 @@ const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { pagination, filterApp, filter, filterBayar } = require('../helpers/newPagination')
 const { isJenisAllowed } = require('../helpers/configTransaksi')
-const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34]
+const { ownerCart, dataPembuat, siapkanTtdArc, cekGiliranArc, LEVEL_SPV_ARC } = require('../helpers/arc')
+const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34, LEVEL_SPV_ARC]
 const taxAcc = [4, 14, 24, 34, 102]
 const nonPph = 'Non PPh'
 const spend = 'Rekening Spending Card'
@@ -78,7 +79,7 @@ module.exports = {
         })
         if (findDepo.length > 0) {
           const result = await veriftax.findByPk(idTrans)
-          if (result && !(await isJenisAllowed(result.jenis_transaksi, findDepo[0].kode_plant))) {
+          if (result && !(await isJenisAllowed(result.jenis_transaksi, findDepo[0].kode_plant, req.user.arc))) {
             return response(res, 'Jenis transaksi ini tidak dapat diajukan oleh area anda', {}, 400, false)
           }
           if (result) {
@@ -132,7 +133,8 @@ module.exports = {
               km: results.km,
               liter: results.liter,
               no_pol: results.no_pol,
-              id_pelanggan: results.id_pelanggan
+              id_pelanggan: results.id_pelanggan,
+              ...dataPembuat(req.user)
             }
             const cekRek = []
             if (results.tujuan_tf === 'Vendor') {
@@ -273,7 +275,7 @@ module.exports = {
         if (findDepo.length > 0 && findUpdate) {
           const result = await veriftax.findByPk(idTrans)
           // jenis transaksi lama tetap boleh disimpan, hanya penggantian ke jenis yang dibatasi yang ditolak
-          if (result && findUpdate.sub_coa !== result.jenis_transaksi && !(await isJenisAllowed(result.jenis_transaksi, findDepo[0].kode_plant))) {
+          if (result && findUpdate.sub_coa !== result.jenis_transaksi && !(await isJenisAllowed(result.jenis_transaksi, findDepo[0].kode_plant, req.user.arc))) {
             return response(res, 'Jenis transaksi ini tidak dapat diajukan oleh area anda', {}, 400, false)
           }
           if (result) {
@@ -540,6 +542,7 @@ module.exports = {
         where: {
           [Op.and]: [
             { kode_plant: kode },
+            ownerCart(req.user),
             tipe === 'kasbon' ? { type_kasbon: tipe } : { [Op.not]: { type_kasbon: 'kasbon' } }
           ],
           [Op.or]: [
@@ -892,6 +895,7 @@ module.exports = {
           where: {
             [Op.and]: [
               { kode_plant: kode },
+              ownerCart(req.user),
               finTipe === 'kasbon' ? { type_kasbon: finTipe } : { [Op.not]: { type_kasbon: 'kasbon' } }
             ],
             [Op.or]: [
@@ -1061,7 +1065,8 @@ module.exports = {
         where: {
           no_transaksi: no,
           kode_plant: kode,
-          status_transaksi: 1
+          status_transaksi: 1,
+          ...ownerCart(req.user)
         }
       })
       if (findOps) {
@@ -1069,7 +1074,7 @@ module.exports = {
         for (let i = 0; i < findOps.length; i++) {
           const data = {
             status_transaksi: 2,
-            history: `submit pengajuan ops by ${kode} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`,
+            history: `submit pengajuan ops by ${req.user.arc ? `${req.user.fullname} (AR Center)` : kode} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`,
             start_ops: moment()
           }
           const findData = await ops.findByPk(findOps[i].id)
@@ -1431,6 +1436,8 @@ module.exports = {
         const findOps = await findListCount(ops, {
           where: {
             kode_plant: kode,
+            // user AR Center hanya melihat ajuan AR Center area ini
+            ...(req.user.arc ? { is_arc: 1 } : {}),
             [Op.and]: [
               statTrans === 'all' && realisasi === 'realisasi' ? { status_transaksi: { [Op.gte]: 8 } } : statTrans === 'all' && realisasi !== 'realisasi' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
@@ -1581,6 +1588,8 @@ module.exports = {
                 { manager_tax: level === 14 ? name : 'undefined' },
                 { spv_tax: level === 24 ? name : 'undefined' },
                 { asman_tax: level === 34 ? name : 'undefined' },
+                { spv_arc: level === LEVEL_SPV_ARC ? name : 'undefined' },
+                { spv_arc: level === LEVEL_SPV_ARC ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
@@ -1597,8 +1606,9 @@ module.exports = {
           })
           if (findDepo && findApp) {
             const indexApp = findApp.map(item => item.jabatan).indexOf(roleUser)
-            const dataApp = findApp[indexApp - (indexApp <= 0 ? 0 : 1)].jabatan
-            const dataApp2 = findApp[indexApp - (indexApp <= 0 ? 0 : (level === 12 || level === 11) ? 2 : 1)].jabatan
+            // role yang tidak ada di template Pengajuan Ops (SPV ARC) hanya dicek lewat giliran ajuan AR Center
+            const dataApp = indexApp < 0 ? null : findApp[indexApp - (indexApp <= 0 ? 0 : 1)].jabatan
+            const dataApp2 = indexApp < 0 ? null : findApp[indexApp - (indexApp <= 0 ? 0 : (level === 12 || level === 11) ? 2 : 1)].jabatan
             const dataDepo = []
             const depoVacant = []
             for (let i = 0; i < findDepo.length; i++) {
@@ -1668,7 +1678,7 @@ module.exports = {
                   {
                     [Op.or]: dataCek
                   },
-                  { jabatan: { [Op.like]: `%${dataApp}%` } },
+                  dataApp === null ? { id: null } : { jabatan: { [Op.like]: `%${dataApp}%` } },
                   { status: '1' }
                 ]
               }
@@ -1679,13 +1689,15 @@ module.exports = {
                   {
                     [Op.or]: dataVacant
                   },
-                  (level === 12 || level === 11) ? { jabatan: { [Op.like]: `%${dataApp2}%` } } : { jabatan: { [Op.like]: `%${dataApp}%` } },
+                  dataApp === null ? { id: null } : (level === 12 || level === 11) ? { jabatan: { [Op.like]: `%${dataApp2}%` } } : { jabatan: { [Op.like]: `%${dataApp}%` } },
                   { status: '1' }
                 ]
               }
             })
-            if (findSign.length > 0 || findSignVacant.length > 0) {
-              const dataSign = []
+            // ajuan AR Center punya urutan approval sendiri (Pengajuan Ops ARC)
+            const signArc = await cekGiliranArc(findSignCek.map(item => item.no_transaksi), roleUser)
+            if (findSign.length > 0 || findSignVacant.length > 0 || signArc.length > 0) {
+              const dataSign = [...signArc]
               for (let i = 0; i < findSign.length; i++) {
                 const data = { no_transaksi: findSign[i].no_transaksi }
                 dataSign.push(data)
@@ -1899,6 +1911,8 @@ module.exports = {
                 { manager_tax: level === 14 ? name : 'undefined' },
                 { spv_tax: level === 24 ? name : 'undefined' },
                 { asman_tax: level === 34 ? name : 'undefined' },
+                { spv_arc: level === LEVEL_SPV_ARC ? name : 'undefined' },
+                { spv_arc: level === LEVEL_SPV_ARC ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
@@ -1925,6 +1939,7 @@ module.exports = {
                   {
                     [Op.or]: dataDepo
                   },
+                  level === LEVEL_SPV_ARC ? { is_arc: 1 } : { [Op.not]: { id: null } },
                   statTrans === 'all'
                     ? { [Op.not]: { status_transaksi: null } }
                     : category === 'verif' && level === 2
@@ -2456,6 +2471,17 @@ module.exports = {
           no_transaksi: no
         }
       })
+      if (findOps && parseInt(findOps.is_arc) === 1) {
+        const listTtd = await siapkanTtdArc(findOps)
+        if (listTtd === null) {
+          return response(res, 'Template approval Pengajuan Ops ARC belum diatur di Setting Approval', {}, 404, false)
+        }
+        const pembuat = listTtd.filter(item => item.sebagai === 'pembuat')
+        const pemeriksa = listTtd.filter(item => item.sebagai === 'pemeriksa')
+        const penyetuju = listTtd.filter(item => item.sebagai === 'penyetuju')
+        const mengetahui = listTtd.filter(item => item.sebagai === 'mengetahui')
+        return response(res, 'succes get approval arc', { result: { pembuat, pemeriksa, penyetuju, mengetahui }, findTtd: listTtd })
+      }
       if (findTtd.length > 0) {
         if (findOps.status_transaksi <= 2) {
           const findDepo = await finance.findOne({
@@ -2468,6 +2494,8 @@ module.exports = {
               kode_plant: findOps.kode_plant
             }
           })
+          // ajuan AR Center ditandatangani pembuatnya, bukan AOS area
+          const namaPembuat = parseInt(findOps.is_arc) === 1 ? findOps.created_name : findAos.fullname
           // const findApp = await approve.findAll({
           //   where: {
           //     [Op.and]: [
@@ -2539,7 +2567,7 @@ module.exports = {
               const findId = await ttd.findByPk(findTtd[i].id)
               if (findId) {
                 const data = {
-                  nama: findAos.fullname,
+                  nama: namaPembuat,
                   status: 1
                 }
                 const send = await findId.update(data)
@@ -2607,6 +2635,8 @@ module.exports = {
                 kode_plant: findDepo.kode_plant
               }
             })
+            // ajuan AR Center ditandatangani pembuatnya, bukan AOS area
+            const namaPembuat = parseInt(findOps.is_arc) === 1 ? findOps.created_name : findAos.fullname
             const findApp = await approve.findAll({
               where: {
                 [Op.and]: [
@@ -2623,7 +2653,7 @@ module.exports = {
                 } else {
                   const data = {
                     jabatan: findApp[i].jabatan,
-                    nama: findApp[i].jabatan.toLowerCase() === 'aos' ? findAos.fullname : null,
+                    nama: findApp[i].jabatan.toLowerCase() === 'aos' ? namaPembuat : null,
                     status: findApp[i].jabatan.toLowerCase() === 'aos' ? 1 : null,
                     no_transaksi: no,
                     sebagai: findApp[i].sebagai,
@@ -2682,7 +2712,7 @@ module.exports = {
                   } else {
                     const data = {
                       jabatan: findApp[i].jabatan,
-                      nama: findApp[i].jabatan.toLowerCase() === 'aos' ? findAos.fullname : null,
+                      nama: findApp[i].jabatan.toLowerCase() === 'aos' ? namaPembuat : null,
                       status: findApp[i].jabatan.toLowerCase() === 'aos' ? 1 : null,
                       no_transaksi: no,
                       sebagai: findApp[i].sebagai,
@@ -4395,6 +4425,8 @@ module.exports = {
           const findOps = await ops.findAll({
             where: {
               kode_plant: kode,
+              // user AR Center hanya melihat ajuan AR Center area ini
+              ...(req.user.arc ? { is_arc: 1 } : {}),
               [Op.and]: [
                 statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
                 statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
@@ -5428,7 +5460,12 @@ module.exports = {
         const cek = []
         for (let i = 0; i < findSign.length; i++) {
           const kode = findSign[i].no_transaksi.split('/')[1]
-          const findAos = await user.findOne({
+          // ajuan AR Center ditandatangani pembuatnya, bukan AOS area
+          const findArc = await ops.findOne({
+            where: { no_transaksi: findSign[i].no_transaksi, is_arc: 1 },
+            attributes: ['created_name']
+          })
+          const findAos = findArc ? { fullname: findArc.created_name } : await user.findOne({
             where: {
               kode_plant: kode
             }

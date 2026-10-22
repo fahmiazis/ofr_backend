@@ -279,7 +279,7 @@ module.exports = {
         if (findDepo) {
           const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
           // jenis transaksi yang dibatasi untuk area lain (menu konfigurasi transaksi)
-          const filterJenis = await getFilterJenis(findDepo.kode_plant)
+          const filterJenis = await getFilterJenis(findDepo.kode_plant, req.user.arc)
           const findTarif = await veriftax.findAll({
             where: {
               [Op.and]: [
@@ -337,7 +337,7 @@ module.exports = {
         if (findDepo) {
           const cekLive = findDepo.type_live !== 'NON LIVE SAP (SCYLLA)' ? 'SAP' : 'SCYLLA'
           // jenis transaksi yang dibatasi untuk area lain (menu konfigurasi transaksi)
-          const filterJenis = await getFilterJenis(findDepo.kode_plant)
+          const filterJenis = await getFilterJenis(findDepo.kode_plant, req.user.arc)
           const findTarif = await veriftax.findAll({
             where: {
               [Op.and]: [

@@ -7,7 +7,7 @@ const { activeEnd } = require('../helpers/tarif')
 
 const schemaConfig = joi.object({
   jenis_transaksi: joi.string().required(),
-  tipe_akses: joi.string().valid('all', 'area').required(),
+  tipe_akses: joi.string().valid('all', 'area', 'arc').required(),
   keterangan: joi.string().allow('', null),
   areas: joi.array().items(joi.string()).default([])
 })

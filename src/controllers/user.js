@@ -42,7 +42,8 @@ module.exports = {
             if (result.length > 0) {
               return response(res, 'username already use', {}, 404, false)
             } else {
-              const result = await user.findAll({
+              // user AR Center (level 5 tanpa kode plant) boleh lebih dari 1, area diatur di mapping ARC
+              const result = !results.kode_plant ? [] : await user.findAll({
                 where: {
                   [Op.and]: [
                     { kode_plant: results.kode_plant },
@@ -137,7 +138,7 @@ module.exports = {
       } else {
         if (level === 1 || parseInt(id) === parseInt(idUser)) {
           if (level === 5) {
-            const result = await user.findAll({
+            const result = !results.kode_plant ? [] : await user.findAll({
               where: {
                 [Op.and]: [
                   { kode_plant: results.kode_plant },

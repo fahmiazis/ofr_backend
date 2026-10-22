@@ -71,7 +71,8 @@ module.exports = (sequelize, DataTypes) => {
     nom: DataTypes.STRING,
     rbm: DataTypes.STRING,
     channel: DataTypes.STRING,
-    config_only: DataTypes.INTEGER
+    config_only: DataTypes.INTEGER,
+    spv_arc: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'finance'
