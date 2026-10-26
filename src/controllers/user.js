@@ -19,6 +19,9 @@ const borderStyles = {
   right: { style: 'thin' }
 }
 
+// baris excel master user level 5 tanpa kode area = user AR Central
+const isUserArc = (row) => parseInt(`${row[4]}`.split('-')[0]) === 5 && (row[2] === null || row[2] === undefined || `${row[2]}`.trim() === '')
+
 module.exports = {
   addUser: async (req, res) => {
     try {
@@ -42,7 +45,7 @@ module.exports = {
             if (result.length > 0) {
               return response(res, 'username already use', {}, 404, false)
             } else {
-              // user AR Center (level 5 tanpa kode plant) boleh lebih dari 1, area diatur di mapping ARC
+              // user AR Central (level 5 tanpa kode plant) boleh lebih dari 1, area diatur di mapping ARC
               const result = !results.kode_plant ? [] : await user.findAll({
                 where: {
                   [Op.and]: [
@@ -484,10 +487,14 @@ module.exports = {
             const plant = []
             const userName = []
             const cek = []
+            const arcTanpaEmail = []
             for (let i = 1; i < rows.length; i++) {
               const a = rows[i]
               const cekLevel = a[4].split('-')
-              if (cekLevel[0] === '5' || cekLevel[0] === 5) {
+              if (isUserArc(a)) {
+                // user AR Central: area diatur di Mapping AR Central yang mencocokkan lewat email
+                if (!a[3] || `${a[3]}`.trim() === '') arcTanpaEmail.push(`Email user AR Central ${a[0]} kosong`)
+              } else if (cekLevel[0] === '5' || cekLevel[0] === 5) {
                 plant.push(`Kode area ${a[2]} dan  User level ${a[4]}`)
               }
               userName.push(`User Name ${a[0]}`)
@@ -520,6 +527,8 @@ module.exports = {
             }
             if (result.length > 0) {
               return response(res, 'there is duplication in your file master', { result }, 404, false)
+            } else if (arcTanpaEmail.length > 0) {
+              return response(res, 'Email user AR Central wajib diisi', { result: arcTanpaEmail }, 400, false)
             } else {
               rows.shift()
               const create = []
@@ -556,7 +565,17 @@ module.exports = {
                     email: dataUser[3],
                     level: dataUser[4].split('-')[0]
                   }
-                  if (parseInt(dataUser[4].split('-')[0]) === 5) {
+                  if (isUserArc(dataUser)) {
+                    // user AR Central tidak punya kode area, cari lewat username agar tidak menimpa user lain
+                    dataCreate.kode_plant = null
+                    dataUpdate.kode_plant = null
+                    const findUser = await user.findOne({ where: { username: dataUser[0] } })
+                    if (findUser) {
+                      arr.push(await findUser.update(dataUpdate))
+                    } else {
+                      arr.push(await user.create(dataCreate))
+                    }
+                  } else if (parseInt(dataUser[4].split('-')[0]) === 5) {
                     const findUser = await user.findOne({
                       where: {
                         kode_plant: dataUser[2]

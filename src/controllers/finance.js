@@ -1,4 +1,4 @@
-const { finance, depo, rekening } = require('../models')
+const { finance, depo, rekening, user } = require('../models')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -7,6 +7,7 @@ const { pagination } = require('../helpers/pagination')
 const uploadMaster = require('../helpers/uploadMaster')
 const readXlsxFile = require('read-excel-file/node')
 const multer = require('multer')
+const { LEVEL_SPV_ARC, LEVEL_ROM_ARC } = require('../helpers/arc')
 const excel = require('exceljs')
 const vs = require('fs-extra')
 const { APP_URL } = process.env
@@ -15,6 +16,39 @@ const borderStyles = {
   left: { style: 'thin' },
   bottom: { style: 'thin' },
   right: { style: 'thin' }
+}
+
+// kolom approver AR Central di file upload master finance -> level user yang boleh diisi
+const kolomArc = [
+  { index: 25, key: 'spv_arc', level: LEVEL_SPV_ARC, label: 'SPV ARC' },
+  { index: 26, key: 'rom_arc', level: LEVEL_ROM_ARC, label: 'ROM ARC' }
+]
+
+// nama approver AR Central dicocokkan ke fullname master user sesuai level (kosong / vacant boleh)
+const cekApproverArc = async (rows) => {
+  const listUser = await user.findAll({
+    where: { level: kolomArc.map(x => x.level) },
+    attributes: ['fullname', 'level']
+  })
+  const gagal = []
+  const hasil = rows.map((item, i) => {
+    const data = {}
+    kolomArc.forEach(kolom => {
+      const nama = `${item[kolom.index] === null || item[kolom.index] === undefined ? '' : item[kolom.index]}`.trim()
+      if (nama === '' || nama.toLowerCase() === 'vacant') {
+        data[kolom.key] = nama === '' ? null : nama
+      } else {
+        const findUser = listUser.find(x => parseInt(x.level) === kolom.level && `${x.fullname}`.trim().toLowerCase() === nama.toLowerCase())
+        if (findUser) {
+          data[kolom.key] = findUser.fullname
+        } else {
+          gagal.push(`baris ${i + 2} kode ${item[0]}: ${kolom.label} "${nama}" tidak ditemukan di master user level ${kolom.level}`)
+        }
+      }
+    })
+    return data
+  })
+  return { hasil, gagal }
 }
 
 module.exports = {
@@ -47,7 +81,10 @@ module.exports = {
         bm: joi.string().required(),
         nom: joi.string().required(),
         rbm: joi.string().required(),
-        config_only: joi.number().valid(0, 1)
+        config_only: joi.number().valid(0, 1),
+        // approver ajuan AR Central, kosong bila area tidak di-cover AR Central
+        spv_arc: joi.string().allow('', null),
+        rom_arc: joi.string().allow('', null)
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -103,7 +140,10 @@ module.exports = {
         bm: joi.string().required(),
         nom: joi.string().required(),
         rbm: joi.string().required(),
-        config_only: joi.number().valid(0, 1)
+        config_only: joi.number().valid(0, 1),
+        // approver ajuan AR Central, kosong bila area tidak di-cover AR Central
+        spv_arc: joi.string().allow('', null),
+        rom_arc: joi.string().allow('', null)
       })
       const { value: results, error } = schema.validate(req.body)
       if (error) {
@@ -154,7 +194,7 @@ module.exports = {
         const dokumen = `assets/masters/${req.files[0].filename}`
         const rows = await readXlsxFile(dokumen)
         const count = []
-        const cek = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM', 'CHANNEL']
+        const cek = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM', 'CHANNEL', 'SPV ARC', 'ROM ARC']
         const valid = rows[0]
         for (let i = 0; i < cek.length; i++) {
           console.log(valid[i], cek[i])
@@ -191,6 +231,13 @@ module.exports = {
           } else {
             const arr = []
             rows.shift()
+            const { hasil: dataArc, gagal } = await cekApproverArc(rows)
+            if (gagal.length > 0) {
+              fs.unlink(dokumen, function (err) {
+                if (err) throw err
+              })
+              return response(res, 'Approver AR Central tidak valid', { result: gagal }, 400, false)
+            }
             for (let i = 0; i < rows.length; i++) {
               const dataFinance = rows[i]
               const select = await finance.findOne({
@@ -226,7 +273,8 @@ module.exports = {
                 bm: dataFinance[21],
                 nom: dataFinance[22],
                 rbm: dataFinance[23],
-                channel: dataFinance[24]
+                channel: dataFinance[24],
+                ...dataArc[i]
               }
               if (select) {
                 const upbank = await select.update(data)
@@ -578,7 +626,7 @@ module.exports = {
         const workbook = new excel.Workbook()
         const worksheet = workbook.addWorksheet()
         const arr = []
-        const header = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM', 'CHANNEL']
+        const header = ['KODE PLANT', 'PROFIT/COST CENTER', 'NAMA AREA', 'REGION', 'INISIAL', 'NO REK SPENDING CARD', 'NO REK ZBA', 'NO REK BANK COLL', 'PAGU IKK', 'SISTEM AREA', 'PIC CONSOLE', 'SPV FINANCE 1', 'SPV FINANCE 2', 'ASST MGR FIN', 'MGR FIN', 'PIC TAX', 'SPV TAX', 'ASMEN TAX', 'MGR TAX', 'AOS', 'ROM', 'BM', 'NOM', 'RBM', 'CHANNEL', 'SPV ARC', 'ROM ARC']
         const key = [
           'kode_plant',
           'profit_center',
@@ -604,7 +652,9 @@ module.exports = {
           'bm',
           'nom',
           'rbm',
-          'channel'
+          'channel',
+          'spv_arc',
+          'rom_arc'
         ]
         for (let i = 0; i < header.length; i++) {
           let temp = { header: header[i], key: key[i] }

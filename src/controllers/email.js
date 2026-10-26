@@ -1,4 +1,5 @@
 const { resmail, picklaim, spvklaim, email, ttd, role, finance, user, ops, klaim, ikk, vervendor, role_user, listmenu } = require('../models') // eslint-disable-line
+const { namaApproverArea } = require('../helpers/arc')
 const joi = require('joi')
 const { Op } = require('sequelize')
 const response = require('../helpers/response')
@@ -221,7 +222,10 @@ module.exports = {
         }
       })
       if (findRole && findDepo && findTrans && findAllTrans.length > 0 && (jenis === 'klaim' && !findPic ? findPic : findDepo)) {
-        const listName = Object.values(findDepo.dataValues)
+        // ajuan AR Central dicocokkan ke rom_arc/spv_arc, ajuan area ke rom/bm (agar tidak terkirim ke ROM yang salah)
+        const isArc = parseInt(findTrans.is_arc) === 1
+        const pembuatArc = isArc ? await user.findOne({ where: { username: findTrans.created_by } }) : null
+        const listName = namaApproverArea(findDepo, isArc, pembuatArc)
         if (tipe === 'approve') {
           const findApp = await ttd.findAll({
             where: {
@@ -882,7 +886,12 @@ module.exports = {
                     const findName = findUser[i].fullname === null ? '' : findUser[i].fullname
                     const findEmail = findUser[i].email === null ? '' : findUser[i].email
                     const findKode = findUser[i].kode_plant === null ? '' : findUser[i].kode_plant
-                    if (noLevel.level === 5) {
+                    if (noLevel.level === 5 && isArc) {
+                      // ajuan AR Central dikembalikan ke PIC pembuat
+                      if (findUser[i].username === findTrans.created_by) {
+                        toMail = findUser[i]
+                      }
+                    } else if (noLevel.level === 5) {
                       if (findDepo.kode_plant === findKode && (findDepo.aos.toString().toLowerCase() === findName.toLowerCase() || findDepo.aos.toString().toLowerCase() === findEmail.toLowerCase())) {
                         toMail = findUser[i]
                       }
@@ -1177,8 +1186,19 @@ module.exports = {
       }
     })
     if (findRole && findDepo && findTrans) {
-      const arrName = Object.values(findDepo.dataValues)
-      const listName = arrName.filter(e => e !== null && e !== undefined)
+      // ajuan AR Central: PIC pembuat menggantikan AOS area, approver pakai rom_arc/spv_arc (lihat namaApproverArea)
+      const transDepo = findTrans.filter(x => x.kode_plant === kode)
+      const listTransDepo = transDepo.length > 0 ? transDepo : findTrans
+      const transArc = listTransDepo.filter(x => parseInt(x.is_arc) === 1)
+      const pembuatArc = transArc.length === 0
+        ? []
+        : await user.findAll({ where: { username: [...new Set(transArc.map(x => x.created_by))] } })
+      const arrName = [
+        ...(transArc.length < listTransDepo.length ? namaApproverArea(findDepo, false) : []),
+        ...(transArc.length > 0 ? namaApproverArea(findDepo, true) : []),
+        ...pembuatArc.reduce((acc, x) => [...acc, x.fullname, x.email], [])
+      ]
+      const listName = [...new Set(arrName.filter(e => e !== null && e !== undefined))]
       console.log(arrName)
       console.log(listName)
       if (tipe === 'approve') {
@@ -1791,6 +1811,18 @@ module.exports = {
                       }
                     }
                   }
+                }
+                // ajuan AR Central yang direject dikembalikan ke PIC pembuat, bukan AOS area
+                const transArc = findTrans.filter(x => parseInt(x.is_arc) === 1 && listreject.find((item) => item === x.id) !== undefined)
+                if (noLevel.level === 5 && transArc.length > 0) {
+                  const pembuatArc = await user.findAll({
+                    where: { username: [...new Set(transArc.map(x => x.created_by))] },
+                    include: [{ model: role, as: 'role' }]
+                  })
+                  if (transArc.length === tempDepo.length) {
+                    dataTo.splice(0, dataTo.length)
+                  }
+                  dataTo.push(...pembuatArc)
                 }
                 if (dataTo.length > 0) {
                   return response(res, 'success get draft email', { from: name, to: dataTo, cc: temp, result: findDraft, datareject, tipeStat, listreject })

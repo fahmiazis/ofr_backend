@@ -27,8 +27,8 @@ const isConfigOnly = async (kodePlant) => {
   }
 }
 
-// tipe_akses 'arc' = jenis transaksi yang ditangani AR Center:
-// hanya user AR Center yang boleh mengajukan untuk area yang di-cover AR Center,
+// tipe_akses 'arc' = jenis transaksi yang ditangani AR Central:
+// hanya user AR Central yang boleh mengajukan untuk area yang di-cover AR Central,
 // area lain yang tidak di-cover tetap boleh seperti 'all'
 const allowArea = (config, kodePlant, covered) => {
   if (config.tipe_akses === 'arc') return !covered
@@ -37,8 +37,8 @@ const allowArea = (config, kodePlant, covered) => {
 
 module.exports = {
   // filter where veriftax untuk jenis_transaksi yang boleh diajukan kode_plant ini:
-  // - user AR Center: hanya jenis transaksi AR Center
-  // - area biasa: jenis yang belum dikonfigurasi boleh, yang dibatasi area lain / AR Center tidak
+  // - user AR Central: hanya jenis transaksi AR Central
+  // - area biasa: jenis yang belum dikonfigurasi boleh, yang dibatasi area lain / AR Central tidak
   // - area config_only: hanya jenis yang dikonfigurasi (semua area / area ini)
   getFilterJenis: async (kodePlant, isArc = false) => {
     const listConfig = await findConfig()

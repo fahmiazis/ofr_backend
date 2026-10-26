@@ -8,8 +8,8 @@ const uploadHelper = require('../helpers/upload')
 const multer = require('multer')
 const { pagination, filterApp, filter, filterBayar } = require('../helpers/newPagination')
 const { isJenisAllowed } = require('../helpers/configTransaksi')
-const { ownerCart, dataPembuat, siapkanTtdArc, cekGiliranArc, LEVEL_SPV_ARC } = require('../helpers/arc')
-const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34, LEVEL_SPV_ARC]
+const { ownerCart, kodeFilterArc, cekPemilikArc, dataPembuat, siapkanTtdArc, cekGiliranArc, getAreaApproverArc, getNoArc, LEVEL_SPV_ARC, LEVEL_ROM_ARC, LEVEL_PISAH_ARC } = require('../helpers/arc')
+const access = [10, 11, 12, 2, 7, 8, 9, 4, 14, 24, 34, LEVEL_SPV_ARC, LEVEL_ROM_ARC]
 const taxAcc = [4, 14, 24, 34, 102]
 const nonPph = 'Non PPh'
 const spend = 'Rekening Spending Card'
@@ -265,12 +265,17 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
+        const findUpdate = await ops.findByPk(id)
+        const pesanArc = cekPemilikArc(req.user, findUpdate)
+        if (pesanArc) {
+          return response(res, pesanArc, {}, 400, false)
+        }
+        // draft / revisi AR Central tetap di area ajuan tersebut
         const findDepo = await finance.findAll({
           where: {
-            kode_plant: kode
+            kode_plant: req.user.arc && findUpdate ? findUpdate.kode_plant : kode
           }
         })
-        const findUpdate = await ops.findByPk(id)
 
         if (findDepo.length > 0 && findUpdate) {
           const result = await veriftax.findByPk(idTrans)
@@ -541,7 +546,8 @@ module.exports = {
       const findOps = await ops.findAll({
         where: {
           [Op.and]: [
-            { kode_plant: kode },
+            // draft AR Central bisa dilihat seluruh area mapping (area_arc 'all')
+            { kode_plant: req.user.arc ? await kodeFilterArc(req.user, req.query.area_arc) : kode },
             ownerCart(req.user),
             tipe === 'kasbon' ? { type_kasbon: tipe } : { [Op.not]: { type_kasbon: 'kasbon' } }
           ],
@@ -1074,7 +1080,7 @@ module.exports = {
         for (let i = 0; i < findOps.length; i++) {
           const data = {
             status_transaksi: 2,
-            history: `submit pengajuan ops by ${req.user.arc ? `${req.user.fullname} (AR Center)` : kode} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`,
+            history: `submit pengajuan ops by ${req.user.arc ? `${req.user.fullname} (AR Central)` : kode} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`,
             start_ops: moment()
           }
           const findData = await ops.findByPk(findOps[i].id)
@@ -1435,9 +1441,11 @@ module.exports = {
       if (level === 5) {
         const findOps = await findListCount(ops, {
           where: {
-            kode_plant: kode,
-            // user AR Center hanya melihat ajuan AR Center area ini
-            ...(req.user.arc ? { is_arc: 1 } : {}),
+            // user AR Central hanya melihat ajuan AR Central, filter area_arc 'all' = seluruh area mapping
+            // area tidak merevisi ajuan AR Central
+            ...(req.user.arc
+              ? { kode_plant: await kodeFilterArc(req.user, req.query.area_arc), is_arc: 1 }
+              : { kode_plant: kode, ...(category === 'revisi' ? { is_arc: { [Op.or]: [0, null] } } : {}) }),
             [Op.and]: [
               statTrans === 'all' && realisasi === 'realisasi' ? { status_transaksi: { [Op.gte]: 8 } } : statTrans === 'all' && realisasi !== 'realisasi' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
               statRej === 'all' ? { [Op.not]: { id: null } } : { status_reject: statRej },
@@ -1588,8 +1596,6 @@ module.exports = {
                 { manager_tax: level === 14 ? name : 'undefined' },
                 { spv_tax: level === 24 ? name : 'undefined' },
                 { asman_tax: level === 34 ? name : 'undefined' },
-                { spv_arc: level === LEVEL_SPV_ARC ? name : 'undefined' },
-                { spv_arc: level === LEVEL_SPV_ARC ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
@@ -1606,7 +1612,7 @@ module.exports = {
           })
           if (findDepo && findApp) {
             const indexApp = findApp.map(item => item.jabatan).indexOf(roleUser)
-            // role yang tidak ada di template Pengajuan Ops (SPV ARC) hanya dicek lewat giliran ajuan AR Center
+            // role yang tidak ada di template Pengajuan Ops (SPV ARC) hanya dicek lewat giliran ajuan AR Central
             const dataApp = indexApp < 0 ? null : findApp[indexApp - (indexApp <= 0 ? 0 : 1)].jabatan
             const dataApp2 = indexApp < 0 ? null : findApp[indexApp - (indexApp <= 0 ? 0 : (level === 12 || level === 11) ? 2 : 1)].jabatan
             const dataDepo = []
@@ -1694,16 +1700,19 @@ module.exports = {
                 ]
               }
             })
-            // ajuan AR Center punya urutan approval sendiri (Pengajuan Ops ARC)
-            const signArc = await cekGiliranArc(findSignCek.map(item => item.no_transaksi), roleUser)
+            // ajuan AR Central punya urutan approval sendiri (Pengajuan Ops ARC) dan approver per area sendiri
+            // (spv_arc, rom_arc, nom), jadi tidak diambil dari pengecekan urutan Pengajuan Ops di atas
+            const areaArc = await getAreaApproverArc(level, name, email, listDepo)
+            const signArc = await cekGiliranArc(roleUser, areaArc)
+            const noArc = LEVEL_PISAH_ARC.includes(level) ? await getNoArc([...findSign, ...findSignVacant].map(item => item.no_transaksi)) : []
             if (findSign.length > 0 || findSignVacant.length > 0 || signArc.length > 0) {
               const dataSign = [...signArc]
               for (let i = 0; i < findSign.length; i++) {
                 const data = { no_transaksi: findSign[i].no_transaksi }
-                dataSign.push(data)
+                if (!noArc.includes(findSign[i].no_transaksi)) dataSign.push(data)
               }
               for (let i = 0; i < findSignVacant.length; i++) {
-                if (depoVacant.length !== 0) {
+                if (depoVacant.length !== 0 && !noArc.includes(findSignVacant[i].no_transaksi)) {
                   const data = { no_transaksi: findSignVacant[i].no_transaksi }
                   dataSign.push(data)
                 }
@@ -1911,8 +1920,6 @@ module.exports = {
                 { manager_tax: level === 14 ? name : 'undefined' },
                 { spv_tax: level === 24 ? name : 'undefined' },
                 { asman_tax: level === 34 ? name : 'undefined' },
-                { spv_arc: level === LEVEL_SPV_ARC ? name : 'undefined' },
-                { spv_arc: level === LEVEL_SPV_ARC ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { bm: level === 10 ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { rom: level === 11 ? email : 'undefined' },
                 accarea.find(x => x === parseInt(level)) !== undefined && { nom: level === 12 ? email : 'undefined' }
@@ -1933,13 +1940,20 @@ module.exports = {
                 dataDepo.push(data)
               }
             }
+            // ROM/BM/SPV ARC: ajuan area dari kolom area, ajuan AR Central dari kolom ARC (rom_arc, spv_arc)
+            const areaArc = await getAreaApproverArc(level, name, email, listDepo)
+            const pisahArc = LEVEL_PISAH_ARC.includes(level)
             const { rows: hasil, count: countAll } = await findListCount(ops, {
               where: {
                 [Op.and]: [
                   {
-                    [Op.or]: dataDepo
+                    [Op.or]: [
+                      pisahArc
+                        ? { [Op.and]: [{ [Op.or]: dataDepo }, { [Op.or]: [{ is_arc: 0 }, { is_arc: null }] }] }
+                        : { [Op.or]: dataDepo },
+                      { kode_plant: areaArc.length > 0 ? areaArc : [''], is_arc: 1 }
+                    ]
                   },
-                  level === LEVEL_SPV_ARC ? { is_arc: 1 } : { [Op.not]: { id: null } },
                   statTrans === 'all'
                     ? { [Op.not]: { status_transaksi: null } }
                     : category === 'verif' && level === 2
@@ -2494,7 +2508,7 @@ module.exports = {
               kode_plant: findOps.kode_plant
             }
           })
-          // ajuan AR Center ditandatangani pembuatnya, bukan AOS area
+          // ajuan AR Central ditandatangani pembuatnya, bukan AOS area
           const namaPembuat = parseInt(findOps.is_arc) === 1 ? findOps.created_name : findAos.fullname
           // const findApp = await approve.findAll({
           //   where: {
@@ -2635,7 +2649,7 @@ module.exports = {
                 kode_plant: findDepo.kode_plant
               }
             })
-            // ajuan AR Center ditandatangani pembuatnya, bukan AOS area
+            // ajuan AR Central ditandatangani pembuatnya, bukan AOS area
             const namaPembuat = parseInt(findOps.is_arc) === 1 ? findOps.created_name : findAos.fullname
             const findApp = await approve.findAll({
               where: {
@@ -3666,6 +3680,10 @@ module.exports = {
         return response(res, 'Error', { error: error.message }, 404, false)
       } else {
         const findId = await ops.findByPk(results.id)
+        const pesanArc = cekPemilikArc(req.user, findId)
+        if (pesanArc) {
+          return response(res, pesanArc, {}, 400, false)
+        }
         if (findId) {
           const data = {
             isreject: 0
@@ -3699,6 +3717,10 @@ module.exports = {
             no_transaksi: results.no
           }
         })
+        const pesanArc = cekPemilikArc(req.user, findOps[0])
+        if (pesanArc) {
+          return response(res, pesanArc, {}, 400, false)
+        }
         if (findOps.length > 0) {
           const temp = []
           for (let i = 0; i < findOps.length; i++) {
@@ -4425,7 +4447,7 @@ module.exports = {
           const findOps = await ops.findAll({
             where: {
               kode_plant: kode,
-              // user AR Center hanya melihat ajuan AR Center area ini
+              // user AR Central hanya melihat ajuan AR Central area ini
               ...(req.user.arc ? { is_arc: 1 } : {}),
               [Op.and]: [
                 statTrans === 'all' ? { [Op.not]: { id: null } } : { status_transaksi: statTrans },
@@ -5460,7 +5482,7 @@ module.exports = {
         const cek = []
         for (let i = 0; i < findSign.length; i++) {
           const kode = findSign[i].no_transaksi.split('/')[1]
-          // ajuan AR Center ditandatangani pembuatnya, bukan AOS area
+          // ajuan AR Central ditandatangani pembuatnya, bukan AOS area
           const findArc = await ops.findOne({
             where: { no_transaksi: findSign[i].no_transaksi, is_arc: 1 },
             attributes: ['created_name']

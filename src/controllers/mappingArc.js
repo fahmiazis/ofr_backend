@@ -7,16 +7,23 @@ const readXlsxFile = require('read-excel-file/node')
 const response = require('../helpers/response')
 const { pagination } = require('../helpers/pagination')
 const uploadMaster = require('../helpers/uploadMaster')
-const { LEVEL_SPV_ARC } = require('../helpers/arc')
+const { LEVEL_SPV_ARC, LEVEL_ROM_ARC } = require('../helpers/arc')
 
 const schemaMapping = joi.object({
   username: joi.string().required(),
   areas: joi.array().items(joi.string()).min(1).required()
 })
 
+// kolom approver ajuan AR Central per area di master finance -> level user yang boleh diisi
+const kolomApprover = {
+  spv_arc: { level: LEVEL_SPV_ARC, label: 'SPV ARC' },
+  rom_arc: { level: LEVEL_ROM_ARC, label: 'ROM ARC' }
+}
+
 const schemaSpv = joi.object({
   areas: joi.array().items(joi.string()).min(1).required(),
-  spv_arc: joi.string().allow('', null)
+  kolom: joi.string().valid(...Object.keys(kolomApprover)).default('spv_arc'),
+  nama: joi.string().allow('', null)
 })
 
 const headerMaster = ['KODE PLANT', 'PROFIT CENTER', 'AREA', 'PIC ARC', 'EMAIL']
@@ -30,7 +37,7 @@ const cleanText = (val) => `${val === null || val === undefined ? '' : val}`.tri
 
 const hapusFile = (dokumen) => fs.unlink(dokumen, (err) => { if (err) console.log(err.message) })
 
-// gabungkan baris mapping menjadi 1 baris per user AR Center
+// gabungkan baris mapping menjadi 1 baris per user AR Central
 const groupUser = (listMap) => {
   const result = []
   listMap.forEach(item => {
@@ -87,11 +94,16 @@ module.exports = {
         attributes: ['username', 'fullname', 'email'],
         order: [['fullname', 'ASC']]
       })
+      const rom = await user.findAll({
+        where: { level: LEVEL_ROM_ARC },
+        attributes: ['username', 'fullname', 'email'],
+        order: [['fullname', 'ASC']]
+      })
       const areas = await finance.findAll({
         attributes: ['kode_plant', 'area', 'profit_center', 'region'],
         order: [['area', 'ASC']]
       })
-      return response(res, 'success get option mapping arc', { users, spv, areas })
+      return response(res, 'success get option mapping arc', { users, spv, rom, areas })
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }
@@ -131,7 +143,7 @@ module.exports = {
       return response(res, error.message, {}, 500, false)
     }
   },
-  // area yang di-cover AR Center beserta SPV ARC-nya (kolom spv_arc master finance)
+  // area yang di-cover AR Central beserta approver ARC-nya (kolom spv_arc & rom_arc master finance)
   getSpv: async (req, res) => {
     try {
       const listMap = await mapping_arc.findAll({ attributes: ['kode_plant', 'username'] })
@@ -140,7 +152,7 @@ module.exports = {
         ? []
         : await finance.findAll({
           where: { kode_plant: listKode },
-          attributes: ['id', 'kode_plant', 'area', 'profit_center', 'spv_arc', 'rom', 'nom'],
+          attributes: ['id', 'kode_plant', 'area', 'profit_center', 'spv_arc', 'rom_arc', 'rom', 'nom'],
           order: [['area', 'ASC']]
         })
       const rows = result.map(item => ({
@@ -158,15 +170,16 @@ module.exports = {
       if (error) {
         return response(res, 'Error', { error: error.message }, 400, false)
       }
-      const spvArc = results.spv_arc || null
-      if (spvArc !== null) {
-        const findSpv = await user.findOne({ where: { fullname: spvArc, level: LEVEL_SPV_ARC } })
-        if (!findSpv) {
-          return response(res, 'SPV ARC tidak ditemukan di master user', {}, 400, false)
+      const config = kolomApprover[results.kolom]
+      const nama = results.nama || null
+      if (nama !== null) {
+        const findUser = await user.findOne({ where: { fullname: nama, level: config.level } })
+        if (!findUser) {
+          return response(res, `${config.label} tidak ditemukan di master user`, {}, 400, false)
         }
       }
-      await finance.update({ spv_arc: spvArc }, { where: { kode_plant: [...new Set(results.areas)] } })
-      return response(res, 'success save spv arc')
+      await finance.update({ [results.kolom]: nama }, { where: { kode_plant: [...new Set(results.areas)] } })
+      return response(res, `success save ${config.label}`)
     } catch (error) {
       return response(res, error.message, {}, 500, false)
     }

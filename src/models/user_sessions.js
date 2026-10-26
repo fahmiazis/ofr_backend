@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     device_info: DataTypes.STRING,
-    // area yang sedang diwakili user AR Center
+    // area yang sedang diwakili user AR Central
     kode_plant: DataTypes.STRING,
     ip_address: DataTypes.STRING,
     is_active: {

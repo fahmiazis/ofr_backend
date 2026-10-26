@@ -12,7 +12,7 @@ const addColumnBila = async (queryInterface, table, column, definisi) => {
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    // mapping user AR Center -> area (kode plant) yang diwakili, many to many
+    // mapping user AR Central -> area (kode plant) yang diwakili, many to many
     const listTable = (await queryInterface.showAllTables()).map(x => `${x}`.toLowerCase())
     if (!listTable.includes('mapping_arcs')) {
       await queryInterface.createTable('mapping_arcs', {
@@ -43,12 +43,12 @@ module.exports = {
       await queryInterface.addIndex('mapping_arcs', ['kode_plant'])
     }
 
-    // area yang sedang diwakili user AR Center pada session ini
+    // area yang sedang diwakili user AR Central pada session ini
     await addColumnBila(queryInterface, 'user_sessions', 'kode_plant', {
       type: Sequelize.DataTypes.STRING
     })
 
-    // penanda pembuat ajuan ops (ajuan AR Center dibuat atas nama area)
+    // penanda pembuat ajuan ops (ajuan AR Central dibuat atas nama area)
     await addColumnBila(queryInterface, 'ops', 'is_arc', {
       type: Sequelize.DataTypes.INTEGER,
       allowNull: false,

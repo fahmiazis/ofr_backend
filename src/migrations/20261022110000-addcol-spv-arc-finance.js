@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    // SPV AR Center per area, approver ajuan AR Center setelah PIC ARC
+    // SPV AR Central per area, approver ajuan AR Central setelah PIC ARC
     await queryInterface.addColumn('finances', 'spv_arc', {
       type: Sequelize.DataTypes.STRING
     })

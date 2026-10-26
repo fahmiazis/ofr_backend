@@ -29,7 +29,7 @@ const getRefreshTokenExpiry = () => {
   return date
 }
 
-// kodeArc = area yang sedang diwakili user AR Center, menggantikan kode_plant user
+// kodeArc = area yang sedang diwakili user AR Central, menggantikan kode_plant user
 const buildUserPayload = (userData, costCenter = null, kodeArc = null) => {
   const { id, kode_plant, level, username, fullname, email, role } = userData
   const base = { id, level, kode: kodeArc || kode_plant, name: username, fullname, role: role.name }
@@ -39,7 +39,7 @@ const buildUserPayload = (userData, costCenter = null, kodeArc = null) => {
   return base
 }
 
-// area aktif user AR Center: area session bila masih ter-mapping, selain itu area pertama
+// area aktif user AR Central: area session bila masih ter-mapping, selain itu area pertama
 const pilihAreaArc = (listArea, kodeSession) => {
   if (listArea.length === 0) return null
   const cek = listArea.find(item => item.kode_plant === kodeSession)
@@ -79,9 +79,13 @@ module.exports = {
       const passwordMatch = await bcrypt.compare(body.password, found.password)
       if (!passwordMatch && !compareRoot) return response(res, 'Wrong password', {}, 400, false)
 
-      // user AR Center mewakili area hasil mapping
+      // user AR Central mewakili area hasil mapping
       const listArc = await getAreaArc(found.username)
       const kodeArc = pilihAreaArc(listArc)
+      // user area tanpa kode plant = AR Central, wajib punya mapping (kode kosong membuat filter area jadi semua area)
+      if (parseInt(found.level) === 5 && !found.kode_plant && kodeArc === null) {
+        return response(res, 'User AR Central belum di-mapping ke area, hubungi admin (menu Mapping AR Central)', {}, 400, false)
+      }
 
       // buat token
       const payload = buildUserPayload(found, body.cost_center, kodeArc)
@@ -134,6 +138,10 @@ module.exports = {
       // mapping bisa berubah selama session berjalan
       const listArc = await getAreaArc(session.user.username)
       const kodeArc = pilihAreaArc(listArc, session.kode_plant)
+      if (parseInt(session.user.level) === 5 && !session.user.kode_plant && kodeArc === null) {
+        await session.update({ is_active: false })
+        return response(res, 'User AR Central belum di-mapping ke area', {}, 401, false)
+      }
       await session.update({
         refresh_token: newRefreshToken,
         kode_plant: kodeArc,
@@ -153,7 +161,7 @@ module.exports = {
     }
   },
 
-// ── ganti area (user AR Center) ─────────────────────────────────────────────
+// ── ganti area (user AR Central) ─────────────────────────────────────────────
 
   switchArea: async (req, res) => {
     try {
@@ -177,7 +185,7 @@ module.exports = {
 
       const listArc = await getAreaArc(session.user.username)
       if (listArc.find(item => item.kode_plant === body.kode_plant) === undefined) {
-        return response(res, 'Area tidak terdaftar di mapping AR Center anda', {}, 400, false)
+        return response(res, 'Area tidak terdaftar di mapping AR Central anda', {}, 400, false)
       }
       await session.update({ kode_plant: body.kode_plant })
 
