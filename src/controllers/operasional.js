@@ -3099,47 +3099,17 @@ module.exports = {
                             ]
                           }
                         })
-                        if (findTtd.length === findFull.length) {
-                          const temp = []
-                          for (let i = 0; i < findOps.length; i++) {
-                            const send = {
-                              status_transaksi: 7,
-                              status_reject: null,
-                              isreject: null,
-                              tgl_fullsublist: moment(),
-                              history: `${findOps[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
-                            }
-                            const findRes = await ops.findByPk(findOps[i].id)
-                            if (findRes) {
-                              await findRes.update(send)
-                              temp.push(1)
-                            }
-                          }
-                          if (temp.length) {
-                            return response(res, 'success approve ops', {})
-                          } else {
-                            return response(res, 'success approve ops', {})
-                          }
-                        } else {
-                          const temp = []
-                          for (let i = 0; i < findOps.length; i++) {
-                            const send = {
-                              status_reject: null,
-                              isreject: null,
-                              history: `${findOps[i].history}, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`
-                            }
-                            const findRes = await ops.findByPk(findOps[i].id)
-                            if (findRes) {
-                              await findRes.update(send)
-                              temp.push(1)
-                            }
-                          }
-                          if (temp.length) {
-                            return response(res, 'success approve ops', {})
-                          } else {
-                            return response(res, 'success approve ops', {})
-                          }
-                        }
+                        // 1 UPDATE untuk seluruh item ajuan bayar (sebelumnya findByPk + update per item)
+                        // history null tetap jadi 'null, approved by ...' seperti sebelumnya
+                        const historyApprove = sequelize.literal(`CONCAT(IFNULL(history, 'null'), ${sequelize.escape(`, approved by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}`)})`)
+                        const isFull = findTtd.length === findFull.length
+                        await ops.update({
+                          ...(isFull ? { status_transaksi: 7, tgl_fullsublist: moment() } : {}),
+                          status_reject: null,
+                          isreject: null,
+                          history: historyApprove
+                        }, { where: { id: findOps.map(item => item.id) } })
+                        return response(res, 'success approve ops', {})
                       } else {
                         return response(res, 'failed approve ops1', {}, 404, false)
                       }
@@ -3222,7 +3192,7 @@ module.exports = {
                         people_reject: level,
                         history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                       }
-                      const findRes = await ops.findByPk(findOps[i].id)
+                      const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                       if (findRes) {
                         await findRes.update(send)
                         temp.push(1)
@@ -3236,7 +3206,7 @@ module.exports = {
                         people_reject: level,
                         history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                       }
-                      const findRes = await ops.findByPk(findOps[i].id)
+                      const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                       if (findRes) {
                         await findRes.update(send)
                         temp.push(1)
@@ -3254,7 +3224,7 @@ module.exports = {
                       people_reject: level,
                       history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                     }
-                    const findRes = await ops.findByPk(findOps[i].id)
+                    const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                     if (findRes) {
                       await findRes.update(send)
                       temp.push(1)
@@ -3268,7 +3238,7 @@ module.exports = {
                       people_reject: level,
                       history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                     }
-                    const findRes = await ops.findByPk(findOps[i].id)
+                    const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                     if (findRes) {
                       await findRes.update(send)
                       temp.push(1)
@@ -3286,7 +3256,7 @@ module.exports = {
                     people_reject: level,
                     history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                   }
-                  const findRes = await ops.findByPk(findOps[i].id)
+                  const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                   if (findRes) {
                     await findRes.update(send)
                     temp.push(1)
@@ -3300,7 +3270,7 @@ module.exports = {
                     people_reject: level,
                     history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                   }
-                  const findRes = await ops.findByPk(findOps[i].id)
+                  const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                   if (findRes) {
                     await findRes.update(send)
                     temp.push(1)
@@ -3397,7 +3367,7 @@ module.exports = {
                                           people_reject: level,
                                           history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                         }
-                                        const findRes = await ops.findByPk(findOps[i].id)
+                                        const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                                         if (findRes) {
                                           await findRes.update(send)
                                           temp.push(1)
@@ -3411,7 +3381,7 @@ module.exports = {
                                           people_reject: level,
                                           history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                         }
-                                        const findRes = await ops.findByPk(findOps[i].id)
+                                        const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                                         if (findRes) {
                                           await findRes.update(send)
                                           temp.push(1)
@@ -3431,7 +3401,7 @@ module.exports = {
                                         people_reject: level,
                                         history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                       }
-                                      const findRes = await ops.findByPk(findOps[i].id)
+                                      const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                                       if (findRes) {
                                         await findRes.update(send)
                                         temp.push(1)
@@ -3445,7 +3415,7 @@ module.exports = {
                                         people_reject: level,
                                         history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                       }
-                                      const findRes = await ops.findByPk(findOps[i].id)
+                                      const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                                       if (findRes) {
                                         await findRes.update(send)
                                         temp.push(1)
@@ -3463,7 +3433,7 @@ module.exports = {
                                       people_reject: level,
                                       history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                     }
-                                    const findRes = await ops.findByPk(findOps[i].id)
+                                    const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                                     if (findRes) {
                                       await findRes.update(send)
                                       temp.push(1)
@@ -3477,7 +3447,7 @@ module.exports = {
                                       people_reject: level,
                                       history: `${findOps[i].history}, ${typeReject === 'pembatalan' ? histBatal : histRev}`
                                     }
-                                    const findRes = await ops.findByPk(findOps[i].id)
+                                    const findRes = findOps[i] // sudah di-load di atas, tidak perlu findByPk ulang
                                     if (findRes) {
                                       await findRes.update(send)
                                       temp.push(1)
@@ -3596,46 +3566,23 @@ module.exports = {
                             }
                           })
                           if (findFull) {
-                            const temp = []
-                            for (let i = 0; i < findOps.length; i++) {
-                              const listId = results.list
-                              if (listId.find(e => e === findOps[i].id)) {
-                                const send = {
-                                  status_reject: results.menu === 'Revisi PIC Finance' ? null : 1,
-                                  isreject: results.menu === 'Revisi PIC Finance' ? null : 1,
-                                  reason: results.alasan,
-                                  menu_rev: results.menu,
-                                  people_reject: level,
-                                  status_transaksi: 5,
-                                  // no_pembayaran: null,
-                                  history: `${findOps[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
-                                }
-                                const findRes = await ops.findByPk(findOps[i].id)
-                                if (findRes) {
-                                  await findRes.update(send)
-                                  temp.push(1)
-                                }
-                              }
-                              // else {
-                              //   const send = {
-                              //     status_reject: 1,
-                              //     reason: results.alasan,
-                              //     menu_rev: results.menu,
-                              //     people_reject: level,
-                              //     history: `${findOps[i].history}, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`
-                              //   }
-                              //   const findRes = await ops.findByPk(findOps[i].id)
-                              //   if (findRes) {
-                              //     await findRes.update(send)
-                              //     temp.push(1)
-                              //   }
-                              // }
+                            // 1 UPDATE untuk item yang dipilih (sebelumnya findByPk + update per item)
+                            // history null tetap jadi 'null, reject ajuan bayar by ...' seperti sebelumnya
+                            const listId = results.list
+                            const listReject = findOps.filter(item => listId.find(e => e === item.id))
+                            if (listReject.length > 0) {
+                              const historyReject = sequelize.literal(`CONCAT(IFNULL(history, 'null'), ${sequelize.escape(`, reject ajuan bayar by ${name} at ${moment().format('DD/MM/YYYY h:mm:ss a')}; reason: ${results.alasan}`)})`)
+                              await ops.update({
+                                status_reject: results.menu === 'Revisi PIC Finance' ? null : 1,
+                                isreject: results.menu === 'Revisi PIC Finance' ? null : 1,
+                                reason: results.alasan,
+                                menu_rev: results.menu,
+                                people_reject: level,
+                                status_transaksi: 5,
+                                history: historyReject
+                              }, { where: { id: listReject.map(item => item.id) } })
                             }
-                            if (temp.length) {
-                              return response(res, 'success reject ops', {})
-                            } else {
-                              return response(res, 'success reject ops', {})
-                            }
+                            return response(res, 'success reject ops', {})
                           } else {
                             return response(res, 'failed reject ops1', { findFull }, 404, false)
                           }

@@ -2129,12 +2129,12 @@ module.exports = {
                   </body>
                   `
             }
-            const sendEmail = await wrapMail.wrapedSendMail(mailOptions)
-            if (sendEmail) {
-              return response(res, 'success send email', { sendEmail, cekList, cekNon })
-            } else {
-              return response(res, 'gagal kirim email', { sendEmail, cekList, cekNon })
-            }
+            // SMTP bisa sampai 10 detik: dikirim di background agar proses approve tidak menunggu,
+            // hasil kirim tetap dicatat di log (sebelumnya response juga selalu sukses)
+            wrapMail.wrapedSendMail(mailOptions)
+              .then(sendEmail => { if (!sendEmail) console.log(`gagal kirim email ${no}`) })
+              .catch(error => console.log(`gagal kirim email ${no}: ${error.message}`))
+            return response(res, 'success send email', { cekList, cekNon })
           } else {
             return response(res, 'failed send email1', { findData }, 404, false)
           }
