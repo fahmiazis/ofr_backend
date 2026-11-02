@@ -1162,7 +1162,7 @@ module.exports = {
     }
   },
   draftEmailAjuan: async (req, res) => {
-    // try {
+    try {
     const name = req.user.name
     const level = req.user.level
     const { no, kode, tipe, menu, jenis, datareject, listreject } = req.body
@@ -1860,9 +1860,10 @@ module.exports = {
     } else {
       return response(res, 'failed get email 1m', { findRole, findDepo }, 404, false)
     }
-    // } catch (error) {
-    //   return response(res, error.message, {}, 500, false)
-    // }
+    } catch (error) {
+      console.log(`draftEmailAjuan error: ${error.message}`)
+      return response(res, error.message, {}, 500, false)
+    }
   },
   sendEmail: async (req, res) => {
     try {
